@@ -45,9 +45,12 @@ function App() {
 export default App;
 """
 
-    async def generate_code(self, prompt: str, conversation_history: List[Dict] = None) -> Dict[str, str]:
+    async def generate_code(self, prompt: str, conversation_history: List[Dict] = None, model: str = None) -> Dict[str, str]:
         """Generate code using OpenRouter API"""
         try:
+            # Use provided model or default
+            selected_model = model if model else self.model
+            
             messages = [{"role": "system", "content": self.system_prompt}]
             
             # Add conversation history if provided
@@ -58,10 +61,10 @@ export default App;
             # Add current prompt
             messages.append({"role": "user", "content": prompt})
             
-            logger.info(f"Sending request to OpenRouter with model: {self.model}")
+            logger.info(f"Sending request to OpenRouter with model: {selected_model}")
             
             response = self.client.chat.completions.create(
-                model=self.model,
+                model=selected_model,
                 messages=messages,
                 temperature=0.7,
                 max_tokens=4000
@@ -75,11 +78,19 @@ export default App;
             # Generate explanation
             explanation = f"I've created {prompt.lower()}. The code is ready in the preview panel!"
             
-            logger.info("Code generated successfully")
+            # Get usage statistics
+            usage = {
+                "prompt_tokens": response.usage.prompt_tokens if response.usage else 0,
+                "completion_tokens": response.usage.completion_tokens if response.usage else 0,
+                "total_tokens": response.usage.total_tokens if response.usage else 0
+            }
+            
+            logger.info(f"Code generated successfully. Tokens used: {usage['total_tokens']}")
             
             return {
                 "code": code,
-                "message": explanation
+                "message": explanation,
+                "usage": usage
             }
             
         except Exception as e:
