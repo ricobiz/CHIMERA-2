@@ -29,6 +29,17 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave }) => {
             <Sparkles className="w-5 h-5 text-purple-400" />
             <h2 className="text-white font-semibold">AI Code Assistant</h2>
           </div>
+          {messages.length > 0 && (
+            <Button
+              onClick={onSave}
+              variant="outline"
+              size="sm"
+              className="gap-2 border-gray-700 hover:bg-gray-800 text-white"
+            >
+              <Save className="w-4 h-4" />
+              Save Project
+            </Button>
+          )}
         </div>
       </div>
 
