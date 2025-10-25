@@ -1,19 +1,62 @@
 import React, { useState, useEffect } from 'react';
-import { Eye, Code, RefreshCw, Maximize2 } from 'lucide-react';
+import { Eye, Code, RefreshCw, Download, Github } from 'lucide-react';
 import { Button } from './ui/button';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from './ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from './ui/tabs';
+import { exportProject } from '../services/api';
+import { toast } from '../hooks/use-toast';
 
-const PreviewPanel = ({ generatedCode, isGenerating }) => {
+const PreviewPanel = ({ generatedCode, isGenerating, onExport }) => {
   const [activeTab, setActiveTab] = useState('preview');
   const [previewKey, setPreviewKey] = useState(0);
+  const [iframeContent, setIframeContent] = useState('');
+
+  useEffect(() => {
+    if (generatedCode) {
+      setIframeContent(createPreviewHTML());
+    }
+  }, [generatedCode]);
 
   const refreshPreview = () => {
     setPreviewKey(prev => prev + 1);
+    setIframeContent(createPreviewHTML());
+  };
+
+  const handleExport = async () => {
+    if (!generatedCode) {
+      toast({
+        title: "Nothing to export",
+        description: "Generate some code first.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const projectName = `lovable-app-${Date.now()}`;
+      await exportProject(generatedCode, projectName);
+      
+      toast({
+        title: "Success!",
+        description: "Project exported successfully.",
+      });
+    } catch (error) {
+      console.error('Export error:', error);
+      toast({
+        title: "Export failed",
+        description: "Failed to export project.",
+        variant: "destructive"
+      });
+    }
   };
 
   // Create a blob URL for the preview
   const createPreviewHTML = () => {
     if (!generatedCode) return '';
+    
+    // Clean the code - remove any export default statements for iframe
+    let cleanCode = generatedCode
+      .replace(/export\s+default\s+\w+;?/g, '')
+      .replace(/export\s+{[^}]*};?/g, '');
     
     return `
 <!DOCTYPE html>
@@ -22,15 +65,39 @@ const PreviewPanel = ({ generatedCode, isGenerating }) => {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Preview</title>
+  <script crossorigin src="https://unpkg.com/react@19/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@19/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body { margin: 0; padding: 0; }
+    body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif; }
   </style>
 </head>
 <body>
   <div id="root"></div>
-  <script type="module">
-    ${generatedCode}
+  <script type="text/babel">
+    const { useState, useEffect, useMemo, useCallback } = React;
+    
+    ${cleanCode}
+    
+    // Find the main component (function or const)
+    const componentMatch = \`${cleanCode}\`.match(/(?:function|const)\\s+(\\w+)\\s*(?:=|\\()/);
+    const ComponentName = componentMatch ? componentMatch[1] : 'App';
+    
+    // Render the component
+    try {
+      const component = eval(ComponentName);
+      const root = ReactDOM.createRoot(document.getElementById('root'));
+      root.render(React.createElement(component));
+    } catch (error) {
+      document.getElementById('root').innerHTML = \`
+        <div style="padding: 20px; color: #ef4444; font-family: monospace;">
+          <h3>Preview Error</h3>
+          <pre style="background: #1f2937; padding: 15px; border-radius: 8px; overflow-x: auto;">\${error.message}</pre>
+        </div>
+      \`;
+      console.error('Preview error:', error);
+    }
   </script>
 </body>
 </html>`;
