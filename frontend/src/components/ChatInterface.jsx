@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { Send, Sparkles, ChevronDown } from 'lucide-react';
+import { Send, Sparkles, ChevronDown, Save } from 'lucide-react';
 import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
 import { samplePrompts } from '../mockData';
 
-const ChatInterface = ({ onSendPrompt, messages = [] }) => {
+const ChatInterface = ({ onSendPrompt, messages = [], onSave }) => {
   const [prompt, setPrompt] = useState('');
   const [showSamples, setShowSamples] = useState(true);
 
