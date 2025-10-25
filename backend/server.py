@@ -69,6 +69,10 @@ async def get_status_checks():
 # Include the router in the main app
 app.include_router(api_router)
 
+# Include Lovable routes
+from routes.lovable_routes import router as lovable_router
+app.include_router(lovable_router)
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
