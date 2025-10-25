@@ -156,7 +156,7 @@ const PreviewPanel = ({ generatedCode, isGenerating, onExport }) => {
             ) : generatedCode ? (
               <iframe
                 key={previewKey}
-                srcDoc={createPreviewHTML()}
+                srcDoc={iframeContent}
                 className="w-full h-full border-0"
                 title="Preview"
                 sandbox="allow-scripts allow-same-origin"
