@@ -1,0 +1,125 @@
+from fastapi import APIRouter, HTTPException
+from typing import List
+import logging
+from datetime import datetime, timedelta
+
+from models import (
+    GenerateCodeRequest,
+    GenerateCodeResponse,
+    ProjectCreate,
+    Project,
+    ProjectListItem
+)
+from services.openrouter_service import openrouter_service
+from motor.motor_asyncio import AsyncIOMotorClient
+import os
+
+logger = logging.getLogger(__name__)
+
+router = APIRouter(prefix="/api", tags=["lovable"])
+
+# MongoDB connection
+mongo_url = os.environ['MONGO_URL']
+client = AsyncIOMotorClient(mongo_url)
+db = client[os.environ['DB_NAME']]
+
+@router.post("/generate-code", response_model=GenerateCodeResponse)
+async def generate_code(request: GenerateCodeRequest):
+    """Generate code using OpenRouter AI"""
+    try:
+        logger.info(f"Received code generation request: {request.prompt[:50]}...")
+        
+        # Convert Pydantic models to dicts for OpenRouter service
+        conversation_history = [msg.dict() for msg in request.conversation_history]
+        
+        result = await openrouter_service.generate_code(
+            prompt=request.prompt,
+            conversation_history=conversation_history
+        )
+        
+        return GenerateCodeResponse(
+            code=result["code"],
+            message=result["message"]
+        )
+    except Exception as e:
+        logger.error(f"Error in generate_code endpoint: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/projects", response_model=Project)
+async def create_project(project: ProjectCreate):
+    """Save a new project"""
+    try:
+        project_obj = Project(**project.dict())
+        await db.projects.insert_one(project_obj.dict())
+        logger.info(f"Project created: {project_obj.name}")
+        return project_obj
+    except Exception as e:
+        logger.error(f"Error creating project: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/projects", response_model=List[ProjectListItem])
+async def get_projects():
+    """Get all projects"""
+    try:
+        projects = await db.projects.find().sort("last_accessed", -1).to_list(100)
+        
+        result = []
+        for proj in projects:
+            # Calculate time ago
+            last_accessed = proj.get('last_accessed', datetime.utcnow())
+            time_diff = datetime.utcnow() - last_accessed
+            
+            if time_diff < timedelta(hours=1):
+                time_ago = f"{int(time_diff.total_seconds() / 60)} minutes ago"
+            elif time_diff < timedelta(days=1):
+                time_ago = f"{int(time_diff.total_seconds() / 3600)} hours ago"
+            else:
+                time_ago = f"{int(time_diff.days)} days ago"
+            
+            result.append(ProjectListItem(
+                id=proj['id'],
+                name=proj['name'],
+                description=proj['description'],
+                last_accessed=time_ago,
+                icon=proj.get('icon', '🚀')
+            ))
+        
+        return result
+    except Exception as e:
+        logger.error(f"Error fetching projects: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/projects/{project_id}", response_model=Project)
+async def get_project(project_id: str):
+    """Get a specific project by ID"""
+    try:
+        project = await db.projects.find_one({"id": project_id})
+        if not project:
+            raise HTTPException(status_code=404, detail="Project not found")
+        
+        # Update last accessed time
+        await db.projects.update_one(
+            {"id": project_id},
+            {"$set": {"last_accessed": datetime.utcnow()}}
+        )
+        
+        return Project(**project)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching project: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.delete("/projects/{project_id}")
+async def delete_project(project_id: str):
+    """Delete a project"""
+    try:
+        result = await db.projects.delete_one({"id": project_id})
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Project not found")
+        return {"message": "Project deleted successfully"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting project: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))

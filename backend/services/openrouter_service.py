@@ -1,0 +1,104 @@
+import os
+from openai import OpenAI
+from typing import List, Dict
+import logging
+
+logger = logging.getLogger(__name__)
+
+class OpenRouterService:
+    def __init__(self):
+        self.api_key = os.environ.get('OPENROUTER_API_KEY')
+        if not self.api_key:
+            raise ValueError("OPENROUTER_API_KEY not found in environment variables")
+        
+        self.model = os.environ.get('OPENROUTER_MODEL', 'deepseek/deepseek-coder')
+        
+        self.client = OpenAI(
+            base_url="https://openrouter.ai/api/v1",
+            api_key=self.api_key
+        )
+        
+        self.system_prompt = """You are an expert full-stack developer specializing in React, HTML, CSS, and JavaScript.
+
+IMPORTANT INSTRUCTIONS:
+1. Generate complete, production-ready React code based on user requirements
+2. Return ONLY valid React/JavaScript code that can be directly rendered
+3. Use modern React patterns with hooks (useState, useEffect, etc.)
+4. Include Tailwind CSS classes for styling
+5. Make the code self-contained and functional
+6. Do NOT include import statements for React or ReactDOM - they're already available
+7. Export a default function component
+8. Make the app interactive and visually appealing
+9. Use proper component structure
+
+Code format example:
+function App() {
+  const [state, setState] = useState(initialValue);
+  
+  return (
+    <div className="container">
+      {/* Your JSX here */}
+    </div>
+  );
+}
+
+export default App;
+"""
+
+    async def generate_code(self, prompt: str, conversation_history: List[Dict] = None) -> Dict[str, str]:
+        """Generate code using OpenRouter API"""
+        try:
+            messages = [{"role": "system", "content": self.system_prompt}]
+            
+            # Add conversation history if provided
+            if conversation_history:
+                messages.extend([{"role": msg["role"], "content": msg["content"]} 
+                               for msg in conversation_history])
+            
+            # Add current prompt
+            messages.append({"role": "user", "content": prompt})
+            
+            logger.info(f"Sending request to OpenRouter with model: {self.model}")
+            
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=messages,
+                temperature=0.7,
+                max_tokens=4000
+            )
+            
+            generated_content = response.choices[0].message.content
+            
+            # Extract code from markdown code blocks if present
+            code = self._extract_code(generated_content)
+            
+            # Generate explanation
+            explanation = f"I've created {prompt.lower()}. The code is ready in the preview panel!"
+            
+            logger.info("Code generated successfully")
+            
+            return {
+                "code": code,
+                "message": explanation
+            }
+            
+        except Exception as e:
+            logger.error(f"Error generating code: {str(e)}")
+            raise Exception(f"Failed to generate code: {str(e)}")
+    
+    def _extract_code(self, content: str) -> str:
+        """Extract code from markdown code blocks"""
+        # Remove markdown code blocks
+        if "```" in content:
+            # Extract content between code blocks
+            parts = content.split("```")
+            for i, part in enumerate(parts):
+                if i % 2 == 1:  # Code block
+                    # Remove language identifier
+                    lines = part.split('\n')
+                    if lines[0].strip() in ['javascript', 'jsx', 'js', 'react', 'tsx', 'typescript']:
+                        return '\n'.join(lines[1:])
+                    return part
+        return content
+
+openrouter_service = OpenRouterService()
