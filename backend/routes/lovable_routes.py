@@ -27,19 +27,44 @@ db = client[os.environ['DB_NAME']]
 async def generate_code(request: GenerateCodeRequest):
     """Generate code using OpenRouter AI"""
     try:
-        logger.info(f"Received code generation request: {request.prompt[:50]}...")
+        logger.info(f"Received code generation request: {request.prompt[:50]}... with model: {request.model}")
         
         # Convert Pydantic models to dicts for OpenRouter service
         conversation_history = [msg.dict() for msg in request.conversation_history]
         
         result = await openrouter_service.generate_code(
             prompt=request.prompt,
-            conversation_history=conversation_history
+            conversation_history=conversation_history,
+            model=request.model
         )
+        
+        # Calculate cost based on usage
+        cost = None
+        if result.get("usage"):
+            # Get model pricing from the models list
+            from routes.openrouter_models import POPULAR_MODELS
+            model_info = next((m for m in POPULAR_MODELS if m["id"] == request.model), None)
+            
+            if model_info:
+                input_cost = (result["usage"]["prompt_tokens"] / 1_000_000) * model_info["input_cost_per_1m"]
+                output_cost = (result["usage"]["completion_tokens"] / 1_000_000) * model_info["output_cost_per_1m"]
+                total_cost = input_cost + output_cost
+                
+                cost = {
+                    "input_tokens": result["usage"]["prompt_tokens"],
+                    "output_tokens": result["usage"]["completion_tokens"],
+                    "total_tokens": result["usage"]["total_tokens"],
+                    "input_cost": round(input_cost, 6),
+                    "output_cost": round(output_cost, 6),
+                    "total_cost": round(total_cost, 6),
+                    "currency": "USD"
+                }
         
         return GenerateCodeResponse(
             code=result["code"],
-            message=result["message"]
+            message=result["message"],
+            usage=result.get("usage"),
+            cost=cost
         )
     except Exception as e:
         logger.error(f"Error in generate_code endpoint: {str(e)}")
