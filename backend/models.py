@@ -10,11 +10,14 @@ class Message(BaseModel):
 class GenerateCodeRequest(BaseModel):
     prompt: str
     conversation_history: List[Message] = []
+    model: Optional[str] = "anthropic/claude-3.5-sonnet"
 
 class GenerateCodeResponse(BaseModel):
     code: str
     message: str
     conversation_id: Optional[str] = None
+    usage: Optional[dict] = None
+    cost: Optional[dict] = None
 
 class ProjectCreate(BaseModel):
     name: str
@@ -39,3 +42,7 @@ class ProjectListItem(BaseModel):
     description: str
     last_accessed: str
     icon: str
+
+class ExportRequest(BaseModel):
+    code: str
+    project_name: str = "lovable-app"
