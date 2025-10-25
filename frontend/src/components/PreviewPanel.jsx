@@ -130,11 +130,13 @@ const PreviewPanel = ({ generatedCode, isGenerating, onExport }) => {
               <RefreshCw className="w-4 h-4" />
             </Button>
             <Button
+              onClick={handleExport}
               variant="ghost"
               size="sm"
               className="text-gray-400 hover:text-white"
+              disabled={!generatedCode}
             >
-              <Maximize2 className="w-4 h-4" />
+              <Download className="w-4 h-4" />
             </Button>
           </div>
         </div>
