@@ -1,9 +1,27 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Upload, MoreVertical } from 'lucide-react';
 import { Button } from './ui/button';
-import { mockProjects } from '../mockData';
+import { getProjects } from '../services/api';
 
-const Sidebar = ({ onNewProject }) => {
+const Sidebar = ({ onNewProject, onProjectSelect }) => {
+  const [projects, setProjects] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadProjects();
+  }, []);
+
+  const loadProjects = async () => {
+    try {
+      const data = await getProjects();
+      setProjects(data);
+    } catch (error) {
+      console.error('Failed to load projects:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="w-80 bg-[#1a1a1b] border-r border-gray-800 flex flex-col h-screen">
       {/* Header */}
@@ -46,30 +64,41 @@ const Sidebar = ({ onNewProject }) => {
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm text-gray-400">My workspaces</h2>
           </div>
-          <div className="space-y-2">
-            {mockProjects.map((project) => (
-              <div
-                key={project.id}
-                className="p-4 bg-gray-800/50 hover:bg-gray-800 rounded-lg cursor-pointer transition-colors group"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-2xl">{project.icon}</span>
-                      <h3 className="text-white font-medium">{project.name}</h3>
+          {loading ? (
+            <div className="text-center text-gray-500 py-8">
+              Loading projects...
+            </div>
+          ) : projects.length === 0 ? (
+            <div className="text-center text-gray-500 py-8">
+              No projects yet. Create your first one!
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {projects.map((project) => (
+                <div
+                  key={project.id}
+                  onClick={() => onProjectSelect && onProjectSelect(project)}
+                  className="p-4 bg-gray-800/50 hover:bg-gray-800 rounded-lg cursor-pointer transition-colors group"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-2xl">{project.icon}</span>
+                        <h3 className="text-white font-medium">{project.name}</h3>
+                      </div>
+                      <p className="text-sm text-gray-400">{project.description}</p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Accessed {project.last_accessed}
+                      </p>
                     </div>
-                    <p className="text-sm text-gray-400">{project.description}</p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      Accessed {project.lastAccessed}
-                    </p>
+                    <button className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-white">
+                      <MoreVertical className="w-4 h-4" />
+                    </button>
                   </div>
-                  <button className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-white">
-                    <MoreVertical className="w-4 h-4" />
-                  </button>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
