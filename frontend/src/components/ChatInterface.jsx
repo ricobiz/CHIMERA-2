@@ -13,6 +13,9 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, activeM
   const [showSamples, setShowSamples] = useState(true);
   const [showSettingsMenu, setShowSettingsMenu] = useState(false);
   const [sessionIdInput, setSessionIdInput] = useState('');
+  const [showSessionMenu, setShowSessionMenu] = useState(false);
+  const [allSessions, setAllSessions] = useState([]);
+  const [loadingSessionId, setLoadingSessionId] = useState('');
 
   const handleSubmit = () => {
     if (prompt.trim()) {
