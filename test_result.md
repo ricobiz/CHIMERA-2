@@ -212,15 +212,18 @@ backend:
 
   - task: "DELETE /api/mcp-servers/{id} endpoint"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/routes/integrations_routes.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Created endpoint to delete MCP servers. Needs testing."
+      - working: true
+        agent: "testing"
+        comment: "✅ Successfully tested DELETE /api/mcp-servers/{id} endpoint. MCP server deleted successfully with proper success message. Deletion verified by attempting GET request which correctly returned 404. MongoDB document removal working correctly."
 
   - task: "POST /api/mcp-servers/{id}/health-check endpoint"
     implemented: true
