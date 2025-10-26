@@ -482,6 +482,16 @@ const Settings = ({ selectedModel, onModelChange, onClose, visualValidatorEnable
             >
               MCP Servers
             </button>
+            <button
+              onClick={() => setActiveTab('language')}
+              className={`px-4 py-2 text-sm font-medium transition-colors rounded-t-lg ${
+                activeTab === 'language'
+                  ? 'bg-gray-800 text-white border-b-2 border-purple-500'
+                  : 'text-gray-500 hover:text-gray-300'
+              }`}
+            >
+              Language
+            </button>
           </div>
 
           {/* Models Tab */}
