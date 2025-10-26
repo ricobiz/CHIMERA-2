@@ -379,6 +379,24 @@ const Settings = ({ selectedModel, onModelChange, onClose, visualValidatorEnable
     }
   };
 
+  // Language change handler
+  const handleLanguageChange = (newLanguage) => {
+    setLanguage(newLanguage);
+    localStorage.setItem('chimera_language', newLanguage);
+    
+    // Update i18n language
+    import('i18next').then((i18n) => {
+      if (i18n.default && i18n.default.changeLanguage) {
+        i18n.default.changeLanguage(newLanguage);
+      }
+    });
+    
+    toast({
+      title: newLanguage === 'en' ? "Language Changed" : "Язык Изменен",
+      description: newLanguage === 'en' ? "Interface language updated to English." : "Язык интерфейса изменен на Русский.",
+    });
+  };
+
   const filteredModels = models.filter(model => {
     const matchesSearch = model.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       model.id.toLowerCase().includes(searchTerm.toLowerCase());
