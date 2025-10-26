@@ -166,6 +166,35 @@ async def export_project(request: dict):
             # Add index.html
             index_html = """<!DOCTYPE html>
 <html lang="en">
+
+
+@router.post("/validate-visual")
+async def validate_visual(request: dict):
+    """Validate generated UI visually using screenshot"""
+    from services.visual_validator_service import visual_validator_service
+    
+    try:
+        screenshot_base64 = request.get("screenshot")
+        user_request = request.get("user_request")
+        validator_model = request.get("validator_model", "anthropic/claude-3-haiku")
+        
+        if not screenshot_base64 or not user_request:
+            raise HTTPException(status_code=400, detail="Missing screenshot or user_request")
+        
+        logger.info(f"Visual validation requested with model: {validator_model}")
+        
+        result = await visual_validator_service.validate_screenshot(
+            screenshot_base64=screenshot_base64,
+            user_request=user_request,
+            model=validator_model
+        )
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error in visual validation endpoint: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
