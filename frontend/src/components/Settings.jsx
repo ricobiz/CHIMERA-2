@@ -44,6 +44,26 @@ const Settings = ({ selectedModel, onModelChange, onClose, visualValidatorEnable
     });
   };
 
+  const handleValidatorToggle = (enabled) => {
+    setLocalValidatorEnabled(enabled);
+    onVisualValidatorToggle(enabled);
+    localStorage.setItem('visualValidatorEnabled', enabled);
+    toast({
+      title: enabled ? "Visual Validator Enabled" : "Visual Validator Disabled",
+      description: enabled ? "Your code will be validated visually before preview." : "Visual validation is now off.",
+    });
+  };
+
+  const handleValidatorModelSelect = (modelId) => {
+    setLocalValidatorModel(modelId);
+    onVisualValidatorModelChange(modelId);
+    localStorage.setItem('visualValidatorModel', modelId);
+    toast({
+      title: "Validator Model Updated",
+      description: "Visual validator model has been changed.",
+    });
+  };
+
   const filteredModels = models.filter(model => {
     const matchesSearch = model.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       model.id.toLowerCase().includes(searchTerm.toLowerCase());
