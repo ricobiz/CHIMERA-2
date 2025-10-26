@@ -39,53 +39,18 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, onOpenS
               </div>
             )}
             {messages.length > 0 && (
-              <>
-                <Button
-                  onClick={() => setShowSettings(!showSettings)}
-                  variant="outline"
-                  size="sm"
-                  className="gap-2 border-gray-700 hover:bg-gray-800 text-white hidden md:flex"
-                >
-                  <Settings className="w-4 h-4" />
-                  <span className="hidden lg:inline">Settings</span>
-                </Button>
-                <Button
-                  onClick={onSave}
-                  variant="outline"
-                  size="sm"
-                  className="gap-2 border-gray-700 hover:bg-gray-800 text-white"
-                >
-                  <Save className="w-4 h-4" />
-                  <span className="hidden md:inline">Save</span>
-                </Button>
-              </>
+              <Button
+                onClick={onSave}
+                variant="outline"
+                size="sm"
+                className="gap-2 border-gray-700 hover:bg-gray-800 text-white"
+              >
+                <Save className="w-4 h-4" />
+                <span className="hidden md:inline">Save</span>
+              </Button>
             )}
           </div>
         </div>
-        
-        {/* Model Selector - Collapsible */}
-        {showSettings && (
-          <div className="mt-3 pt-3 border-t border-gray-700">
-            <label className="text-xs text-gray-400 mb-2 block">AI Model</label>
-            <Select value={selectedModel} onValueChange={onModelChange}>
-              <SelectTrigger className="w-full md:w-64 bg-gray-800 border-gray-700 text-white">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-gray-800 border-gray-700">
-                {models.map((model) => (
-                  <SelectItem key={model.id} value={model.id} className="text-white hover:bg-gray-700">
-                    <div className="flex flex-col">
-                      <span>{model.name}</span>
-                      <span className="text-xs text-gray-400">
-                        ${model.input_cost_per_1m}/M in • ${model.output_cost_per_1m}/M out
-                      </span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        )}
       </div>
 
       {/* Messages */}
