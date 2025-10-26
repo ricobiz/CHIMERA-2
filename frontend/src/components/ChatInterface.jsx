@@ -542,9 +542,9 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
               </div>
 
             {showSamples && (
-              <div className="space-y-2 md:space-y-3 mb-6 md:mb-8">
-                <div className="flex items-center justify-between mb-3 md:mb-4">
-                  <span className="text-xs md:text-sm text-gray-500">Examples</span>
+              <div className="space-y-3 mb-8">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-sm text-purple-400 font-semibold">🚀 Platform Capabilities</span>
                   <button
                     onClick={() => setShowSamples(!showSamples)}
                     className="text-gray-500 hover:text-gray-400 transition-colors"
@@ -552,15 +552,64 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
                     <ChevronDown className="w-4 h-4" />
                   </button>
                 </div>
-                {samplePrompts.map((sample, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => handleSampleClick(sample)}
-                    className="w-full p-3 md:p-4 bg-gray-900 hover:bg-gray-800 rounded-lg text-left text-sm md:text-base text-gray-400 hover:text-gray-300 transition-colors border border-gray-800 hover:border-purple-500/30"
+                
+                {/* Feature Cards */}
+                {platformFeatures.map((feature) => (
+                  <div
+                    key={feature.id}
+                    className="bg-gray-900/50 backdrop-blur border border-gray-800 hover:border-purple-500/50 rounded-lg transition-all overflow-hidden"
                   >
-                    {sample}
-                  </button>
+                    <button
+                      onClick={() => setExpandedFeature(expandedFeature === feature.id ? null : feature.id)}
+                      className="w-full p-4 text-left flex items-start justify-between gap-3"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="text-sm font-semibold text-white">{feature.title}</h3>
+                          <span className="px-2 py-0.5 bg-purple-600/20 text-purple-400 text-xs rounded-full border border-purple-600/30">
+                            {feature.category}
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-400 line-clamp-1">{feature.description}</p>
+                      </div>
+                      <ChevronDown 
+                        className={`w-4 h-4 text-gray-500 flex-shrink-0 transition-transform ${
+                          expandedFeature === feature.id ? 'rotate-180' : ''
+                        }`}
+                      />
+                    </button>
+                    
+                    {/* Expanded Content */}
+                    {expandedFeature === feature.id && (
+                      <div className="px-4 pb-4 space-y-3 border-t border-gray-800">
+                        <div className="pt-3">
+                          <p className="text-xs font-semibold text-gray-400 mb-2">📝 What it does:</p>
+                          <p className="text-sm text-gray-300 leading-relaxed">{feature.description}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs font-semibold text-gray-400 mb-2">⚙️ How it works:</p>
+                          <p className="text-sm text-gray-300 leading-relaxed">{feature.howItWorks}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 ))}
+                
+                {/* Quick Start Examples */}
+                <div className="mt-6 pt-4 border-t border-gray-800">
+                  <span className="text-xs text-gray-500 mb-3 block">💡 Quick Start Examples:</span>
+                  <div className="grid grid-cols-1 gap-2">
+                    {samplePrompts.map((sample, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => handleSampleClick(sample)}
+                        className="p-3 bg-gray-900/30 hover:bg-gray-800/50 rounded-lg text-left text-sm text-gray-400 hover:text-gray-300 transition-colors border border-gray-800/50 hover:border-blue-500/30"
+                      >
+                        {sample}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
             )}
             </div>
