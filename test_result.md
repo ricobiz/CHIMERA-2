@@ -197,15 +197,18 @@ backend:
 
   - task: "PUT /api/mcp-servers/{id} endpoint"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/routes/integrations_routes.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Created endpoint to update MCP server configs. Needs testing."
+      - working: true
+        agent: "testing"
+        comment: "✅ Successfully tested PUT /api/mcp-servers/{id} endpoint. Updated MCP server priority from 80 to 90, fallback_order to 2, and health_status to 'healthy'. All updates applied correctly and updated_at timestamp refreshed."
 
   - task: "DELETE /api/mcp-servers/{id} endpoint"
     implemented: true
