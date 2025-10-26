@@ -242,15 +242,18 @@ backend:
 
   - task: "GET /api/mcp-servers/active/list endpoint"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/routes/integrations_routes.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Created endpoint to get active MCP servers with fallback order. Needs testing."
+      - working: true
+        agent: "testing"
+        comment: "✅ Successfully tested GET /api/mcp-servers/active/list endpoint. Retrieved 1 active MCP server correctly. All returned servers are enabled (enabled=true). Fallback order sorting functionality implemented correctly for load balancing."
 
   - task: "POST /api/generate-code endpoint"
     implemented: true
