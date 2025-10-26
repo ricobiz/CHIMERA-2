@@ -1487,10 +1487,10 @@ export default App;""",
         """Test POST /api/generate-design endpoint"""
         print("\n🧪 Testing Generate Design Endpoint...")
         
-        # Test data as specified in review request
+        # Test data as specified in review request (corrected model ID)
         test_data = {
             "user_request": "Create a simple calculator app with basic operations",
-            "model": "google/gemini-2.0-flash-thinking-exp:free"
+            "model": "google/gemini-2.0-flash-exp:free"
         }
         
         try:
