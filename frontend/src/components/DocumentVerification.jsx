@@ -9,6 +9,7 @@ const DocumentVerification = ({ onClose }) => {
   const [verificationResult, setVerificationResult] = useState(null);
   const [dragActive, setDragActive] = useState(false);
   const [error, setError] = useState(null);
+  const [showDetailedReport, setShowDetailedReport] = useState(false);
 
   const handleDrag = (e) => {
     e.preventDefault();
