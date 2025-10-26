@@ -41,7 +41,12 @@ function App() {
   // Load current session on mount
   useEffect(() => {
     const loadCurrentSession = async () => {
-      const sessionId = localStorage.getItem('currentSessionId');
+      // Check URL for session parameter
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlSessionId = urlParams.get('session');
+      
+      const sessionId = urlSessionId || localStorage.getItem('currentSessionId');
+      
       if (sessionId) {
         try {
           const session = await getSession(sessionId);
@@ -49,6 +54,11 @@ function App() {
           setGeneratedCode(session.generated_code || '');
           setTotalCost(session.total_cost || 0);
           setCurrentSessionId(sessionId);
+          
+          // Clear URL parameter after loading
+          if (urlSessionId) {
+            window.history.replaceState({}, '', '/');
+          }
         } catch (error) {
           console.error('Failed to load session:', error);
           localStorage.removeItem('currentSessionId');
