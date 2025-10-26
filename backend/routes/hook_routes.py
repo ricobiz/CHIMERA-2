@@ -153,6 +153,76 @@ async def refresh_agent(target: str = "main", nocache: int = 1, timestamp: Optio
 
 
 @router.get("/text")
+
+
+
+@router.get("/result")
+async def get_result(nocache: int = 1, timestamp: Optional[int] = None):
+    """
+    Get last task result - credentials, screenshot, completion status
+    """
+    global last_result
+    
+    try:
+        return {
+            "success": True,
+            "result": last_result,
+            "timestamp": datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"[HOOK] Error getting result: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+class ControlRequest(BaseModel):
+    mode: str  # ACTIVE, PAUSED, STOP
+
+@router.post("/control")
+async def control_agent(request: ControlRequest):
+    """
+    Control agent execution mode
+    """
+    global control_state, agent_status
+    
+    try:
+        if request.mode not in ["ACTIVE", "PAUSED", "STOP"]:
+            raise HTTPException(
+                status_code=400, 
+                detail="Invalid mode. Must be ACTIVE, PAUSED, or STOP"
+            )
+        
+        # Update control state
+        control_state["run_mode"] = request.mode
+        
+        # Update agent status accordingly
+        if request.mode == "ACTIVE":
+            if agent_status == "IDLE":
+                agent_status = "ACTIVE"
+        elif request.mode == "PAUSED":
+            if agent_status == "ACTIVE":
+                agent_status = "IDLE"
+        elif request.mode == "STOP":
+            agent_status = "IDLE"
+            # Clear execution logs on STOP
+            execution_logs.clear()
+        
+        logger.info(f"[HOOK] Control mode changed to: {request.mode}")
+        logger.info(f"[HOOK] Agent status: {agent_status}")
+        
+        return {
+            "success": True,
+            "run_mode": control_state["run_mode"],
+            "agent_status": agent_status,
+            "message": f"Agent mode set to {request.mode}"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[HOOK] Error controlling agent: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 async def get_current_task(nocache: int = 1, timestamp: Optional[int] = None):
     """
     Get current active task text
