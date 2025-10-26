@@ -492,7 +492,7 @@ async def get_model_assignments():
         assignments = {
             "code_generation": {
                 "name": "Code Generation",
-                "model": "x-ai/grok-beta",
+                "model": "x-ai/grok-code-fast-1",
                 "description": "Main code generation for applications",
                 "is_free": False,
                 "cost_per_1m": "5.00",
@@ -591,7 +591,7 @@ async def optimize_models():
         optimized_assignments = {
             "code_generation": {
                 "name": "Code Generation",
-                "model": "x-ai/grok-beta",
+                "model": "x-ai/grok-code-fast-1",
                 "description": "Main code generation for applications",
                 "is_free": False,
                 "cost_per_1m": "5.00",
