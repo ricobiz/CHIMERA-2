@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Send, ChevronDown, Save, Settings, Square, Paperclip, Mic, Plus, Upload, Check, Edit, List, Trash2, RotateCcw, Edit2 } from 'lucide-react';
-import { Button } from './ui/button';
+import ChimeraLogo from './ChimeraLogo';
 import { Textarea } from './ui/textarea';
 import { samplePrompts } from '../mockData';
 import StatusIndicator from './StatusIndicator';
