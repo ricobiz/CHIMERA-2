@@ -597,9 +597,9 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
               `}</style>
 
             {showSamples && (
-              <div className="space-y-3 mb-8">
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-sm text-purple-400 font-semibold">🚀 Platform Capabilities</span>
+              <div className="space-y-2 mb-8">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-sm text-gray-400 font-medium">Platform Capabilities</span>
                   <button
                     onClick={() => setShowSamples(!showSamples)}
                     className="text-gray-500 hover:text-gray-400 transition-colors"
@@ -608,24 +608,24 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
                   </button>
                 </div>
                 
-                {/* Feature Cards */}
+                {/* Feature Cards - minimal transparent */}
                 {platformFeatures.map((feature) => (
                   <div
                     key={feature.id}
-                    className="bg-gray-900/50 backdrop-blur border border-gray-800 hover:border-purple-500/50 rounded-lg transition-all overflow-hidden"
+                    className="bg-gray-900/20 backdrop-blur-sm border border-gray-800/30 hover:border-gray-700/50 rounded-lg transition-all overflow-hidden"
                   >
                     <button
                       onClick={() => setExpandedFeature(expandedFeature === feature.id ? null : feature.id)}
-                      className="w-full p-4 text-left flex items-start justify-between gap-3"
+                      className="w-full p-3 text-left flex items-start justify-between gap-3"
                     >
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className="text-sm font-semibold text-white">{feature.title}</h3>
-                          <span className="px-2 py-0.5 bg-purple-600/20 text-purple-400 text-xs rounded-full border border-purple-600/30">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <h3 className="text-sm font-medium text-gray-200">{feature.title}</h3>
+                          <span className="px-1.5 py-0.5 bg-gray-700/30 text-gray-400 text-[10px] rounded border border-gray-700/30">
                             {feature.category}
                           </span>
                         </div>
-                        <p className="text-xs text-gray-400 line-clamp-1">{feature.description}</p>
+                        <p className="text-xs text-gray-500 line-clamp-1">{feature.description}</p>
                       </div>
                       <ChevronDown 
                         className={`w-4 h-4 text-gray-500 flex-shrink-0 transition-transform ${
