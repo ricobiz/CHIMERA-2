@@ -201,37 +201,90 @@ class BrowserAutomationService:
     
     async def find_elements_with_vision(self, session_id: str, description: str) -> List[Dict[str, Any]]:
         """
-        Use vision model to find elements matching description
-        This uses the visual validator model to identify elements
+        Use LOCAL vision model to find elements matching description
+        NO API CALLS - uses Hugging Face Florence-2 model locally
         """
         if session_id not in self.sessions:
             raise ValueError(f"Session {session_id} not found")
         
         page = self.sessions[session_id]['page']
-        screenshot = await self.capture_screenshot(session_id)
         
-        # TODO: Call vision model to identify elements
-        # For now, return all interactive elements
         try:
-            elements = await page.query_selector_all('button, a, input, textarea, select')
-            results = []
+            # Capture screenshot
+            screenshot = await self.capture_screenshot(session_id)
             
-            for element in elements[:10]:  # Limit to 10 elements
-                box = await element.bounding_box()
-                if box:
-                    text = await element.inner_text() if await element.inner_text() else ''
-                    tag = await element.evaluate('el => el.tagName')
+            # Use local vision model to find elements
+            elements = await vision_service.find_element(
+                screenshot=screenshot,
+                description=description,
+                return_multiple=True
+            )
+            
+            # Convert vision model results to selectors
+            results = []
+            for elem in elements:
+                box = elem.get('box', {})
+                text = elem.get('text', '')
+                confidence = elem.get('confidence', 0)
+                
+                # Try to match with actual DOM elements
+                # Get element at coordinates
+                center_x = box.get('x', 0) + box.get('width', 0) / 2
+                center_y = box.get('y', 0) + box.get('height', 0) / 2
+                
+                try:
+                    # Get element at point
+                    element_handle = await page.evaluate(f"""
+                        document.elementFromPoint({center_x}, {center_y})
+                    """)
+                    
+                    # Get selector for this element
+                    tag = await page.evaluate("""
+                        (el) => el ? el.tagName.toLowerCase() : null
+                    """, element_handle)
                     
                     results.append({
-                        'selector': f'{tag}',
+                        'selector': tag or 'unknown',
                         'text': text,
-                        'box': box
+                        'box': box,
+                        'confidence': confidence
+                    })
+                except:
+                    # Fallback if DOM query fails
+                    results.append({
+                        'selector': f"element_at_{int(center_x)}_{int(center_y)}",
+                        'text': text,
+                        'box': box,
+                        'confidence': confidence
                     })
             
+            logger.info(f"Vision model found {len(results)} elements for '{description}'")
             return results
+            
         except Exception as e:
-            logger.error(f"Find elements error: {str(e)}")
-            return []
+            logger.error(f"Vision-based element finding error: {str(e)}")
+            
+            # Fallback to simple DOM query
+            try:
+                elements = await page.query_selector_all('button, a, input, textarea, select')
+                results = []
+                
+                for element in elements[:10]:
+                    box = await element.bounding_box()
+                    if box:
+                        text = await element.inner_text() if await element.inner_text() else ''
+                        tag = await element.evaluate('el => el.tagName')
+                        
+                        results.append({
+                            'selector': f'{tag}',
+                            'text': text,
+                            'box': box
+                        })
+                
+                return results
+            except Exception as fallback_error:
+                logger.error(f"Fallback element finding also failed: {str(fallback_error)}")
+                return []
     
     async def close_session(self, session_id: str):
         """Close browser session"""
