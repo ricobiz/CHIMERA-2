@@ -519,6 +519,10 @@ function App() {
     return <DocumentVerification onClose={() => setShowDocVerification(false)} />;
   }
 
+  if (showSelfImprovement) {
+    return <SelfImprovement onClose={() => setShowSelfImprovement(false)} />;
+  }
+
   if (showSettings) {
     return (
       <div className="flex h-screen overflow-hidden bg-[#0f0f10]">
