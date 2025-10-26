@@ -186,6 +186,33 @@ const Settings = ({ selectedModel, onModelChange, onClose, visualValidatorEnable
       <div className="flex-1 overflow-y-auto p-4 md:p-6">
         <div className="max-w-4xl mx-auto space-y-6">
           
+          {/* Tabs */}
+          <div className="flex gap-2 border-b border-gray-800 pb-2">
+            <button
+              onClick={() => setActiveTab('models')}
+              className={`px-4 py-2 text-sm font-medium transition-colors rounded-t-lg ${
+                activeTab === 'models'
+                  ? 'bg-gray-800 text-white border-b-2 border-purple-500'
+                  : 'text-gray-500 hover:text-gray-300'
+              }`}
+            >
+              Models
+            </button>
+            <button
+              onClick={() => setActiveTab('secrets')}
+              className={`px-4 py-2 text-sm font-medium transition-colors rounded-t-lg ${
+                activeTab === 'secrets'
+                  ? 'bg-gray-800 text-white border-b-2 border-purple-500'
+                  : 'text-gray-500 hover:text-gray-300'
+              }`}
+            >
+              API Keys & Secrets
+            </button>
+          </div>
+
+          {/* Models Tab */}
+          {activeTab === 'models' && (
+            <>
           {/* Visual Validator Section */}
           <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-5">
             <div className="flex items-start justify-between mb-4">
