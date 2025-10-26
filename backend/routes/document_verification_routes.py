@@ -31,8 +31,10 @@ async def verify_document(request: DocumentVerificationRequest):
     try:
         logger.info(f"Starting document verification: {request.document_type}")
         
-        # Use reliable vision-capable model
-        model = "openai/gpt-4o"  # Vision-capable OpenAI model
+        # Multi-model verification for cross-validation (3 vision-capable models)
+        primary_model = "openai/gpt-4o"  # GPT-4o with vision
+        secondary_model = "anthropic/claude-3.5-sonnet"  # Claude 3.5 Sonnet with vision
+        tertiary_model = "google/gemini-2.0-flash-exp:free"  # Gemini Flash with vision
         
         # Create comprehensive analysis prompt
         analysis_prompt = f"""You are an expert forensic document analyst specializing in fraud detection and authenticity verification.
