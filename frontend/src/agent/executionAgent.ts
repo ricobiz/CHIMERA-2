@@ -243,11 +243,9 @@ class ExecutionAgentService {
    */
   private async cleanupSession(sessionId: string): Promise<void> {
     try {
-      const API_BASE = process.env.REACT_APP_BACKEND_URL || '';
-      await fetch(`${API_BASE}/api/automation/session/${sessionId}`, {
-        method: 'DELETE'
-      });
+      await closeAutomationSession(sessionId);
       console.log('[ExecutionAgent] Browser session cleaned up');
+      this.currentSessionId = null;
     } catch (error) {
       console.error('[ExecutionAgent] Error cleaning up session:', error);
     }
