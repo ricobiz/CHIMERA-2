@@ -6,6 +6,7 @@ import { samplePrompts } from '../mockData';
 import StatusIndicator from './StatusIndicator';
 import ModelIndicator from './ModelIndicator';
 import TaskProgress from './TaskProgress';
+import { toast } from '../hooks/use-toast';
 
 const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, activeModel, validatorEnabled, validatorModel, generationStatus = 'idle', onOpenSettings, onNewProject, currentSessionId, isGenerating, onStopGeneration, chatMode = 'chat', onChatModeChange, developmentPlan = [], currentTaskIndex = 0, showApprovalButtons = false, onApprove, onRevise }) => {
   const [prompt, setPrompt] = useState('');
