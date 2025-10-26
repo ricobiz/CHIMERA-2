@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Upload, MoreVertical } from 'lucide-react';
+import { Plus, Upload, MoreVertical, Settings } from 'lucide-react';
 import { Button } from './ui/button';
 import { getProjects } from '../services/api';
 
-const Sidebar = ({ onNewProject, onProjectSelect }) => {
+const Sidebar = ({ onNewProject, onProjectSelect, onOpenSettings }) => {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
 
