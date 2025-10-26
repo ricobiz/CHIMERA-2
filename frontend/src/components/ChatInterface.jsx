@@ -247,8 +247,9 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, activeM
                 </div>
               </div>
             ))}
-          </div>
-        )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Input */}
