@@ -134,3 +134,41 @@ export const forceExecute = async (task = 'run') => {
     throw error;
   }
 };
+
+/**
+ * Get task result - credentials, screenshot, completion
+ * @returns {Promise<{result: object}>}
+ */
+export const getResult = async () => {
+  try {
+    const response = await axios.get(`${API}/api/hook/result`, {
+      params: getNoCacheParams()
+    });
+    
+    return response.data;
+  } catch (error) {
+    console.error('[AgentAPI] Error getting result:', error);
+    throw error;
+  }
+};
+
+/**
+ * Control agent execution mode
+ * @param {string} mode - ACTIVE, PAUSED, or STOP
+ * @returns {Promise<{success: boolean, run_mode: string}>}
+ */
+export const controlAgent = async (mode) => {
+  try {
+    console.log(`[AgentAPI] Setting agent mode to: ${mode}`);
+    
+    const response = await axios.post(`${API}/api/hook/control`, {
+      mode
+    });
+    
+    console.log(`[AgentAPI] Agent mode updated: ${response.data.run_mode}`);
+    return response.data;
+  } catch (error) {
+    console.error('[AgentAPI] Error controlling agent:', error);
+    throw error;
+  }
+};
