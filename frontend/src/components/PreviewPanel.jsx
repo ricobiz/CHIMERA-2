@@ -132,7 +132,7 @@ const PreviewPanel = ({ generatedCode, isGenerating }) => {
       {/* Content */}
       <div className="flex-1 overflow-hidden">
         {activeTab === 'preview' ? (
-          <div className="w-full h-full bg-white">
+          <div className="w-full h-full bg-[#0f0f10]">
             {isGenerating ? (
               <div className="flex items-center justify-center h-full bg-gray-900">
                 <div className="text-center">
