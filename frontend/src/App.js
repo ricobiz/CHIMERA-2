@@ -506,15 +506,6 @@ function App() {
 
         {/* Preview Panel - HIDDEN BY DEFAULT on mobile */}
         <div className={`${showPreview ? 'flex' : 'hidden'} md:flex flex-1 flex-col overflow-hidden relative`}>
-          {showPreview && (
-            <Button
-              onClick={() => setShowPreview(false)}
-              className="md:hidden absolute top-4 left-4 z-10 bg-gray-800"
-              size="sm"
-            >
-              <X className="w-4 h-4" />
-            </Button>
-          )}
           <PreviewPanel 
             generatedCode={generatedCode} 
             isGenerating={isGenerating} 
