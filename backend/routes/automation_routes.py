@@ -34,6 +34,11 @@ class FindElementsRequest(BaseModel):
     session_id: str
     description: str
 
+class SmartTypeRequest(BaseModel):
+    session_id: str
+    description: str
+    text: str
+
 
 # ============= Endpoints =============
 
