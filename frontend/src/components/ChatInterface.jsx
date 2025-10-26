@@ -412,11 +412,11 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, activeM
               {messages.length > 0 && (
                 <button
                   onClick={onSave}
-                  className="text-gray-500 hover:text-gray-400 transition-colors group relative"
+                  className="p-2 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 border border-gray-700 hover:border-gray-600 transition-all group relative"
                   title="Save Project"
                 >
-                  <Save className="w-4 h-4" />
-                  <span className="absolute -bottom-8 right-0 bg-gray-900 text-gray-300 text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                  <Save className="w-4 h-4 text-gray-300 group-hover:text-white transition-colors" />
+                  <span className="absolute -bottom-8 right-0 bg-gray-900 text-gray-300 text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-gray-700">
                     Save as Project
                   </span>
                 </button>
