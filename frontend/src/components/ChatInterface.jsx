@@ -685,8 +685,8 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
         </div>
       </div>
 
-      {/* Input */}
-      <div className="border-t border-gray-800 p-3 md:p-6 bg-[#0f0f10] mt-auto">
+      {/* Input - fixed at bottom */}
+      <div className="flex-shrink-0 border-t border-gray-800 p-3 md:p-6 bg-[#0f0f10]">
         <div className="max-w-3xl mx-auto">
           <div className="relative">
             <Textarea
