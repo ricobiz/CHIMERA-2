@@ -458,11 +458,11 @@ const Settings = ({ selectedModel, onModelChange, onClose, visualValidatorEnable
       <div className="flex-1 overflow-y-auto p-4 md:p-6">
         <div className="max-w-4xl mx-auto space-y-6">
           
-          {/* Tabs */}
-          <div className="flex gap-2 border-b border-gray-800 pb-2">
+          {/* Tabs - Scrollable on mobile */}
+          <div className="flex gap-2 border-b border-gray-800 pb-2 overflow-x-auto scrollbar-hide">
             <button
               onClick={() => setActiveTab('models')}
-              className={`px-4 py-2 text-sm font-medium transition-colors rounded-t-lg ${
+              className={`px-3 md:px-4 py-2 text-xs md:text-sm font-medium transition-colors rounded-t-lg whitespace-nowrap ${
                 activeTab === 'models'
                   ? 'bg-gray-800 text-white border-b-2 border-purple-500'
                   : 'text-gray-500 hover:text-gray-300'
