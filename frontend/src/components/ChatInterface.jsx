@@ -91,11 +91,76 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, activeM
       if (showSettingsMenu && !e.target.closest('.settings-menu-container')) {
         setShowSettingsMenu(false);
       }
+      if (showSessionMenu && !e.target.closest('.session-menu-container')) {
+        setShowSessionMenu(false);
+      }
     };
     
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [showSettingsMenu]);
+  }, [showSettingsMenu, showSessionMenu]);
+
+  useEffect(() => {
+    loadAllSessions();
+  }, [currentSessionId]);
+
+  const loadAllSessions = async () => {
+    try {
+      const sessions = await getSessions();
+      setAllSessions(sessions || []);
+    } catch (error) {
+      console.error('Failed to load sessions:', error);
+    }
+  };
+
+  const handleLoadSessionById = async () => {
+    if (!loadingSessionId.trim()) {
+      toast({
+        title: "Invalid ID",
+        description: "Please enter a session ID.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const session = await getSession(loadingSessionId.trim());
+      
+      // Update app state through parent
+      window.location.href = `/?session=${session.id}`;
+      
+      toast({
+        title: "Session Loaded",
+        description: `Loaded session: ${session.name}`,
+      });
+      
+      setShowSessionMenu(false);
+      setLoadingSessionId('');
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load session. Check the ID and try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleSessionClick = async (sessionId) => {
+    try {
+      const session = await getSession(sessionId);
+      
+      // Reload page with session ID
+      window.location.href = `/?session=${session.id}`;
+      
+      setShowSessionMenu(false);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load session.",
+        variant: "destructive"
+      });
+    }
+  };
 
   return (
     <div className="flex flex-col h-full bg-[#0f0f10] border-2 border-transparent animated-gradient-border">
