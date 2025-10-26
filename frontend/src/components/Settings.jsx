@@ -709,6 +709,261 @@ const Settings = ({ selectedModel, onModelChange, onClose, visualValidatorEnable
               </div>
             </div>
           )}
+
+          {/* Integrations Tab */}
+          {activeTab === 'integrations' && (
+            <div className="space-y-6">
+              {/* Add New Integration */}
+              <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-5">
+                <div className="flex items-center gap-2 mb-4">
+                  <Link2 className="w-5 h-5 text-gray-400" />
+                  <h3 className="text-gray-300 font-semibold text-base">Add Service Integration</h3>
+                </div>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-1">Service Type</label>
+                    <select
+                      value={newIntegration.service_type}
+                      onChange={(e) => setNewIntegration({...newIntegration, service_type: e.target.value})}
+                      className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-gray-300 focus:border-purple-500 focus:outline-none text-sm"
+                    >
+                      <option value="huggingface">Hugging Face</option>
+                      <option value="github">GitHub</option>
+                      <option value="gmail">Gmail</option>
+                      <option value="google_drive">Google Drive</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-1">Integration Name</label>
+                    <input
+                      type="text"
+                      value={newIntegration.name}
+                      onChange={(e) => setNewIntegration({...newIntegration, name: e.target.value})}
+                      placeholder="e.g., My Hugging Face Account"
+                      className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-gray-300 placeholder-gray-600 focus:border-purple-500 focus:outline-none text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-1">API Key / Token</label>
+                    <input
+                      type="password"
+                      value={newIntegration.credentials.api_key || ''}
+                      onChange={(e) => setNewIntegration({
+                        ...newIntegration, 
+                        credentials: {...newIntegration.credentials, api_key: e.target.value}
+                      })}
+                      placeholder="Enter API key or access token"
+                      className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-gray-300 placeholder-gray-600 focus:border-purple-500 focus:outline-none text-sm"
+                    />
+                  </div>
+                  <Button
+                    onClick={handleAddIntegration}
+                    className="w-full bg-purple-600 hover:bg-purple-500 text-white flex items-center justify-center gap-2"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add Integration
+                  </Button>
+                </div>
+              </div>
+
+              {/* Saved Integrations */}
+              <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-5">
+                <h3 className="text-gray-300 font-semibold text-base mb-4">Service Integrations ({integrations.length})</h3>
+                {integrationsLoading ? (
+                  <div className="text-center py-6 text-gray-600 text-sm">Loading...</div>
+                ) : integrations.length === 0 ? (
+                  <p className="text-gray-500 text-sm text-center py-4">No integrations configured yet</p>
+                ) : (
+                  <div className="space-y-3">
+                    {integrations.map((integration) => (
+                      <div key={integration.id} className="bg-gray-800/50 border border-gray-700 rounded-lg p-3">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <p className="text-gray-300 font-medium text-sm">{integration.name}</p>
+                              <Badge className="text-[10px] bg-gray-700 text-gray-300">{integration.service_type}</Badge>
+                            </div>
+                            <p className="text-gray-500 text-xs">
+                              Added: {new Date(integration.created_at).toLocaleDateString()}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Switch
+                              checked={integration.enabled}
+                              onCheckedChange={(enabled) => handleToggleIntegration(integration.id, enabled)}
+                              className="data-[state=checked]:bg-gray-600"
+                            />
+                            <button
+                              onClick={() => handleDeleteIntegration(integration.id)}
+                              className="text-red-500 hover:text-red-400 p-2"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Info */}
+              <div className="bg-blue-900/20 border border-blue-800/50 rounded-lg p-4">
+                <p className="text-blue-400 text-sm">
+                  <strong>Info:</strong> Integrations allow your AI agent to interact with external services like GitHub, 
+                  Hugging Face, Gmail, and Google Drive. Enable/disable them as needed.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* MCP Servers Tab */}
+          {activeTab === 'mcp' && (
+            <div className="space-y-6">
+              {/* Add New MCP Server */}
+              <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-5">
+                <div className="flex items-center gap-2 mb-4">
+                  <Server className="w-5 h-5 text-gray-400" />
+                  <h3 className="text-gray-300 font-semibold text-base">Add MCP Server</h3>
+                </div>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-1">Server Type</label>
+                    <select
+                      value={newMCPServer.server_type}
+                      onChange={(e) => setNewMCPServer({...newMCPServer, server_type: e.target.value})}
+                      className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-gray-300 focus:border-purple-500 focus:outline-none text-sm"
+                    >
+                      <option value="browser_automation">Browser Automation (Puppeteer)</option>
+                      <option value="filesystem">Filesystem Operations</option>
+                      <option value="sequential_thinking">Sequential Thinking</option>
+                      <option value="context">Context Management</option>
+                      <option value="git">Git Operations</option>
+                      <option value="custom">Custom Server</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-1">Server Name</label>
+                    <input
+                      type="text"
+                      value={newMCPServer.name}
+                      onChange={(e) => setNewMCPServer({...newMCPServer, name: e.target.value})}
+                      placeholder="e.g., My Browser Automation Server"
+                      className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-gray-300 placeholder-gray-600 focus:border-purple-500 focus:outline-none text-sm"
+                    />
+                  </div>
+                  {newMCPServer.server_type === 'custom' && (
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-1">Endpoint URL</label>
+                      <input
+                        type="text"
+                        value={newMCPServer.endpoint_url}
+                        onChange={(e) => setNewMCPServer({...newMCPServer, endpoint_url: e.target.value})}
+                        placeholder="https://your-mcp-server.com/api"
+                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-gray-300 placeholder-gray-600 focus:border-purple-500 focus:outline-none text-sm"
+                      />
+                    </div>
+                  )}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-1">Priority (0-100)</label>
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={newMCPServer.priority}
+                        onChange={(e) => setNewMCPServer({...newMCPServer, priority: parseInt(e.target.value)})}
+                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-gray-300 focus:border-purple-500 focus:outline-none text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-1">Fallback Order</label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={newMCPServer.fallback_order || ''}
+                        onChange={(e) => setNewMCPServer({...newMCPServer, fallback_order: e.target.value ? parseInt(e.target.value) : null})}
+                        placeholder="Optional"
+                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-gray-300 placeholder-gray-600 focus:border-purple-500 focus:outline-none text-sm"
+                      />
+                    </div>
+                  </div>
+                  <Button
+                    onClick={handleAddMCPServer}
+                    className="w-full bg-purple-600 hover:bg-purple-500 text-white flex items-center justify-center gap-2"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add MCP Server
+                  </Button>
+                </div>
+              </div>
+
+              {/* Saved MCP Servers */}
+              <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-5">
+                <h3 className="text-gray-300 font-semibold text-base mb-4">MCP Servers ({mcpServers.length})</h3>
+                {mcpLoading ? (
+                  <div className="text-center py-6 text-gray-600 text-sm">Loading...</div>
+                ) : mcpServers.length === 0 ? (
+                  <p className="text-gray-500 text-sm text-center py-4">No MCP servers configured yet</p>
+                ) : (
+                  <div className="space-y-3">
+                    {mcpServers.map((server) => (
+                      <div key={server.id} className="bg-gray-800/50 border border-gray-700 rounded-lg p-3">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <p className="text-gray-300 font-medium text-sm">{server.name}</p>
+                              <Badge className="text-[10px] bg-gray-700 text-gray-300">{server.server_type}</Badge>
+                              {server.health_status === 'healthy' && <CheckCircle2 className="w-3 h-3 text-green-500" />}
+                              {server.health_status === 'unhealthy' && <XCircle className="w-3 h-3 text-red-500" />}
+                              {server.health_status === 'unknown' && <AlertCircle className="w-3 h-3 text-gray-500" />}
+                            </div>
+                            <div className="flex items-center gap-3 text-xs text-gray-500">
+                              <span>Priority: {server.priority}</span>
+                              {server.fallback_order !== null && <span>Fallback: #{server.fallback_order}</span>}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => handleHealthCheck(server.id)}
+                              className="text-gray-500 hover:text-gray-400 p-1 text-xs"
+                              title="Health Check"
+                            >
+                              Test
+                            </button>
+                            <Switch
+                              checked={server.enabled}
+                              onCheckedChange={(enabled) => handleToggleMCPServer(server.id, enabled)}
+                              className="data-[state=checked]:bg-gray-600"
+                            />
+                            <button
+                              onClick={() => handleDeleteMCPServer(server.id)}
+                              className="text-red-500 hover:text-red-400 p-2"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Advanced Features Info */}
+              <div className="bg-blue-900/20 border border-blue-800/50 rounded-lg p-4">
+                <p className="text-blue-400 text-sm mb-2">
+                  <strong>Advanced Features:</strong>
+                </p>
+                <ul className="text-blue-400 text-xs space-y-1 list-disc list-inside">
+                  <li><strong>Priority:</strong> Higher values are tried first (0-100)</li>
+                  <li><strong>Fallback Order:</strong> If primary server fails, try servers in fallback order (0, 1, 2...)</li>
+                  <li><strong>Health Check:</strong> Click "Test" to verify server connectivity</li>
+                  <li><strong>Load Balancing:</strong> Multiple servers with same priority are load-balanced</li>
+                </ul>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
