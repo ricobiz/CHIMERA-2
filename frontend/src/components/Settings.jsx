@@ -152,42 +152,78 @@ const Settings = ({ selectedModel, onModelChange, onClose, visualValidatorEnable
 
             {localValidatorEnabled && (
               <div className="mt-4 pt-4 border-t border-gray-700">
-                <label className="text-sm text-gray-400 mb-3 block font-medium">Select Validator Model</label>
-                <div className="grid gap-2 max-h-64 overflow-y-auto pr-2">
-                  {models.filter(m => m.pricing.prompt > 0).slice(0, 15).map((model) => (
-                    <div
-                      key={model.id}
-                      onClick={() => handleValidatorModelSelect(model.id)}
-                      className={`p-3 rounded-lg cursor-pointer transition-all border ${
-                        localValidatorModel === model.id
-                          ? 'bg-purple-600/20 border-purple-500 shadow-lg shadow-purple-500/20'
-                          : 'bg-gray-800 border-gray-700 hover:border-purple-500'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <p className="text-white text-sm font-medium">{model.name}</p>
-                            {localValidatorModel === model.id && (
-                              <Check className="w-4 h-4 text-purple-400" />
-                            )}
+                <label className="text-sm text-gray-400 mb-3 block font-medium">
+                  Select Vision-Capable Model ({visionModels.length} available)
+                </label>
+                
+                {/* Search for validator models */}
+                <input
+                  type="text"
+                  placeholder="Search vision models..."
+                  value={validatorSearchTerm}
+                  onChange={(e) => setValidatorSearchTerm(e.target.value)}
+                  className="w-full p-2 mb-3 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm placeholder-gray-500"
+                />
+
+                <div className="grid gap-2 max-h-96 overflow-y-auto pr-2">
+                  {visionModels.length === 0 ? (
+                    <p className="text-center text-gray-500 py-4">No vision models found</p>
+                  ) : (
+                    visionModels.map((model) => {
+                      const isFree = model.pricing.prompt === 0 && model.pricing.completion === 0;
+                      return (
+                        <div
+                          key={model.id}
+                          onClick={() => handleValidatorModelSelect(model.id)}
+                          className={`p-3 rounded-lg cursor-pointer transition-all border ${
+                            localValidatorModel === model.id
+                              ? 'bg-purple-600/20 border-purple-500 shadow-lg shadow-purple-500/20'
+                              : 'bg-gray-800 border-gray-700 hover:border-purple-500'
+                          }`}
+                        >
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <p className="text-white text-sm font-medium">{model.name}</p>
+                                {localValidatorModel === model.id && (
+                                  <Check className="w-4 h-4 text-purple-400" />
+                                )}
+                                {isFree && (
+                                  <Badge variant="secondary" className="text-xs bg-green-600/20 text-green-400 border-green-600/30">
+                                    FREE
+                                  </Badge>
+                                )}
+                              </div>
+                              <p className="text-xs text-gray-500 mb-2">{model.id}</p>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                {isFree ? (
+                                  <span className="text-xs text-green-400 font-mono">
+                                    💰 Free to use
+                                  </span>
+                                ) : (
+                                  <span className="text-xs text-gray-400 font-mono">
+                                    💰 ${(model.pricing.prompt * 1000000).toFixed(2)}/M in • ${(model.pricing.completion * 1000000).toFixed(2)}/M out
+                                  </span>
+                                )}
+                                <Badge variant="secondary" className="text-xs bg-green-600/20 text-green-400 border-green-600/30">
+                                  Vision
+                                </Badge>
+                                {model.capabilities.tools && (
+                                  <Badge variant="secondary" className="text-xs bg-blue-600/20 text-blue-400 border-blue-600/30">
+                                    Tools
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
                           </div>
-                          <p className="text-xs text-gray-400 mt-1">
-                            💰 ${(model.pricing.prompt * 1000000).toFixed(2)}/M in • ${(model.pricing.completion * 1000000).toFixed(2)}/M out
-                          </p>
-                          {model.capabilities.vision && (
-                            <Badge variant="secondary" className="text-xs mt-2 bg-green-600/20 text-green-400 border-green-600/30">
-                              Vision Capable
-                            </Badge>
-                          )}
                         </div>
-                      </div>
-                    </div>
-                  ))}
+                      );
+                    })
+                  )}
                 </div>
                 <div className="mt-3 p-3 bg-blue-600/10 border border-blue-600/30 rounded-lg">
                   <p className="text-xs text-blue-400">
-                    💡 <strong>Tip:</strong> Choose a fast model like Claude Haiku or GPT-4o-mini for quick validation without slowing down generation
+                    💡 <strong>Tip:</strong> Free models like Nano Banana are great for quick validation. For higher quality, use Claude Haiku or GPT-4 Vision.
                   </p>
                 </div>
               </div>
