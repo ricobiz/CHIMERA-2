@@ -282,7 +282,13 @@ Be EXTREMELY thorough and critical. False negatives (missing fraud) are more dan
                     "verdict": secondary_result.get('verdict'),
                     "fraud_probability": secondary_result.get('fraud_probability')
                 },
-                "agreement_level": round(100 - disagreement, 2)
+                "tertiary_model": {
+                    "name": "Gemini 2.5 Flash Vision",
+                    "verdict": tertiary_result.get('verdict'),
+                    "fraud_probability": tertiary_result.get('fraud_probability')
+                },
+                "agreement_level": round(100 - disagreement, 2),
+                "models_used": 3
             },
             "analysis_details": {
                 "visual_quality": primary_result['analysis_details'].get('visual_quality'),
