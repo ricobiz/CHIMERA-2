@@ -15,7 +15,7 @@ const ChimeraLogo = ({ className = '' }) => {
       
       {/* Subtitle - smaller text */}
       <span className="text-[10px] text-gray-500 tracking-wider uppercase mt-0.5">
-        Automation System
+        AIOS
       </span>
       
       <style jsx>{`
