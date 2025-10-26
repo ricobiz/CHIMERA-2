@@ -52,7 +52,24 @@ class ExecutionAgentService {
     this.aborted = false;
     this.paused = false;
 
+    // Create browser session
+    const sessionId = `browser-${Date.now()}`;
+    const API_BASE = process.env.REACT_APP_BACKEND_URL || '';
+
     try {
+      // Initialize browser session
+      const sessionResponse = await fetch(`${API_BASE}/api/automation/session/create`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session_id: sessionId })
+      });
+
+      if (!sessionResponse.ok) {
+        throw new Error('Failed to create browser session');
+      }
+
+      console.log('[ExecutionAgent] Browser session created:', sessionId);
+
       // Phase 1: Planning
       this.updateState({ status: 'planning' });
       this.addLog({
@@ -78,6 +95,7 @@ class ExecutionAgentService {
       for (let i = 0; i < plan.steps.length; i++) {
         if (this.aborted) {
           console.log('[ExecutionAgent] Automation aborted by user');
+          await this.cleanupSession(sessionId);
           this.updateState({
             status: 'failed',
             result: {
@@ -106,6 +124,7 @@ class ExecutionAgentService {
         } else {
           // Step failed after all retries
           console.error(`[ExecutionAgent] Step ${i + 1} failed after all retries`);
+          await this.cleanupSession(sessionId);
           this.updateState({
             status: 'failed',
             result: {
@@ -131,6 +150,12 @@ class ExecutionAgentService {
         goal
       );
 
+      // Get final screenshot
+      const finalScreenshot = await this.getFinalScreenshot(sessionId);
+
+      // Cleanup session
+      await this.cleanupSession(sessionId);
+
       if (finalValidation.isValid) {
         const result: ExecutionResult = {
           success: true,
@@ -140,7 +165,7 @@ class ExecutionAgentService {
             completedAt: new Date().toISOString(),
             finalUrl: initialState.browserState.currentUrl
           },
-          finalScreenshot: initialState.browserState.screenshot,
+          finalScreenshot: finalScreenshot || initialState.browserState.screenshot,
           completedSteps,
           totalSteps: plan.steps.length
         };
@@ -168,6 +193,7 @@ class ExecutionAgentService {
             success: false,
             message: 'Automation completed but validation found issues',
             payload: { issues: finalValidation.issues },
+            finalScreenshot: finalScreenshot,
             completedSteps,
             totalSteps: plan.steps.length
           }
@@ -193,6 +219,36 @@ class ExecutionAgentService {
           totalSteps: 0
         }
       });
+    }
+  }
+
+  /**
+   * Get final screenshot from browser session
+   */
+  private async getFinalScreenshot(sessionId: string): Promise<string | null> {
+    try {
+      const API_BASE = process.env.REACT_APP_BACKEND_URL || '';
+      const response = await fetch(`${API_BASE}/api/automation/screenshot/${sessionId}`);
+      const data = await response.json();
+      return data.screenshot;
+    } catch (error) {
+      console.error('[ExecutionAgent] Error getting final screenshot:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Cleanup browser session
+   */
+  private async cleanupSession(sessionId: string): Promise<void> {
+    try {
+      const API_BASE = process.env.REACT_APP_BACKEND_URL || '';
+      await fetch(`${API_BASE}/api/automation/session/${sessionId}`, {
+        method: 'DELETE'
+      });
+      console.log('[ExecutionAgent] Browser session cleaned up');
+    } catch (error) {
+      console.error('[ExecutionAgent] Error cleaning up session:', error);
     }
   }
 
