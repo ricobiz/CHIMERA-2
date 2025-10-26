@@ -17,8 +17,12 @@ class PlannerService {
 
     try {
       // Call backend planning API with LLM
+      console.log(`[Planner] Calling backend API with model: ${this.plannerModel}`);
       const response = await generatePlan(goal, this.plannerModel);
       
+      console.log(`[Planner] ✅ Response received from backend:`, response);
+      console.log(`[Planner] Plan object:`, response.plan);
+      console.log(`[Planner] Plan steps:`, response.plan?.steps);
       console.log(`[Planner] Plan generated: ${response.estimatedSteps} steps, complexity: ${response.complexity}`);
       
       return {
@@ -28,7 +32,8 @@ class PlannerService {
       };
 
     } catch (error) {
-      console.error('[Planner] Error generating plan from backend:', error);
+      console.error('[Planner] ❌ Error generating plan from backend:', error);
+      console.error('[Planner] Error details:', error.message, error.stack);
       
       // Fallback to local heuristic generation
       console.warn('[Planner] Using fallback local planning');
