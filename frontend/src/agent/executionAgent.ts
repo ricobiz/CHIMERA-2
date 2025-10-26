@@ -114,7 +114,15 @@ class ExecutionAgentService {
 
       // Phase 2: Execution
       console.log('[ExecutionAgent] 🚀 Starting execution phase...');
-      this.updateState({ status: 'executing' });
+      console.log('[ExecutionAgent] Plan steps:', JSON.stringify(plan.steps, null, 2));
+      
+      try {
+        this.updateState({ status: 'executing' });
+        console.log('[ExecutionAgent] ✅ Status updated to "executing"');
+      } catch (error) {
+        console.error('[ExecutionAgent] ❌ Error updating status:', error);
+        throw error;
+      }
 
       let completedSteps = 0;
       
