@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserState, HighlightBox } from '../../agent/types';
+import { BrowserState, HighlightBox } from '../../agent/types.ts';
 
 interface BrowserViewportProps {
   browserState: BrowserState;
