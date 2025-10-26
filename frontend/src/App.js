@@ -523,6 +523,50 @@ function App() {
     setCurrentSessionId(null);
   };
 
+  const handleDeleteMessage = (index) => {
+    // Delete message at index and all messages after it
+    setMessages(prev => prev.slice(0, index));
+    
+    // If we deleted code generation messages, clear generated code
+    const remainingMessages = messages.slice(0, index);
+    const hasCodeGeneration = remainingMessages.some(m => 
+      m.role === 'assistant' && m.content.includes('```')
+    );
+    
+    if (!hasCodeGeneration) {
+      setGeneratedCode('');
+      setShowPreview(false);
+    }
+  };
+
+  const handleEditMessage = (index, newContent) => {
+    // Update message content
+    setMessages(prev => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], content: newContent };
+      return updated;
+    });
+    
+    // Delete all messages after the edited one (will regenerate)
+    setTimeout(() => {
+      setMessages(prev => prev.slice(0, index + 1));
+    }, 100);
+  };
+
+  const handleRegenerateFromMessage = async (index) => {
+    // Keep messages up to and including index
+    const contextMessages = messages.slice(0, index + 1);
+    setMessages(contextMessages);
+    
+    // Get the last user message as the prompt
+    const lastUserMessage = contextMessages.filter(m => m.role === 'user').pop();
+    
+    if (lastUserMessage) {
+      // Regenerate response from this point
+      await handleSendPrompt(lastUserMessage.content);
+    }
+  };
+
   const handleBrowserAutomationTask = async (goal) => {
     console.log('[CHIMERA] 🤖 Starting browser automation from chat:', goal);
     
