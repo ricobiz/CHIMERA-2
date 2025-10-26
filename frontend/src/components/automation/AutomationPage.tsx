@@ -213,18 +213,18 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
       </div>
 
       {/* Main Content Area: Viewport + Log */}
-      <div className="flex-1 px-6 pb-6 min-h-0 overflow-y-auto">
-        <div className="flex gap-4 h-full min-h-[600px]">
-          {/* Browser Viewport (Left/Center - 60%) */}
-          <div className="flex-1 min-w-0">
+      <div className="flex-1 px-4 md:px-6 pb-6 overflow-y-auto">
+        <div className="flex flex-col lg:flex-row gap-4 h-full">
+          {/* Browser Viewport (Full width on mobile, 60% on desktop) */}
+          <div className="flex-1 min-w-0 min-h-[300px] lg:min-h-[600px]">
             <BrowserViewport
               browserState={session.browserState}
               status={session.status}
             />
           </div>
 
-          {/* Agent Log (Right - 40%) */}
-          <div className="w-2/5 min-w-0">
+          {/* Agent Log (Full width on mobile, 40% on desktop) */}
+          <div className="w-full lg:w-2/5 min-w-0 min-h-[400px] lg:min-h-[600px]">
             <AgentLog
               steps={session.logEntries}
               goal={session.goal}
