@@ -43,31 +43,52 @@ class BrowserAutomationService:
             )
             logger.info("Browser launched successfully")
     
-    async def create_session(self, session_id: str) -> Dict[str, Any]:
-        """Create a new browser session with anti-detection"""
+    async def create_session(self, session_id: str, use_proxy: bool = False) -> Dict[str, Any]:
+        """Create a new browser session with anti-detection and optional proxy"""
         await self.initialize()
+        
+        # Import proxy service
+        from services.proxy_service import proxy_service
         
         # Anti-detection: randomize viewport
         import random
         viewport_width = random.randint(1280, 1440)
         viewport_height = random.randint(680, 900)
         
-        # Anti-detection: realistic user agent
-        user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        # Anti-detection: get random user agent from proxy service
+        user_agent = proxy_service.get_random_user_agent()
         
-        # Create new context with anti-detection settings
-        context = await self.browser.new_context(
-            viewport={'width': viewport_width, 'height': viewport_height},
-            user_agent=user_agent,
-            locale='en-US',
-            timezone_id='America/New_York',
+        # Prepare context options
+        context_options = {
+            'viewport': {'width': viewport_width, 'height': viewport_height},
+            'user_agent': user_agent,
+            'locale': 'en-US',
+            'timezone_id': 'America/New_York',
             # Anti-detection headers
-            extra_http_headers={
+            'extra_http_headers': {
                 'Accept-Language': 'en-US,en;q=0.9',
                 'Accept-Encoding': 'gzip, deflate, br',
                 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
             }
-        )
+        }
+        
+        # Add proxy if enabled and available
+        if use_proxy and proxy_service.is_enabled():
+            await proxy_service.get_proxies()  # Ensure proxies are fetched
+            proxy = proxy_service.get_next_proxy()
+            
+            if proxy:
+                context_options['proxy'] = {
+                    'server': proxy['server'],
+                    'username': proxy['username'],
+                    'password': proxy['password']
+                }
+                logger.info(f"✅ Session using proxy: {proxy['server']} ({proxy['country']})")
+            else:
+                logger.warning("Proxy requested but none available, using direct connection")
+        
+        # Create new context with anti-detection settings
+        context = await self.browser.new_context(**context_options)
         
         # Inject anti-detection scripts
         await context.add_init_script("""
