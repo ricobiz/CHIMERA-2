@@ -173,3 +173,72 @@ Respond naturally and conversationally, incorporating your thinking insights."""
     except Exception as e:
         logger.error(f"Chat error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Chat failed: {str(e)}")
+
+
+@router.post("/context/status")
+async def get_context_status(request: Dict):
+    """
+    Get current context window usage status
+    """
+    try:
+        messages = request.get('history', [])
+        model = request.get('model', 'anthropic/claude-3.5-sonnet')
+        
+        usage = context_manager.calculate_usage(messages, model)
+        
+        return {
+            "status": "success",
+            "usage": usage,
+            "warning": context_manager.format_context_warning(usage)
+        }
+    except Exception as e:
+        logger.error(f"Context status error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get context status: {str(e)}")
+
+
+@router.post("/context/switch-model")
+async def switch_model_with_context(request: Dict):
+    """
+    Switch to a new model, creating a new session with preserved context
+    """
+    try:
+        current_session_id = request.get('session_id', 'default')
+        new_model = request.get('new_model')
+        messages = request.get('history', [])
+        old_model = request.get('old_model', 'anthropic/claude-3.5-sonnet')
+        
+        if not new_model:
+            raise HTTPException(status_code=400, detail="new_model is required")
+        
+        logger.info(f"🔄 Switching from {old_model} to {new_model}")
+        
+        # Compress current conversation
+        compressed_msgs, compression_info = await context_manager.compress_conversation(
+            messages=messages,
+            model=old_model,
+            target_reduction=0.6
+        )
+        
+        # Create new session with preserved context
+        new_session = await context_manager.create_new_session_with_context(
+            current_session_id=current_session_id,
+            compressed_messages=compressed_msgs,
+            compression_info=compression_info
+        )
+        
+        # Calculate new context limits
+        new_usage = context_manager.calculate_usage(compressed_msgs, new_model)
+        
+        return {
+            "status": "success",
+            "new_session_id": new_session['session_id'],
+            "parent_session_id": current_session_id,
+            "compressed_messages": compressed_msgs,
+            "compression_info": compression_info,
+            "new_context_usage": new_usage,
+            "message": f"Switched to {new_model}. New session created with preserved context."
+        }
+    except Exception as e:
+        logger.error(f"Model switch error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to switch model: {str(e)}")
+
