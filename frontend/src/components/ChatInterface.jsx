@@ -503,19 +503,19 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, activeM
                 }`}
               >
                 <div
-                  className={`max-w-[85%] md:max-w-[75%] rounded-2xl p-4 shadow-lg transition-all duration-200 ${
+                  className={`max-w-[85%] md:max-w-[75%] rounded-2xl p-4 shadow-xl transition-all duration-200 ${
                     msg.role === 'user'
-                      ? 'bg-gray-800 backdrop-blur border-2 border-gray-600 hover:border-gray-500 rounded-br-sm'
+                      ? 'bg-gray-700 backdrop-blur border-2 border-gray-500 hover:border-gray-400 rounded-br-sm'
                       : msg.role === 'design'
-                      ? 'bg-purple-950/40 backdrop-blur border-2 border-purple-700/60 hover:border-purple-600 rounded-bl-sm'
-                      : 'bg-gray-850 backdrop-blur border-2 border-gray-700 hover:border-gray-600 rounded-bl-sm'
+                      ? 'bg-purple-900/50 backdrop-blur border-2 border-purple-600 hover:border-purple-500 rounded-bl-sm'
+                      : 'bg-gray-750 backdrop-blur border-2 border-gray-600 hover:border-gray-500 rounded-bl-sm'
                   }`}
-                  style={{ backgroundColor: msg.role === 'user' ? 'rgba(31, 41, 55, 0.95)' : 'rgba(17, 24, 39, 0.95)' }}
+                  style={{ backgroundColor: msg.role === 'user' ? 'rgba(55, 65, 81, 1)' : 'rgba(41, 50, 65, 1)' }}
                 >
                   {/* Message Header */}
                   <div className="flex items-center justify-between mb-2">
-                    <p className={`text-xs font-medium ${
-                      msg.role === 'user' ? 'text-gray-400' : 'text-gray-500'
+                    <p className={`text-xs font-semibold ${
+                      msg.role === 'user' ? 'text-gray-300' : 'text-gray-400'
                     }`}>
                       {msg.role === 'user' ? 'You' : msg.role === 'design' ? 'Design Proposal' : 'Assistant'}
                     </p>
@@ -524,24 +524,24 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, activeM
                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
                         onClick={() => handleEditMessage(idx, msg.content)}
-                        className="p-1 hover:bg-gray-700/50 rounded transition-colors"
+                        className="p-1.5 bg-gray-600/50 hover:bg-gray-500/70 rounded transition-colors"
                         title="Edit message"
                       >
-                        <Edit2 className="w-3 h-3 text-gray-400" />
+                        <Edit2 className="w-3.5 h-3.5 text-gray-200" />
                       </button>
                       <button
                         onClick={() => handleRegenerateFromPoint(idx)}
-                        className="p-1 hover:bg-gray-700/50 rounded transition-colors"
+                        className="p-1.5 bg-gray-600/50 hover:bg-gray-500/70 rounded transition-colors"
                         title="Regenerate from here"
                       >
-                        <RotateCcw className="w-3 h-3 text-gray-400" />
+                        <RotateCcw className="w-3.5 h-3.5 text-gray-200" />
                       </button>
                       <button
                         onClick={() => handleDeleteMessage(idx)}
-                        className="p-1 hover:bg-red-900/30 rounded transition-colors"
+                        className="p-1.5 bg-red-900/50 hover:bg-red-800/70 rounded transition-colors"
                         title="Delete message"
                       >
-                        <Trash2 className="w-3 h-3 text-red-400" />
+                        <Trash2 className="w-3.5 h-3.5 text-red-300" />
                       </button>
                     </div>
                   </div>
@@ -552,19 +552,19 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, activeM
                       <textarea
                         value={editedContent}
                         onChange={(e) => setEditedContent(e.target.value)}
-                        className="w-full bg-gray-900/80 border border-gray-600 rounded p-2 text-sm text-gray-200 resize-none focus:outline-none focus:border-gray-500"
+                        className="w-full bg-gray-800 border-2 border-gray-600 rounded p-3 text-sm text-gray-100 resize-none focus:outline-none focus:border-gray-400"
                         rows={4}
                       />
                       <div className="flex gap-2">
                         <button
                           onClick={handleSaveEdit}
-                          className="px-3 py-1 bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded text-xs font-medium text-gray-200"
+                          className="px-4 py-1.5 bg-green-700 hover:bg-green-600 border-2 border-green-600 rounded text-xs font-semibold text-white shadow-lg"
                         >
                           Save
                         </button>
                         <button
                           onClick={handleCancelEdit}
-                          className="px-3 py-1 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded text-xs font-medium text-gray-300"
+                          className="px-4 py-1.5 bg-gray-700 hover:bg-gray-600 border-2 border-gray-600 rounded text-xs font-semibold text-gray-200"
                         >
                           Cancel
                         </button>
@@ -572,19 +572,19 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, activeM
                     </div>
                   ) : (
                     <>
-                      <p className="text-sm md:text-base text-gray-200 whitespace-pre-wrap leading-relaxed">
+                      <p className="text-sm md:text-base text-gray-100 font-medium whitespace-pre-wrap leading-relaxed">
                         {msg.content}
                       </p>
                       {msg.image && (
-                        <img src={msg.image} alt="Design" className="mt-3 rounded-lg max-w-full border border-gray-700/50" />
+                        <img src={msg.image} alt="Design" className="mt-3 rounded-lg max-w-full border-2 border-gray-600" />
                       )}
                     </>
                   )}
 
                   {/* Cost Info */}
                   {msg.cost && (
-                    <div className="mt-2 pt-2 border-t border-gray-700/50">
-                      <p className="text-[10px] text-gray-500 font-mono">
+                    <div className="mt-2 pt-2 border-t border-gray-600">
+                      <p className="text-[10px] text-gray-400 font-mono font-semibold">
                         ${msg.cost.total_cost.toFixed(6)} • {msg.cost.total_tokens} tokens
                       </p>
                     </div>
@@ -596,7 +596,7 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, activeM
             {/* Typing Indicator */}
             {isGenerating && (
               <div className="flex justify-start">
-                <div className="bg-gray-850 backdrop-blur border-2 border-gray-700 rounded-2xl rounded-bl-sm p-4 shadow-lg" style={{ backgroundColor: 'rgba(17, 24, 39, 0.95)' }}>
+                <div className="bg-gray-750 backdrop-blur border-2 border-gray-600 rounded-2xl rounded-bl-sm p-4 shadow-xl" style={{ backgroundColor: 'rgba(41, 50, 65, 1)' }}>
                   <LoadingIndicator size="sm" />
                 </div>
               </div>
