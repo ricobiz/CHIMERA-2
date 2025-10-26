@@ -5,8 +5,9 @@ import { Textarea } from './ui/textarea';
 import { samplePrompts } from '../mockData';
 import StatusIndicator from './StatusIndicator';
 import ModelIndicator from './ModelIndicator';
+import TaskProgress from './TaskProgress';
 
-const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, activeModel, validatorEnabled, validatorModel, generationStatus = 'idle', onOpenSettings, onNewProject, currentSessionId, isGenerating, onStopGeneration, chatMode = 'chat', onChatModeChange }) => {
+const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, activeModel, validatorEnabled, validatorModel, generationStatus = 'idle', onOpenSettings, onNewProject, currentSessionId, isGenerating, onStopGeneration, chatMode = 'chat', onChatModeChange, developmentPlan = [], currentTaskIndex = 0 }) => {
   const [prompt, setPrompt] = useState('');
   const [showSamples, setShowSamples] = useState(true);
   const [showSettingsMenu, setShowSettingsMenu] = useState(false);
