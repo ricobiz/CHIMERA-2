@@ -30,7 +30,7 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, activeM
           <h2 className="text-white font-medium text-sm">AI Assistant</h2>
           
           <div className="flex items-center gap-4">
-            {/* Model Indicators */}
+            {/* Model Indicators + Settings */}
             <div className="flex items-center gap-3">
               <ModelIndicator 
                 type="code" 
@@ -42,6 +42,13 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, activeM
                 modelName={validatorModel?.split('/').pop()}
                 isActive={validatorEnabled}
               />
+              <button
+                onClick={onOpenSettings}
+                className="text-gray-400 hover:text-gray-300 transition-colors"
+                title="Settings"
+              >
+                <Settings className="w-4 h-4" />
+              </button>
             </div>
             
             {/* Status & Save */}
