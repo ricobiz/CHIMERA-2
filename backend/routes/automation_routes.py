@@ -245,6 +245,23 @@ async def close_session_post(request: CreateSessionRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.post("/validate-navigation")
+async def validate_navigation(request: ValidateNavigationRequest):
+    """Validate navigation success using vision API"""
+    try:
+        result = await visual_validator_service.validate_navigation(
+            screenshot_base64=request.screenshot,
+            expected_url=request.expectedUrl,
+            current_url=request.currentUrl,
+            page_title=request.pageTitle,
+            description=request.description
+        )
+        return result
+    except Exception as e:
+        logger.error(f"Error validating navigation: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.delete("/session/{session_id}")
 async def close_session(session_id: str):
     """Close browser session (DELETE version)"""
