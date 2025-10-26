@@ -107,6 +107,27 @@ const Settings = ({ selectedModel, onModelChange, onClose, visualValidatorEnable
     });
   };
 
+  // Research Planner functions
+  const handleResearchToggle = (enabled) => {
+    setLocalResearchEnabled(enabled);
+    onResearchPlannerToggle(enabled);
+    localStorage.setItem('researchPlannerEnabled', enabled);
+    toast({
+      title: enabled ? "Research Planner Enabled" : "Research Planner Disabled",
+      description: enabled ? "Task research is now active." : "Research disabled.",
+    });
+  };
+
+  const handleResearchModelSelect = (modelId) => {
+    setLocalResearchModel(modelId);
+    onResearchPlannerModelChange(modelId);
+    localStorage.setItem('researchPlannerModel', modelId);
+    toast({
+      title: "Research Model Updated",
+      description: "Research planner model changed.",
+    });
+  };
+
   // Secrets management functions
   const handleAddSecret = () => {
     if (!newSecretName.trim() || !newSecretValue.trim()) {
