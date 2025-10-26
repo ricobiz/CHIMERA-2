@@ -72,8 +72,10 @@ app.include_router(api_router)
 # Include Lovable routes
 from routes.lovable_routes import router as lovable_router
 from routes.openrouter_models import router as models_router
+from routes.session_routes import router as session_router
 app.include_router(lovable_router)
 app.include_router(models_router)
+app.include_router(session_router)
 
 app.add_middleware(
     CORSMiddleware,
