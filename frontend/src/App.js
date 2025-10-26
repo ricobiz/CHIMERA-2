@@ -577,6 +577,7 @@ function App() {
             generationStatus={generationStatus}
             onOpenSettings={handleOpenSettings}
             onOpenAutomation={() => setShowAutomation(true)}
+            onOpenDocVerification={() => setShowDocVerification(true)}
             onNewProject={handleNewProject}
             currentSessionId={currentSessionId}
             isGenerating={isGenerating}
