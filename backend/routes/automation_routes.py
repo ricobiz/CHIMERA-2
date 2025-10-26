@@ -230,9 +230,20 @@ async def smart_click(request: FindElementsRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.post("/session/close")
+async def close_session_post(request: CreateSessionRequest):
+    """Close browser session (POST version for frontend compatibility)"""
+    try:
+        await browser_service.close_session(request.session_id)
+        return {"message": "Session closed successfully"}
+    except Exception as e:
+        logger.error(f"Error closing session: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.delete("/session/{session_id}")
 async def close_session(session_id: str):
-    """Close browser session"""
+    """Close browser session (DELETE version)"""
     try:
         await browser_service.close_session(session_id)
         return {"message": "Session closed successfully"}
