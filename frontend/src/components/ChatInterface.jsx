@@ -18,6 +18,8 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, activeM
   const [showSessionMenu, setShowSessionMenu] = useState(false);
   const [allSessions, setAllSessions] = useState([]);
   const [loadingSessionId, setLoadingSessionId] = useState('');
+  const [editingMessageIndex, setEditingMessageIndex] = useState(null);
+  const [editedContent, setEditedContent] = useState('');
 
   const handleSubmit = () => {
     if (prompt.trim()) {
