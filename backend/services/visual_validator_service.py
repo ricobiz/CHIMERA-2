@@ -82,7 +82,7 @@ Be strict but fair. Focus on critical issues that affect usability."""
         self, 
         screenshot_base64: str, 
         user_request: str,
-        model: str = "google/gemini-2.5-flash-image"
+        model: str = "google/gemini-2.5-flash"
     ) -> Dict:
         """Validate UI screenshot using vision model"""
         try:
