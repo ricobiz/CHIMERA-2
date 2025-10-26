@@ -480,13 +480,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "POST /api/generate-design endpoint"
-    - "POST /api/validate-visual endpoint"
-    - "GET /api/openrouter/balance endpoint"
-    - "API Balance Display"
-    - "Settings - Integrations tab"
-    - "Settings - MCP Servers tab"
-    - "END-TO-END: Calculator app generation with design-first workflow"
+    - "END-TO-END: Calculator app generation with design-first workflow - COMPLETED"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
