@@ -76,6 +76,55 @@ const Settings = ({ selectedModel, onModelChange, onClose, visualValidatorEnable
     });
   };
 
+  // Secrets management functions
+  const handleAddSecret = () => {
+    if (!newSecretName.trim() || !newSecretValue.trim()) {
+      toast({
+        title: "Invalid Input",
+        description: "Please provide both name and value.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const newSecret = {
+      id: Date.now().toString(),
+      name: newSecretName.trim(),
+      value: newSecretValue.trim(),
+      createdAt: new Date().toISOString()
+    };
+
+    const updatedSecrets = [...secrets, newSecret];
+    setSecrets(updatedSecrets);
+    localStorage.setItem('user_secrets', JSON.stringify(updatedSecrets));
+    
+    setNewSecretName('');
+    setNewSecretValue('');
+    
+    toast({
+      title: "Secret Added",
+      description: `${newSecretName} has been saved.`,
+    });
+  };
+
+  const handleDeleteSecret = (id) => {
+    const updatedSecrets = secrets.filter(s => s.id !== id);
+    setSecrets(updatedSecrets);
+    localStorage.setItem('user_secrets', JSON.stringify(updatedSecrets));
+    
+    toast({
+      title: "Secret Deleted",
+      description: "Secret has been removed.",
+    });
+  };
+
+  const toggleShowValue = (id) => {
+    setShowValues(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
+  };
+
   const filteredModels = models.filter(model => {
     const matchesSearch = model.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       model.id.toLowerCase().includes(searchTerm.toLowerCase());
