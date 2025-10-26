@@ -24,6 +24,30 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, activeM
     setPrompt(sample);
   };
 
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      console.log('File uploaded:', file.name);
+      // TODO: Implement file upload logic
+    }
+  };
+
+  const handleVoiceInput = () => {
+    console.log('Voice input clicked');
+    // TODO: Implement voice input logic
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (showSettingsMenu && !e.target.closest('.settings-menu-container')) {
+        setShowSettingsMenu(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showSettingsMenu]);
+
   return (
     <div className="flex-1 flex flex-col bg-[#0f0f10] h-screen border-2 border-transparent animated-gradient-border">
       {/* Header */}
