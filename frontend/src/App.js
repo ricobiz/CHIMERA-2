@@ -503,6 +503,7 @@ function App() {
             messages={messages} 
             onSave={handleSaveProject}
             totalCost={totalCost}
+            apiBalance={apiBalance}
             activeModel={selectedModel}
             validatorEnabled={visualValidatorEnabled}
             validatorModel={visualValidatorModel}
