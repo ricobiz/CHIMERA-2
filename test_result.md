@@ -366,11 +366,18 @@ metadata:
 
 test_plan:
   current_focus:
-    - "POST /api/generate-code endpoint"
-    - "OpenRouter API integration"
-    - "POST /api/projects endpoint"
-    - "GET /api/projects endpoint"
-    - "GET /api/projects/{project_id} endpoint"
+    - "POST /api/integrations endpoint"
+    - "GET /api/integrations endpoint"
+    - "PUT /api/integrations/{id} endpoint"
+    - "DELETE /api/integrations/{id} endpoint"
+    - "POST /api/mcp-servers endpoint"
+    - "GET /api/mcp-servers endpoint"
+    - "PUT /api/mcp-servers/{id} endpoint"
+    - "DELETE /api/mcp-servers/{id} endpoint"
+    - "POST /api/mcp-servers/{id}/health-check endpoint"
+    - "GET /api/mcp-servers/active/list endpoint"
+    - "Settings - Integrations tab"
+    - "Settings - MCP Servers tab"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
