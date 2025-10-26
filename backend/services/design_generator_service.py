@@ -39,6 +39,19 @@ Example: "Create a dark theme app (#0f0f10 background) with a top navigation bar
 
 Be creative but practical. Ensure the design matches the app's purpose."""
 
+        self.mockup_prompt = """You are a UI/UX designer creating visual mockups. Generate a clean, modern UI mockup image based on this description:
+
+{design_spec}
+
+Create a high-quality mockup that shows:
+- The main interface layout
+- Color scheme applied
+- Typography hierarchy
+- Component placement
+- Professional, polished appearance
+
+Style: Modern, clean, professional UI design suitable for a web application."""
+
     async def generate_design(self, user_request: str, model: str = None) -> Dict:
         """Generate design specification using vision-capable model"""
         try:
