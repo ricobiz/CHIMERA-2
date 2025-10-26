@@ -184,7 +184,7 @@ async def get_context_status(request: Dict):
         messages = request.get('history', [])
         model = request.get('model', 'anthropic/claude-3.5-sonnet')
         
-        usage = context_manager.calculate_usage(messages, model)
+        usage = await context_manager.calculate_usage(messages, model)
         
         return {
             "status": "success",
