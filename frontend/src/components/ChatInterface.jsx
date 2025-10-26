@@ -53,10 +53,17 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, activeM
       {/* Header */}
       <div className="border-b border-gray-800 p-3 md:p-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-white font-medium text-sm">AI Assistant</h2>
+          <div className="flex items-center gap-3">
+            <h2 className="text-white font-medium text-sm">AI Assistant</h2>
+            {currentSessionId && (
+              <span className="text-xs text-gray-500 font-mono">
+                ID: {currentSessionId.slice(0, 8)}...
+              </span>
+            )}
+          </div>
           
           <div className="flex items-center gap-4">
-            {/* Model Indicators + Settings */}
+            {/* Model Indicators + Settings Menu */}
             <div className="flex items-center gap-3">
               <ModelIndicator 
                 type="code" 
@@ -68,13 +75,78 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, activeM
                 modelName={validatorModel?.split('/').pop()}
                 isActive={validatorEnabled}
               />
-              <button
-                onClick={onOpenSettings}
-                className="text-gray-400 hover:text-gray-300 transition-colors"
-                title="Settings"
-              >
-                <Settings className="w-4 h-4" />
-              </button>
+              
+              {/* Settings Dropdown Menu */}
+              <div className="relative settings-menu-container">
+                <button
+                  onClick={() => setShowSettingsMenu(!showSettingsMenu)}
+                  className="text-gray-400 hover:text-gray-300 transition-colors"
+                  title="Menu"
+                >
+                  <Settings className="w-4 h-4" />
+                </button>
+                
+                {showSettingsMenu && (
+                  <div className="absolute top-full right-0 mt-2 w-64 bg-gray-900 border border-gray-700 rounded-lg shadow-xl z-50 py-2">
+                    <button
+                      onClick={() => {
+                        onOpenSettings();
+                        setShowSettingsMenu(false);
+                      }}
+                      className="w-full px-4 py-2 text-left text-sm text-gray-300 hover:bg-gray-800 transition-colors flex items-center gap-2"
+                    >
+                      <Settings className="w-4 h-4" />
+                      Settings
+                    </button>
+                    
+                    <button
+                      onClick={() => {
+                        onNewProject();
+                        setShowSettingsMenu(false);
+                      }}
+                      className="w-full px-4 py-2 text-left text-sm text-gray-300 hover:bg-gray-800 transition-colors flex items-center gap-2"
+                    >
+                      <Plus className="w-4 h-4" />
+                      New Workspace
+                    </button>
+                    
+                    <button
+                      className="w-full px-4 py-2 text-left text-sm text-gray-300 hover:bg-gray-800 transition-colors flex items-center gap-2"
+                    >
+                      <Upload className="w-4 h-4" />
+                      Repository
+                    </button>
+                    
+                    <div className="border-t border-gray-700 my-2"></div>
+                    
+                    <div className="px-4 py-2">
+                      <p className="text-xs text-gray-500 mb-2">Load Session by ID</p>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={sessionIdInput}
+                          onChange={(e) => setSessionIdInput(e.target.value)}
+                          placeholder="Session ID..."
+                          className="flex-1 px-2 py-1 bg-gray-800 border border-gray-700 rounded text-xs text-gray-300 placeholder-gray-600 focus:border-purple-500 focus:outline-none"
+                        />
+                        <Button
+                          onClick={() => {
+                            if (sessionIdInput.trim()) {
+                              console.log('Load session:', sessionIdInput);
+                              // TODO: Load session logic
+                              setShowSettingsMenu(false);
+                            }
+                          }}
+                          size="sm"
+                          className="bg-purple-600 hover:bg-purple-500 px-2 text-xs"
+                        >
+                          Load
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
             
             {/* Status & Save */}
