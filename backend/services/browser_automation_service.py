@@ -1,7 +1,6 @@
 """
 Real Browser Automation Service using Playwright
-No mocks, no simulations - actual browser control
-Vision service temporarily disabled for MVP deployment
+Advanced anti-detection with fingerprinting evasion and CAPTCHA solving
 """
 import asyncio
 import logging
@@ -9,7 +8,11 @@ import base64
 from playwright.async_api import async_playwright, Browser, Page, BrowserContext
 from typing import Dict, Any, Optional, List
 import os
-# from services.local_vision_service import vision_service  # Disabled for MVP - ML dependencies removed
+from services.anti_detect import (
+    HumanBehaviorSimulator,
+    AntiDetectFingerprint,
+    CaptchaSolver
+)
 
 logger = logging.getLogger(__name__)
 
