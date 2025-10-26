@@ -30,7 +30,7 @@ class ChatResponse(BaseModel):
 @router.post("/chat")
 async def chat(request: ChatRequest):
     """
-    Chat endpoint with THINKING + MEMORY integration
+    Chat endpoint with THINKING + MEMORY + CONTEXT MANAGEMENT integration
     AI thinks deeply before responding - честность и точность превыше всего
     """
     try:
@@ -98,9 +98,29 @@ Respond naturally and conversationally, incorporating your thinking insights."""
         # Add current message
         messages.append({"role": "user", "content": request.message})
         
-        # Call LLM with thinking-enhanced context
-        response = await openrouter_service.chat_completion(
+        # 🗂️ CONTEXT WINDOW MANAGEMENT
+        # Auto-manage context before making LLM call
+        session_id = request.session_id or "default"
+        context_result = await context_manager.auto_manage_context(
             messages=messages,
+            session_id=session_id,
+            model=request.model
+        )
+        
+        logger.info(f"📊 Context usage: {context_result['usage']['percentage_display']} ({context_result['usage']['current_tokens']}/{context_result['usage']['max_tokens']} tokens)")
+        
+        # Use potentially compressed messages
+        managed_messages = context_result['messages']
+        
+        # If a new session was created, notify
+        if context_result['action'] == 'new_session':
+            logger.warning(f"🔄 Created new session: {context_result['new_session_id']}")
+        elif context_result['action'] == 'compress':
+            logger.info(f"🗜️ Compressed conversation")
+        
+        # Call LLM with thinking-enhanced and context-managed messages
+        response = await openrouter_service.chat_completion(
+            messages=managed_messages,
             model=request.model,
             temperature=0.7  # Balanced creativity and accuracy
         )
@@ -111,7 +131,7 @@ Respond naturally and conversationally, incorporating your thinking insights."""
         await memory_service.remember_conversation(
             user_message=request.message,
             assistant_response=assistant_message,
-            session_id=request.history[0].get('session_id', 'unknown') if request.history else 'unknown',
+            session_id=session_id,
             important=True
         )
         
@@ -131,7 +151,7 @@ Respond naturally and conversationally, incorporating your thinking insights."""
             ]
             await memory_service.extract_facts_from_conversation(
                 all_messages,
-                session_id='current'
+                session_id=session_id
             )
         
         return {
@@ -144,7 +164,10 @@ Respond naturally and conversationally, incorporating your thinking insights."""
                 "confidence": thinking_result['confidence'],
                 "process_summary": thinking_result['final_reasoning'][:200],
                 "verified": not thinking_result['needs_verification']
-            }
+            },
+            "context_warning": context_result.get('warning', ''),
+            "new_session_id": context_result.get('new_session_id'),
+            "context_usage": context_result['usage']
         }
         
     except Exception as e:
