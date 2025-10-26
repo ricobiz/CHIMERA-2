@@ -72,12 +72,69 @@ async def click_element(request: ClickRequest):
 
 @router.post("/type")
 async def type_text(request: TypeRequest):
-    """Type text into element"""
+    """Type text into element by selector"""
     try:
         result = await browser_service.type_text(request.session_id, request.selector, request.text)
         return result
     except Exception as e:
         logger.error(f"Error typing: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/type-text")
+async def smart_type_text(request: FindElementsRequest):
+    """
+    Smart type: Use vision model to find element by description, then type text
+    Example: description="email field", text="user@example.com"
+    """
+    try:
+        # Parse request body for text field
+        from pydantic import BaseModel
+        class SmartTypeRequest(BaseModel):
+            session_id: str
+            description: str
+            text: str
+        
+        # Re-parse with correct model
+        smart_req = SmartTypeRequest(**request.dict(), text=request.dict().get('text', ''))
+        
+        # Find element using vision
+        elements = await browser_service.find_elements_with_vision(
+            smart_req.session_id,
+            smart_req.description
+        )
+        
+        if not elements:
+            raise HTTPException(status_code=404, detail=f"Element '{smart_req.description}' not found")
+        
+        # Click and type into the first (most confident) element
+        best_element = elements[0]
+        box = best_element['box']
+        
+        # Click at center of bounding box to focus
+        center_x = box['x'] + box['width'] / 2
+        center_y = box['y'] + box['height'] / 2
+        
+        page = browser_service.sessions[smart_req.session_id]['page']
+        await page.mouse.click(center_x, center_y)
+        await page.wait_for_timeout(500)
+        
+        # Type the text
+        await page.keyboard.type(smart_req.text)
+        await page.wait_for_timeout(500)
+        
+        screenshot = await browser_service.capture_screenshot(smart_req.session_id)
+        
+        return {
+            "success": True,
+            "typed_into": best_element,
+            "text": smart_req.text,
+            "screenshot": screenshot,
+            "box": box
+        }
+        
+    except Exception as e:
+        logger.error(f"Error in smart type: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
