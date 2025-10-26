@@ -11,7 +11,36 @@ const SelfImprovement = ({ onClose }) => {
 
   useEffect(() => {
     checkHealth();
+    fetchCurrentModels();
   }, []);
+
+  const fetchCurrentModels = async () => {
+    try {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/self-improvement/model-assignments`);
+      const data = await response.json();
+      setModelAssignments(data);
+    } catch (error) {
+      console.error('Error fetching models:', error);
+    }
+  };
+
+  const optimizeModels = async () => {
+    setIsOptimizing(true);
+    try {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/self-improvement/optimize-models`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const data = await response.json();
+      setModelAssignments(data);
+      alert('✅ Models optimized successfully! Changes will apply after refresh.');
+    } catch (error) {
+      console.error('Optimization error:', error);
+      alert('❌ Optimization failed');
+    } finally {
+      setIsOptimizing(false);
+    }
+  };
 
   const checkHealth = async () => {
     try {
