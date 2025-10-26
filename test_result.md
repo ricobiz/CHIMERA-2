@@ -411,15 +411,18 @@ frontend:
 
   - task: "Settings - MCP Servers tab"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/frontend/src/components/Settings.jsx, /app/frontend/src/services/api.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Added new MCP Servers tab with advanced features: predefined server types (browser automation, filesystem, sequential thinking, context, git), custom servers, priority settings, fallback order, health checks. Needs testing."
+      - working: true
+        agent: "testing"
+        comment: "✅ VERIFIED: Settings MCP Servers tab working perfectly. All 4 tabs accessible (Models, API Keys & Secrets, Integrations, MCP Servers). MCP tab includes server type dropdown with all predefined options (Browser Automation, Filesystem, Sequential Thinking, Context, Git, Custom), server name field, endpoint URL for custom servers, priority (0-100) and fallback order inputs, Add MCP Server button. Advanced features UI implemented correctly. Backend MCP endpoints already tested and confirmed working."
 
   - task: "Settings icon in header (gear icon)"
     implemented: true
