@@ -227,15 +227,18 @@ backend:
 
   - task: "POST /api/mcp-servers/{id}/health-check endpoint"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/routes/integrations_routes.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Created health check endpoint for MCP servers. Needs testing."
+      - working: true
+        agent: "testing"
+        comment: "✅ Successfully tested POST /api/mcp-servers/{id}/health-check endpoint. Health check completed with status 'healthy'. Last_health_check timestamp correctly updated in database. Response includes proper status and server_id fields."
 
   - task: "GET /api/mcp-servers/active/list endpoint"
     implemented: true
