@@ -252,16 +252,18 @@ Be EXTREMELY thorough and critical. False negatives (missing fraud) are more dan
         else:
             final_verdict = "AUTHENTIC"
         
-        # Combine red flags from both models
+        # Combine red flags from ALL THREE models
         all_red_flags = list(set(
             primary_result.get('red_flags', []) + 
-            secondary_result.get('red_flags', [])
+            secondary_result.get('red_flags', []) +
+            tertiary_result.get('red_flags', [])
         ))
         
-        # Combine authenticity indicators
+        # Combine authenticity indicators from all models
         all_authenticity = list(set(
             primary_result.get('authenticity_indicators', []) + 
-            secondary_result.get('authenticity_indicators', [])
+            secondary_result.get('authenticity_indicators', []) +
+            tertiary_result.get('authenticity_indicators', [])
         ))
         
         # Build comprehensive result
