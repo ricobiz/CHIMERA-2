@@ -227,7 +227,7 @@ async def switch_model_with_context(request: Dict):
         )
         
         # Calculate new context limits
-        new_usage = context_manager.calculate_usage(compressed_msgs, new_model)
+        new_usage = await context_manager.calculate_usage(compressed_msgs, new_model)
         
         return {
             "status": "success",
