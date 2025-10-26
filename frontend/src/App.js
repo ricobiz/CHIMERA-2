@@ -307,7 +307,7 @@ function App() {
       if (chatMode === 'agent') {
         try {
           console.log('🎨 Generating design specification...');
-          const designResponse = await import('./services/api').then(m => m.generateDesign(prompt, visualValidatorModel));
+          const designResponse = await generateDesign(prompt, visualValidatorModel);
           designSpec = designResponse.design_spec;
           
           // Show design to user as AI message
