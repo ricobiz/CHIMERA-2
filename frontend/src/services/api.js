@@ -457,3 +457,30 @@ export const generatePlan = async (goal, model = 'openai/gpt-5') => {
     throw error;
   }
 };
+
+
+// Task Classification API
+export const classifyTask = async (message, model = 'anthropic/claude-3.5-sonnet') => {
+  try {
+    console.log(`[API] classifyTask called with message: "${message.substring(0, 100)}..."`);
+    const response = await axios.post(`${API}/classify-task`, {
+      message,
+      model
+    }, {
+      timeout: 10000  // 10 second timeout for classification
+    });
+    console.log(`[API] classifyTask response:`, response.data);
+    return response.data;
+  } catch (error) {
+    console.error('[API] Error classifying task:', error);
+    // Return default classification on error
+    return {
+      success: true,
+      classification: {
+        task_type: 'code_generation',
+        confidence: 0.5,
+        reasoning: 'Classification failed, defaulting to code generation'
+      }
+    };
+  }
+};
