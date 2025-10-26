@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
 import { Menu, X } from 'lucide-react';
 import { Button } from './components/ui/button';
 import Sidebar from './components/Sidebar';
 import ChatInterface from './components/ChatInterface';
 import PreviewPanel from './components/PreviewPanel';
+import Settings from './components/Settings';
 import { generateCode, saveProject } from './services/api';
 import { toast } from './hooks/use-toast';
 import { Toaster } from './components/ui/toaster';
@@ -14,10 +15,13 @@ function App() {
   const [generatedCode, setGeneratedCode] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [currentProject, setCurrentProject] = useState(null);
-  const [selectedModel, setSelectedModel] = useState('anthropic/claude-3.5-sonnet');
+  const [selectedModel, setSelectedModel] = useState(
+    localStorage.getItem('selectedModel') || 'anthropic/claude-3.5-sonnet'
+  );
   const [totalCost, setTotalCost] = useState(0);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
 
   const handleSendPrompt = async (prompt) => {
     const userMessage = { role: 'user', content: prompt };
@@ -121,12 +125,30 @@ function App() {
     setSidebarOpen(false);
   };
 
+  const handleOpenSettings = () => {
+    setShowSettings(true);
+    setSidebarOpen(false);
+  };
+
+  if (showSettings) {
+    return (
+      <div className="flex h-screen overflow-hidden bg-[#0f0f10]">
+        <Settings 
+          selectedModel={selectedModel}
+          onModelChange={setSelectedModel}
+          onClose={() => setShowSettings(false)}
+        />
+        <Toaster />
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-screen overflow-hidden bg-[#0f0f10]">
-      {/* Mobile Menu Button */}
+      {/* Mobile Menu Button - Moved to RIGHT */}
       <Button
         onClick={() => setSidebarOpen(!sidebarOpen)}
-        className="fixed top-4 left-4 z-50 md:hidden bg-gray-800 hover:bg-gray-700"
+        className="fixed top-4 right-4 z-50 md:hidden bg-gray-800 hover:bg-gray-700"
         size="sm"
       >
         {sidebarOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
@@ -142,6 +164,7 @@ function App() {
         <Sidebar 
           onNewProject={handleNewProject} 
           onProjectSelect={handleProjectSelect}
+          onOpenSettings={handleOpenSettings}
         />
       </div>
 
@@ -167,6 +190,7 @@ function App() {
             selectedModel={selectedModel}
             onModelChange={setSelectedModel}
             totalCost={totalCost}
+            onOpenSettings={handleOpenSettings}
           />
         </div>
 
