@@ -32,6 +32,7 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
   const [showContent, setShowContent] = useState(false);
   const [sessionContent, setSessionContent] = useState([]);
   const [showFunctionsMenu, setShowFunctionsMenu] = useState(false);
+  const [showFunctionsMenu, setShowFunctionsMenu] = useState(false);
 
   // AI Introduction on first launch
   useEffect(() => {
