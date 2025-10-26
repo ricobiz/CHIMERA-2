@@ -5,7 +5,13 @@
 
 import axios from 'axios';
 
-const API = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+// IMPORTANT: REACT_APP_BACKEND_URL must be set in environment
+// No localhost fallback to ensure proper production configuration
+const API = process.env.REACT_APP_BACKEND_URL;
+
+if (!API) {
+  console.error('REACT_APP_BACKEND_URL is not set! API calls will fail.');
+}
 
 // Helper to add nocache params
 const getNoCacheParams = () => ({
