@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings as SettingsIcon, ChevronLeft, Check, Plus, Trash2, Eye, EyeOff, Server, Link2, AlertCircle, CheckCircle2, XCircle, Search } from 'lucide-react';
+import { Settings as SettingsIcon, ChevronLeft, Check, Plus, Trash2, Eye, EyeOff, Server, Link2, AlertCircle, CheckCircle2, XCircle, Search, Book } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
 import { Badge } from './ui/badge';
@@ -7,6 +7,7 @@ import { Switch } from './ui/switch';
 import { getModels, createIntegration, getIntegrations, updateIntegration, deleteIntegration, createMCPServer, getMCPServers, updateMCPServer, deleteMCPServer, healthCheckMCPServer } from '../services/api';
 import { toast } from '../hooks/use-toast';
 import { CodeIcon, EyeIcon } from './Icons';
+import KnowledgeBase from './KnowledgeBase';
 
 const Settings = ({ selectedModel, onModelChange, onClose, visualValidatorEnabled, onVisualValidatorToggle, visualValidatorModel, onVisualValidatorModelChange, researchPlannerEnabled, onResearchPlannerToggle, researchPlannerModel, onResearchPlannerModelChange }) => {
   const [models, setModels] = useState([]);
