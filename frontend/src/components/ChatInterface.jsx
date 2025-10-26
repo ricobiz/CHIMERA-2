@@ -171,16 +171,27 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, activeM
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-3 md:p-6">
-        {messages.length === 0 ? (
-          <div className="max-w-3xl mx-auto">
-            <div className="text-center mb-6 md:mb-8">
-              <h1 className="text-2xl md:text-4xl font-bold text-white mb-2 md:mb-4">
-                Build with AI
-              </h1>
-              <p className="text-sm md:text-base text-gray-400">
-                Describe your app and watch it come to life
-              </p>
+        <div className="max-w-3xl mx-auto">
+          {/* Task Progress Panel */}
+          {developmentPlan.length > 0 && chatMode === 'agent' && (
+            <div className="mb-6">
+              <TaskProgress 
+                tasks={developmentPlan} 
+                currentTaskIndex={currentTaskIndex} 
+              />
             </div>
+          )}
+
+          {messages.length === 0 ? (
+            <div>
+              <div className="text-center mb-6 md:mb-8">
+                <h1 className="text-2xl md:text-4xl font-bold text-white mb-2 md:mb-4">
+                  Build with AI
+                </h1>
+                <p className="text-sm md:text-base text-gray-400">
+                  Describe your app and watch it come to life
+                </p>
+              </div>
 
             {showSamples && (
               <div className="space-y-2 md:space-y-3 mb-6 md:mb-8">
