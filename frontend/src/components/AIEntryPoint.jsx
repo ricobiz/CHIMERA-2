@@ -226,6 +226,51 @@ const AIEntryPoint = ({ onClose }) => {
         {/* Left Column: Task Input + Quick Actions */}
         <div className="lg:w-1/3 space-y-4">
           
+          {/* External Access Link */}
+          <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-4">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm text-gray-400 font-medium">🔗 External AI Access</span>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={accessEnabled}
+                  onChange={toggleAccess}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+              </label>
+            </div>
+            
+            {accessEnabled ? (
+              <>
+                <p className="text-xs text-gray-500 mb-3">
+                  Поделитесь этой ссылкой с внешним AI для доступа к агенту:
+                </p>
+                <div className="bg-gray-800/50 border border-gray-700 rounded p-2 mb-2 flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={sessionLink}
+                    readOnly
+                    className="flex-1 bg-transparent text-xs text-gray-300 outline-none"
+                  />
+                  <button
+                    onClick={copyLink}
+                    className="px-2 py-1 bg-purple-600/20 hover:bg-purple-600/30 border border-purple-600/50 text-purple-400 rounded text-xs transition-colors"
+                  >
+                    Copy
+                  </button>
+                </div>
+                <p className="text-xs text-green-400">
+                  ✓ Доступ активирован для этой сессии
+                </p>
+              </>
+            ) : (
+              <p className="text-xs text-gray-500">
+                Включите переключатель, чтобы сгенерировать ссылку для внешнего AI.
+              </p>
+            )}
+          </div>
+          
           {/* Agent Status */}
           <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-4">
             <div className="flex items-center justify-between mb-2">
