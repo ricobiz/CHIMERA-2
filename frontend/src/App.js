@@ -332,10 +332,11 @@ function App() {
             onSendPrompt={handleSendPrompt} 
             messages={messages} 
             onSave={handleSaveProject}
-            selectedModel={selectedModel}
-            onModelChange={setSelectedModel}
             totalCost={totalCost}
             onOpenSettings={handleOpenSettings}
+            activeModel={selectedModel}
+            validatorEnabled={visualValidatorEnabled}
+            validatorModel={visualValidatorModel}
           />
         </div>
 
