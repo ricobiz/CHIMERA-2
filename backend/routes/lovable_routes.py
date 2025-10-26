@@ -206,20 +206,6 @@ Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
         logger.error(f"Error exporting project: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
-            
-            result.append(ProjectListItem(
-                id=proj['id'],
-                name=proj['name'],
-                description=proj['description'],
-                last_accessed=time_ago,
-                icon=proj.get('icon', '🚀')
-            ))
-        
-        return result
-    except Exception as e:
-        logger.error(f"Error fetching projects: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
-
 @router.get("/projects/{project_id}", response_model=Project)
 async def get_project(project_id: str):
     """Get a specific project by ID"""
