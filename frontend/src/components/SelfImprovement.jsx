@@ -102,6 +102,61 @@ const SelfImprovement = ({ onClose }) => {
         <div className="p-6 overflow-y-auto" style={{ height: 'calc(100vh - 73px)' }}>
           <div className="max-w-7xl mx-auto space-y-6">
             
+            {/* Model Optimization Section */}
+            <div className="bg-gradient-to-r from-purple-900/30 to-blue-900/30 rounded-lg border border-purple-700/50 p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h2 className="text-lg font-semibold text-white mb-1">🎯 Model Optimization</h2>
+                  <p className="text-sm text-gray-400">Автоматически назначить оптимальные модели для всех задач</p>
+                </div>
+                <button 
+                  onClick={optimizeModels} 
+                  disabled={isOptimizing}
+                  className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl"
+                >
+                  {isOptimizing ? (
+                    <span className="flex items-center gap-2">
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      Оптимизация...
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-2">
+                      <Zap className="w-4 h-4" />
+                      Оптимизировать Модели
+                    </span>
+                  )}
+                </button>
+              </div>
+
+              {modelAssignments && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                  {Object.entries(modelAssignments.assignments || {}).map(([task, info]) => (
+                    <div key={task} className="bg-gray-900/70 border border-gray-700 rounded-lg p-4 hover:border-purple-500/50 transition-colors">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h3 className="text-white font-medium mb-1">{info.name || task}</h3>
+                          <p className="text-xs text-gray-400 mb-2">{info.description}</p>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm text-blue-400 font-mono">{info.model}</span>
+                            {info.is_free && <span className="px-2 py-0.5 bg-green-600/20 text-green-400 text-xs rounded-full border border-green-600/50">FREE</span>}
+                          </div>
+                        </div>
+                        {info.cost_per_1m && (
+                          <div className="text-right">
+                            <p className="text-xs text-gray-500">Cost/1M tokens</p>
+                            <p className="text-sm text-purple-400">${info.cost_per_1m}</p>
+                          </div>
+                        )}
+                      </div>
+                      {info.reason && (
+                        <p className="text-xs text-gray-500 mt-2 border-t border-gray-800 pt-2">💡 {info.reason}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
             {/* System Health */}
             <div className="bg-gray-900/50 rounded-lg border border-gray-800 p-6">
               <div className="flex items-center justify-between mb-4">
