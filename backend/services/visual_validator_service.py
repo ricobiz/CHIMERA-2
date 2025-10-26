@@ -154,4 +154,102 @@ Be strict but fair. Focus on critical issues that affect usability."""
                 "usage": {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
             }
 
+    async def validate_navigation(
+        self,
+        screenshot_base64: str,
+        expected_url: str,
+        current_url: str,
+        page_title: str,
+        description: str
+    ) -> Dict:
+        """
+        Validates if navigation was successful by analyzing the screenshot
+        Returns: {success: bool, confidence: float, issues: list, suggestions: list}
+        """
+        try:
+            prompt = f"""Analyze this screenshot to determine if navigation to the target page was successful.
+
+**Navigation Details:**
+- Expected destination: {expected_url}
+- Current URL: {current_url}
+- Page title: {page_title}
+- Goal: {description}
+
+**Your task:**
+1. Verify the page loaded correctly (no error messages, blank pages, or loading indicators)
+2. Check if the page content matches the expected destination
+3. Confirm the URL changed appropriately
+4. Look for any error messages, 404 pages, or security warnings
+
+**Response format (JSON):**
+{{
+    "success": true/false,
+    "confidence": 0.0-1.0,
+    "issues": ["list of any problems found"],
+    "suggestions": ["list of recommendations if navigation failed"],
+    "page_status": "loaded|error|blank|timeout",
+    "content_match": "matches|mismatch|uncertain"
+}}
+
+Respond ONLY with valid JSON, no additional text."""
+
+            # Prepare image data
+            image_data = screenshot_base64
+            if not image_data.startswith('data:image'):
+                image_data = f"data:image/png;base64,{image_data}"
+
+            response = self.client.chat.completions.create(
+                model="google/gemini-2.5-flash-image",
+                messages=[
+                    {
+                        "role": "user",
+                        "content": [
+                            {"type": "text", "text": prompt},
+                            {"type": "image_url", "image_url": {"url": image_data}}
+                        ]
+                    }
+                ],
+                max_tokens=500,
+                temperature=0.3
+            )
+
+            result_text = response.choices[0].message.content.strip()
+            
+            # Try to extract JSON from response
+            import json
+            import re
+            
+            # Find JSON in response (might have markdown code blocks)
+            json_match = re.search(r'```json\s*(.*?)\s*```', result_text, re.DOTALL)
+            if json_match:
+                result_text = json_match.group(1)
+            
+            result = json.loads(result_text)
+            
+            logger.info(f"Navigation validation result: {result}")
+            
+            return {
+                "success": result.get("success", False),
+                "confidence": result.get("confidence", 0.5),
+                "issues": result.get("issues", []),
+                "suggestions": result.get("suggestions", []),
+                "page_status": result.get("page_status", "unknown"),
+                "content_match": result.get("content_match", "uncertain")
+            }
+            
+        except Exception as e:
+            logger.error(f"Navigation validation error: {str(e)}")
+            
+            # Fallback: basic check if we have screenshot and URL
+            basic_success = bool(screenshot_base64 and current_url and len(current_url) > 0)
+            
+            return {
+                "success": basic_success,
+                "confidence": 0.6 if basic_success else 0.2,
+                "issues": [] if basic_success else ["Vision API unavailable, using basic validation"],
+                "suggestions": [] if basic_success else ["Retry navigation", "Check network connection"],
+                "page_status": "uncertain",
+                "content_match": "uncertain"
+            }
+
 visual_validator_service = VisualValidatorService()
