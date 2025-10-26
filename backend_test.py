@@ -1724,10 +1724,13 @@ export default App;""",
                     )
                     
                     if numeric_fields_valid and isinstance(is_free_tier, bool):
+                        balance_display = "Unlimited" if balance == -1 else f"${balance}"
+                        remaining_display = "Unlimited" if remaining == -1 else f"${remaining}"
+                        
                         self.log_test(
                             "OpenRouter Balance - Success",
                             True,
-                            f"Balance: ${balance}, Used: ${used}, Remaining: ${remaining}, Free Tier: {is_free_tier}",
+                            f"Balance: {balance_display}, Used: ${used}, Remaining: {remaining_display}, Free Tier: {is_free_tier}",
                             {
                                 "balance": balance,
                                 "used": used,
@@ -1738,20 +1741,29 @@ export default App;""",
                         )
                         
                         # Additional validation: remaining should equal balance - used (approximately)
-                        calculated_remaining = balance - used
-                        if abs(remaining - calculated_remaining) < 0.01:  # Allow small floating point differences
-                            self.log_test(
-                                "OpenRouter Balance - Math Check",
-                                True,
-                                "Balance calculations are consistent",
-                                {"calculated_remaining": calculated_remaining, "reported_remaining": remaining}
-                            )
+                        # Skip math check for unlimited accounts (-1 values)
+                        if balance != -1 and remaining != -1:
+                            calculated_remaining = balance - used
+                            if abs(remaining - calculated_remaining) < 0.01:  # Allow small floating point differences
+                                self.log_test(
+                                    "OpenRouter Balance - Math Check",
+                                    True,
+                                    "Balance calculations are consistent",
+                                    {"calculated_remaining": calculated_remaining, "reported_remaining": remaining}
+                                )
+                            else:
+                                self.log_test(
+                                    "OpenRouter Balance - Math Check Failed",
+                                    False,
+                                    f"Balance math inconsistent: {balance} - {used} ≠ {remaining}",
+                                    {"balance": balance, "used": used, "remaining": remaining}
+                                )
                         else:
                             self.log_test(
-                                "OpenRouter Balance - Math Check Failed",
-                                False,
-                                f"Balance math inconsistent: {balance} - {used} ≠ {remaining}",
-                                {"balance": balance, "used": used, "remaining": remaining}
+                                "OpenRouter Balance - Unlimited Account",
+                                True,
+                                "Unlimited account detected (balance/remaining = -1)",
+                                {"account_type": "unlimited"}
                             )
                     else:
                         self.log_test(
