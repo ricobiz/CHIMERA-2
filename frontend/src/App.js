@@ -152,6 +152,11 @@ function App() {
   };
 
   const handleRevise = () => {
+    // Clear any existing revision interval
+    if (revisionIntervalRef.current) {
+      clearInterval(revisionIntervalRef.current);
+    }
+    
     setShowApprovalButtons(false);
     
     // Create revision plan
@@ -173,7 +178,7 @@ function App() {
     
     // Simulate revision workflow
     let taskIdx = 0;
-    const revisionInterval = setInterval(() => {
+    revisionIntervalRef.current = setInterval(() => {
       if (taskIdx < revisions.length - 1) {
         setDevelopmentPlan(prev => {
           const updated = [...prev];
@@ -194,7 +199,10 @@ function App() {
           setCurrentTaskIndex(taskIdx);
         }, 2000);
       } else {
-        clearInterval(revisionInterval);
+        if (revisionIntervalRef.current) {
+          clearInterval(revisionIntervalRef.current);
+          revisionIntervalRef.current = null;
+        }
         // Show approval buttons again after revisions
         setTimeout(() => {
           setShowApprovalButtons(true);
