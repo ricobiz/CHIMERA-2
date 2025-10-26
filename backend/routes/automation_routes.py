@@ -217,7 +217,8 @@ async def smart_click(request: FindElementsRequest):
         return {
             "success": True,
             "clicked_element": best_element,
-            "screenshot": screenshot
+            "screenshot": screenshot,
+            "box": box
         }
         
     except Exception as e:
