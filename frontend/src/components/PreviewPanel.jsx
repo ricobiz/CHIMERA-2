@@ -54,8 +54,33 @@ const PreviewPanel = ({ generatedCode, isGenerating }) => {
     
     let cleanCode = generatedCode
       .replace(/export\s+default\s+\w+;?/g, '')
-      .replace(/export\s+{[^}]*};?/g, '')
-      .replace(/\$\{/g, '\\${'); // Escape template literals
+      .replace(/export\s+{[^}]*};?/g, '');
+    
+    // Convert template literals to string concatenation to avoid Babel parsing errors
+    // This converts: className={`base-class ${variable}`} 
+    // Into: className={"base-class " + variable}
+    cleanCode = cleanCode.replace(
+      /className=\{`([^`]*)\$\{([^}]+)\}([^`]*)`\}/g, 
+      (match, before, variable, after) => {
+        const parts = [];
+        if (before) parts.push(`"${before}"`);
+        parts.push(variable);
+        if (after) parts.push(`"${after}"`);
+        return `className={${parts.join(' + ')}}`;
+      }
+    );
+    
+    // Also handle style and other attributes with template literals
+    cleanCode = cleanCode.replace(
+      /(\w+)=\{`([^`]*)\$\{([^}]+)\}([^`]*)`\}/g, 
+      (match, attr, before, variable, after) => {
+        const parts = [];
+        if (before) parts.push(`"${before}"`);
+        parts.push(variable);
+        if (after) parts.push(`"${after}"`);
+        return `${attr}={${parts.join(' + ')}}`;
+      }
+    );
     
     return `
 <!DOCTYPE html>
