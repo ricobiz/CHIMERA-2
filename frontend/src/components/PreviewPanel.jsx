@@ -68,7 +68,19 @@ const PreviewPanel = ({ generatedCode, isGenerating }) => {
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif; }
+    * { box-sizing: border-box; }
+    html, body { 
+      margin: 0; 
+      padding: 0; 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif; 
+      background-color: #0f0f10;
+      color: #e5e7eb;
+      min-height: 100vh;
+    }
+    #root {
+      min-height: 100vh;
+      background-color: #0f0f10;
+    }
   </style>
 </head>
 <body>
@@ -87,9 +99,9 @@ const PreviewPanel = ({ generatedCode, isGenerating }) => {
       root.render(React.createElement(component));
     } catch (error) {
       document.getElementById('root').innerHTML = \`
-        <div style="padding: 20px; color: #ef4444; font-family: monospace;">
-          <h3>Preview Error</h3>
-          <pre style="background: #1f2937; padding: 15px; border-radius: 8px; overflow-x: auto;">\${error.message}</pre>
+        <div style="padding: 20px; color: #ef4444; font-family: monospace; background: #0f0f10; min-height: 100vh;">
+          <h3 style="color: #f87171;">Preview Error</h3>
+          <pre style="background: #1f2937; color: #e5e7eb; padding: 15px; border-radius: 8px; overflow-x: auto; border: 2px solid #374151;">\${error.message}</pre>
         </div>
       \`;
       console.error('Preview error:', error);
