@@ -1,0 +1,178 @@
+{
+  "header": {
+    "settings": "Settings",
+    "newWorkspace": "New Workspace",
+    "contentFolder": "Content Folder"
+  },
+  "chat": {
+    "placeholder_chat": "Ask Aria anything...",
+    "placeholder_agent": "Describe your app...",
+    "stopGeneration": "Stop Generation",
+    "generating": "Generating...",
+    "mode_chat": "Chat",
+    "mode_agent": "Agent",
+    "approve": "Approve",
+    "revise": "Revise",
+    "cost": "Cost",
+    "balance": "Balance",
+    "context": "Context"
+  },
+  "sidebar": {
+    "newSession": "Create New Session",
+    "loadSession": "Load Session by ID",
+    "recentSessions": "Recent Sessions",
+    "search": "Search...",
+    "noSessions": "No sessions yet"
+  },
+  "settings": {
+    "title": "Settings",
+    "saveClose": "Save & Close",
+    "tabs": {
+      "models": "Models",
+      "secrets": "API Keys & Secrets",
+      "integrations": "Integrations",
+      "mcp": "MCP Servers",
+      "language": "Language",
+      "knowledgeBase": "Knowledge Base"
+    },
+    "visualValidator": {
+      "title": "Visual Validator",
+      "description": "Enable AI-powered visual validation to ensure UI quality and catch layout issues.",
+      "modelLabel": "Validator Model",
+      "available": "available"
+    },
+    "researchPlanner": {
+      "title": "Research Planner",
+      "description": "Enable AI-powered research to investigate current best practices before complex tasks. Ensures modern approaches and up-to-date technology stacks.",
+      "modelLabel": "Research Model"
+    },
+    "codeGeneration": {
+      "title": "Code Generation Model",
+      "description": "Select the AI model for generating code.",
+      "searchPlaceholder": "Search models...",
+      "filterAll": "All",
+      "filterFree": "Free",
+      "filterPaid": "Paid",
+      "modelsCount": "models"
+    },
+    "secrets": {
+      "addTitle": "Add New Secret",
+      "savedTitle": "Saved Secrets",
+      "nameLabel": "Secret Name",
+      "namePlaceholder": "e.g., OPENROUTER_API_KEY, STRIPE_SECRET_KEY",
+      "valueLabel": "Secret Value",
+      "valuePlaceholder": "Enter API key or secret value",
+      "addButton": "Add Secret",
+      "noSecrets": "No secrets saved yet",
+      "added": "Added",
+      "note": "Secrets are stored securely in your browser's localStorage. AI models will have access to these secrets when needed for API calls and integrations."
+    },
+    "integrations": {
+      "addTitle": "Add Service Integration",
+      "savedTitle": "Service Integrations",
+      "serviceType": "Service Type",
+      "name": "Integration Name",
+      "namePlaceholder": "e.g., My Hugging Face Account",
+      "apiKey": "API Key / Token",
+      "apiKeyPlaceholder": "Enter API key or access token",
+      "addButton": "Add Integration",
+      "noIntegrations": "No integrations configured yet",
+      "added": "Added",
+      "info": "Integrations allow your AI agent to interact with external services like GitHub, Hugging Face, Gmail, and Google Drive. Enable/disable them as needed."
+    },
+    "mcp": {
+      "addTitle": "Add MCP Server",
+      "savedTitle": "MCP Servers",
+      "serverType": "Server Type",
+      "name": "Server Name",
+      "namePlaceholder": "e.g., My Browser Automation Server",
+      "endpointUrl": "Endpoint URL",
+      "endpointPlaceholder": "https://your-mcp-server.com/api",
+      "priority": "Priority (0-100)",
+      "fallbackOrder": "Fallback Order",
+      "fallbackPlaceholder": "Optional",
+      "addButton": "Add MCP Server",
+      "noServers": "No MCP servers configured yet",
+      "test": "Test",
+      "advancedTitle": "Advanced Features:",
+      "advancedInfo": [
+        "Priority: Higher values are tried first (0-100)",
+        "Fallback Order: If primary server fails, try servers in fallback order (0, 1, 2...)",
+        "Health Check: Click 'Test' to verify server connectivity",
+        "Load Balancing: Multiple servers with same priority are load-balanced"
+      ]
+    },
+    "language": {
+      "title": "Language Settings",
+      "description": "Choose your preferred language for the interface",
+      "select": "Select Language"
+    }
+  },
+  "features": {
+    "aiCodeGeneration": {
+      "title": "AI Code Generation",
+      "description": "Describe your app in natural language and Chimera generates full-stack code (React + FastAPI + MongoDB) with live preview."
+    },
+    "designFirst": {
+      "title": "Design-First Workflow",
+      "description": "AI generates detailed design specifications before code. Visual validator ensures UI matches requirements perfectly."
+    },
+    "browserAutomation": {
+      "title": "Browser Automation",
+      "description": "Natural language browser automation powered by AI. Just describe what you want - no coding or selectors needed."
+    },
+    "documentVerification": {
+      "title": "Document Verification",
+      "description": "Triple-model verification system (GPT-5 + Claude 4.5 + Gemini Vision) for detecting fraud and AI-generated content."
+    },
+    "selfImprovement": {
+      "title": "Self-Improvement System",
+      "description": "AI analyzes and optimizes its own codebase. Auto-selects best models, finds bugs, and applies improvements."
+    },
+    "aiEntryPoint": {
+      "title": "AI Entry Point",
+      "description": "Universal agent gateway with real-time execution logs and full control over AI operations."
+    }
+  },
+  "toast": {
+    "codeGenerated": "Code Generated",
+    "codeGeneratedDesc": "Your app is ready.",
+    "error": "Error",
+    "errorGenerating": "Failed to generate code.",
+    "saved": "Saved",
+    "savedDesc": "Project saved.",
+    "nothingToSave": "Nothing to save",
+    "generateFirst": "Generate code first.",
+    "sessionError": "Failed to load session.",
+    "generationStopped": "Generation Stopped",
+    "generationStoppedDesc": "Code generation has been stopped.",
+    "projectApproved": "Project Approved!",
+    "projectApprovedDesc": "Your application is ready to use.",
+    "revisionMode": "Revision Mode",
+    "revisionModeDesc": "Creating plan for improvements...",
+    "validationComplete": "Visual Validation Complete",
+    "validationCompleteDesc": "UI passes all checks. Ready for your approval."
+  },
+  "automation": {
+    "title": "Browser Automation",
+    "back": "Back",
+    "goal": "Automation Goal",
+    "goalPlaceholder": "Describe what you want to automate...",
+    "start": "Start Automation",
+    "pause": "Pause",
+    "resume": "Resume",
+    "stop": "Stop",
+    "status": {
+      "idle": "Ready",
+      "planning": "Planning...",
+      "executing": "Executing...",
+      "paused": "Paused",
+      "completed": "Completed",
+      "error": "Error"
+    }
+  },
+  "knowledgeBase": {
+    "openButton": "📚 Knowledge Base",
+    "tip": "💡 Tip: Use Ctrl/Cmd + F to search within this page"
+  }
+}
