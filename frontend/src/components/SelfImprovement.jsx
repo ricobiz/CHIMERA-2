@@ -6,6 +6,8 @@ const SelfImprovement = ({ onClose }) => {
   const [analysis, setAnalysis] = useState(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [selectedTarget, setSelectedTarget] = useState('full');
+  const [modelAssignments, setModelAssignments] = useState(null);
+  const [isOptimizing, setIsOptimizing] = useState(false);
 
   useEffect(() => {
     checkHealth();
