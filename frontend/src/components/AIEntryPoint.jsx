@@ -58,7 +58,26 @@ const AIEntryPoint = ({ onClose }) => {
     loadCurrentTask();
     loadResult();
     loadStatus();
+    generateSessionLink();
   }, []);
+
+  const generateSessionLink = () => {
+    const sessionId = `sess-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const link = `${window.location.origin}/ai-entry?session=${sessionId}`;
+    setSessionLink(link);
+  };
+
+  const toggleAccess = () => {
+    setAccessEnabled(!accessEnabled);
+    if (!accessEnabled) {
+      generateSessionLink(); // Generate new link when enabling access
+    }
+  };
+
+  const copyLink = () => {
+    navigator.clipboard.writeText(sessionLink);
+    alert('Ссылка скопирована в буфер обмена!');
+  };
 
   const loadStatus = async () => {
     try {
