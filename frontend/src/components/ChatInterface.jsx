@@ -253,7 +253,7 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, activeM
                 }
               }}
               placeholder="Describe your app..."
-              className={`min-h-[80px] md:min-h-[100px] bg-gray-900 text-sm md:text-base text-gray-300 resize-none pr-12 placeholder-gray-600 transition-all duration-300 ${
+              className={`min-h-[80px] md:min-h-[100px] bg-gray-900 text-sm md:text-base text-gray-300 resize-none pr-32 pl-3 placeholder-gray-600 transition-all duration-300 ${
                 generationStatus === 'generating' 
                   ? 'border-2 border-blue-400 shadow-lg shadow-blue-500/50' 
                   : generationStatus === 'success'
@@ -263,14 +263,51 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, activeM
                   : 'border border-gray-700 focus:border-purple-500/50'
               }`}
             />
-            <Button
-              onClick={handleSubmit}
-              disabled={!prompt.trim()}
-              className="absolute bottom-2 md:bottom-3 right-2 md:right-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 disabled:opacity-30 h-7 w-7 p-0"
-              size="sm"
-            >
-              <Send className="w-3.5 h-3.5" />
-            </Button>
+            
+            {/* Action buttons */}
+            <div className="absolute bottom-2 md:bottom-3 right-2 md:right-3 flex items-center gap-2">
+              {/* File upload */}
+              <label className="cursor-pointer text-gray-500 hover:text-gray-400 transition-colors">
+                <input
+                  type="file"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                  accept="*/*"
+                />
+                <Paperclip className="w-4 h-4" />
+              </label>
+              
+              {/* Voice input */}
+              <button
+                onClick={handleVoiceInput}
+                className="text-gray-500 hover:text-gray-400 transition-colors"
+                title="Voice input"
+              >
+                <Mic className="w-4 h-4" />
+              </button>
+              
+              {/* Send/Stop button */}
+              {isGenerating ? (
+                <Button
+                  onClick={onStopGeneration}
+                  className="bg-red-600 hover:bg-red-500 h-7 w-7 p-0"
+                  size="sm"
+                  title="Stop generation"
+                >
+                  <Square className="w-3.5 h-3.5" />
+                </Button>
+              ) : (
+                <Button
+                  onClick={handleSubmit}
+                  disabled={!prompt.trim()}
+                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 disabled:opacity-30 h-7 w-7 p-0"
+                  size="sm"
+                  title="Send message"
+                >
+                  <Send className="w-3.5 h-3.5" />
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </div>
