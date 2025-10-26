@@ -1481,6 +1481,522 @@ export default App;""",
                 {"error_type": type(e).__name__}
             )
 
+    # ============= CONTEXT WINDOW MANAGEMENT TESTS =============
+    
+    def test_context_status_endpoint(self):
+        """Test POST /api/context/status endpoint"""
+        print("\n🧪 Testing Context Status Endpoint...")
+        
+        # Test 1: Short conversation (no compression needed)
+        print("   Testing short conversation context status...")
+        short_history = [
+            {"role": "user", "content": "Hello"},
+            {"role": "assistant", "content": "Hi there! How can I help you today?"},
+            {"role": "user", "content": "What's the weather like?"}
+        ]
+        
+        payload = {
+            "history": short_history,
+            "model": "anthropic/claude-3.5-sonnet"
+        }
+        
+        try:
+            response = self.session.post(
+                f"{BACKEND_URL}/context/status",
+                json=payload,
+                timeout=15
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check required fields
+                required_fields = ['status', 'usage']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if not missing_fields:
+                    usage = data['usage']
+                    usage_fields = ['current_tokens', 'max_tokens', 'percentage', 'remaining']
+                    usage_missing = [field for field in usage_fields if field not in usage]
+                    
+                    if not usage_missing:
+                        percentage = usage['percentage']
+                        if percentage < 0.5:  # Should be low for short conversation
+                            self.log_test(
+                                "Context Status - Short Conversation",
+                                True,
+                                f"Context usage correctly calculated: {usage['percentage_display']} ({usage['current_tokens']}/{usage['max_tokens']} tokens)",
+                                {"percentage": percentage, "tokens": usage['current_tokens'], "max_tokens": usage['max_tokens']}
+                            )
+                        else:
+                            self.log_test(
+                                "Context Status - Short Conversation - High Usage",
+                                False,
+                                f"Unexpectedly high context usage for short conversation: {usage['percentage_display']}",
+                                {"percentage": percentage, "tokens": usage['current_tokens']}
+                            )
+                    else:
+                        self.log_test(
+                            "Context Status - Short Conversation - Missing Usage Fields",
+                            False,
+                            f"Usage object missing fields: {usage_missing}",
+                            {"missing_fields": usage_missing, "usage_keys": list(usage.keys())}
+                        )
+                else:
+                    self.log_test(
+                        "Context Status - Short Conversation - Missing Fields",
+                        False,
+                        f"Response missing required fields: {missing_fields}",
+                        {"missing_fields": missing_fields, "response_keys": list(data.keys())}
+                    )
+            else:
+                self.log_test(
+                    "Context Status - Short Conversation - HTTP Error",
+                    False,
+                    f"HTTP {response.status_code}: {response.text}",
+                    {"status_code": response.status_code}
+                )
+                
+        except Exception as e:
+            self.log_test(
+                "Context Status - Short Conversation - Exception",
+                False,
+                f"Unexpected error: {str(e)}",
+                {"error_type": type(e).__name__}
+            )
+        
+        # Test 2: Different models
+        print("   Testing context status with different models...")
+        models_to_test = [
+            "anthropic/claude-3.5-sonnet",
+            "openai/gpt-4o",
+            "google/gemini-pro"
+        ]
+        
+        for model in models_to_test:
+            payload = {
+                "history": short_history,
+                "model": model
+            }
+            
+            try:
+                response = self.session.post(
+                    f"{BACKEND_URL}/context/status",
+                    json=payload,
+                    timeout=15
+                )
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    if 'usage' in data:
+                        usage = data['usage']
+                        max_tokens = usage.get('max_tokens', 0)
+                        
+                        # Different models should have different limits
+                        if max_tokens > 0:
+                            self.log_test(
+                                f"Context Status - Model {model}",
+                                True,
+                                f"Model {model} context limit: {max_tokens} tokens",
+                                {"model": model, "max_tokens": max_tokens}
+                            )
+                        else:
+                            self.log_test(
+                                f"Context Status - Model {model} - No Limit",
+                                False,
+                                f"Model {model} returned zero context limit",
+                                {"model": model, "max_tokens": max_tokens}
+                            )
+                    else:
+                        self.log_test(
+                            f"Context Status - Model {model} - No Usage",
+                            False,
+                            f"Model {model} response missing usage data",
+                            {"model": model, "response_keys": list(data.keys())}
+                        )
+                else:
+                    self.log_test(
+                        f"Context Status - Model {model} - HTTP Error",
+                        False,
+                        f"Model {model} returned HTTP {response.status_code}",
+                        {"model": model, "status_code": response.status_code}
+                    )
+                    
+            except Exception as e:
+                self.log_test(
+                    f"Context Status - Model {model} - Exception",
+                    False,
+                    f"Model {model} test failed: {str(e)}",
+                    {"model": model, "error": str(e)}
+                )
+    
+    def test_context_switch_model_endpoint(self):
+        """Test POST /api/context/switch-model endpoint"""
+        print("\n🧪 Testing Context Switch Model Endpoint...")
+        
+        # Create a session with multiple messages
+        session_id = str(uuid.uuid4())
+        conversation_history = [
+            {"role": "user", "content": "I'm building a React application for task management"},
+            {"role": "assistant", "content": "That's great! A task management app is a useful project. What features are you planning to include?"},
+            {"role": "user", "content": "I want to add tasks, mark them complete, and organize by categories"},
+            {"role": "assistant", "content": "Excellent features! You'll need components for task creation, task lists, and category management. Would you like me to help you design the component structure?"},
+            {"role": "user", "content": "Yes, and I want to use TypeScript for better type safety"},
+            {"role": "assistant", "content": "Perfect choice! TypeScript will help catch errors early. Let me suggest a component structure with proper TypeScript interfaces."}
+        ]
+        
+        payload = {
+            "session_id": session_id,
+            "old_model": "anthropic/claude-3.5-sonnet",
+            "new_model": "openai/gpt-4o",
+            "history": conversation_history
+        }
+        
+        try:
+            response = self.session.post(
+                f"{BACKEND_URL}/context/switch-model",
+                json=payload,
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check required fields
+                required_fields = ['status', 'new_session_id', 'parent_session_id', 'compressed_messages', 'compression_info', 'new_context_usage']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if not missing_fields:
+                    new_session_id = data['new_session_id']
+                    compressed_messages = data['compressed_messages']
+                    compression_info = data['compression_info']
+                    new_context_usage = data['new_context_usage']
+                    
+                    # Verify new session ID is different
+                    if new_session_id != session_id:
+                        self.log_test(
+                            "Context Switch Model - New Session Created",
+                            True,
+                            f"New session created: {new_session_id}",
+                            {"old_session": session_id, "new_session": new_session_id}
+                        )
+                        
+                        # Verify compressed messages are returned
+                        if isinstance(compressed_messages, list) and len(compressed_messages) > 0:
+                            self.log_test(
+                                "Context Switch Model - Compressed Messages",
+                                True,
+                                f"Compressed messages returned: {len(compressed_messages)} messages",
+                                {"message_count": len(compressed_messages), "original_count": len(conversation_history)}
+                            )
+                            
+                            # Verify compression info
+                            if compression_info.get('compressed') == True:
+                                reduction = compression_info.get('reduction_percentage', 0)
+                                self.log_test(
+                                    "Context Switch Model - Compression Info",
+                                    True,
+                                    f"Compression applied: {reduction:.1f}% reduction",
+                                    {"reduction": reduction, "original_tokens": compression_info.get('original_tokens'), "compressed_tokens": compression_info.get('compressed_tokens')}
+                                )
+                            else:
+                                self.log_test(
+                                    "Context Switch Model - No Compression",
+                                    True,
+                                    "No compression needed for conversation",
+                                    {"compression_reason": compression_info.get('reason', 'Unknown')}
+                                )
+                            
+                            # Verify new context usage
+                            if 'max_tokens' in new_context_usage and new_context_usage['max_tokens'] > 0:
+                                self.log_test(
+                                    "Context Switch Model - New Context Usage",
+                                    True,
+                                    f"New model context calculated: {new_context_usage['percentage_display']} ({new_context_usage['current_tokens']}/{new_context_usage['max_tokens']} tokens)",
+                                    {"new_model_usage": new_context_usage}
+                                )
+                            else:
+                                self.log_test(
+                                    "Context Switch Model - New Context Usage Invalid",
+                                    False,
+                                    "New context usage calculation failed",
+                                    {"new_context_usage": new_context_usage}
+                                )
+                        else:
+                            self.log_test(
+                                "Context Switch Model - No Compressed Messages",
+                                False,
+                                "No compressed messages returned",
+                                {"compressed_messages": compressed_messages}
+                            )
+                    else:
+                        self.log_test(
+                            "Context Switch Model - Same Session ID",
+                            False,
+                            "New session ID is same as old session ID",
+                            {"session_id": session_id, "new_session_id": new_session_id}
+                        )
+                else:
+                    self.log_test(
+                        "Context Switch Model - Missing Fields",
+                        False,
+                        f"Response missing required fields: {missing_fields}",
+                        {"missing_fields": missing_fields, "response_keys": list(data.keys())}
+                    )
+            else:
+                self.log_test(
+                    "Context Switch Model - HTTP Error",
+                    False,
+                    f"HTTP {response.status_code}: {response.text}",
+                    {"status_code": response.status_code}
+                )
+                
+        except Exception as e:
+            self.log_test(
+                "Context Switch Model - Exception",
+                False,
+                f"Unexpected error: {str(e)}",
+                {"error_type": type(e).__name__}
+            )
+        
+        # Test error handling - missing new_model
+        print("   Testing error handling for missing new_model...")
+        invalid_payload = {
+            "session_id": session_id,
+            "old_model": "anthropic/claude-3.5-sonnet",
+            "history": conversation_history
+            # Missing new_model
+        }
+        
+        try:
+            response = self.session.post(
+                f"{BACKEND_URL}/context/switch-model",
+                json=invalid_payload,
+                timeout=15
+            )
+            
+            if response.status_code == 400:
+                self.log_test(
+                    "Context Switch Model - Error Handling",
+                    True,
+                    "Correctly returned 400 for missing new_model",
+                    {"status_code": 400}
+                )
+            else:
+                self.log_test(
+                    "Context Switch Model - Error Handling Failed",
+                    False,
+                    f"Expected 400, got {response.status_code}",
+                    {"expected": 400, "actual": response.status_code}
+                )
+                
+        except Exception as e:
+            self.log_test(
+                "Context Switch Model - Error Handling Exception",
+                False,
+                f"Error handling test failed: {str(e)}",
+                {"error": str(e)}
+            )
+    
+    def test_chat_with_context_management(self):
+        """Test POST /api/chat endpoint with context management integration"""
+        print("\n🧪 Testing Chat with Context Management...")
+        
+        # Test 1: Chat with session_id and verify context_usage in response
+        session_id = str(uuid.uuid4())
+        
+        payload = {
+            "message": "Tell me about React hooks and their benefits",
+            "history": [
+                {"role": "user", "content": "I'm learning React development"},
+                {"role": "assistant", "content": "That's great! React is a powerful library for building user interfaces."}
+            ],
+            "model": "anthropic/claude-3.5-sonnet",
+            "session_id": session_id
+        }
+        
+        try:
+            response = self.session.post(
+                f"{BACKEND_URL}/chat",
+                json=payload,
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check for context management fields
+                context_fields = ['context_usage', 'context_warning']
+                has_context_fields = any(field in data for field in context_fields)
+                
+                if has_context_fields:
+                    context_usage = data.get('context_usage', {})
+                    context_warning = data.get('context_warning', '')
+                    
+                    if 'percentage' in context_usage:
+                        self.log_test(
+                            "Chat Context Management - Usage Tracking",
+                            True,
+                            f"Context usage tracked: {context_usage.get('percentage_display', 'N/A')} ({context_usage.get('current_tokens', 0)}/{context_usage.get('max_tokens', 0)} tokens)",
+                            {"context_usage": context_usage, "has_warning": bool(context_warning)}
+                        )
+                    else:
+                        self.log_test(
+                            "Chat Context Management - Usage Missing",
+                            False,
+                            "Context usage data incomplete",
+                            {"context_usage": context_usage}
+                        )
+                else:
+                    self.log_test(
+                        "Chat Context Management - No Context Fields",
+                        False,
+                        "Response missing context management fields",
+                        {"response_keys": list(data.keys())}
+                    )
+            else:
+                self.log_test(
+                    "Chat Context Management - HTTP Error",
+                    False,
+                    f"HTTP {response.status_code}: {response.text}",
+                    {"status_code": response.status_code}
+                )
+                
+        except Exception as e:
+            self.log_test(
+                "Chat Context Management - Exception",
+                False,
+                f"Unexpected error: {str(e)}",
+                {"error_type": type(e).__name__}
+            )
+        
+        # Test 2: Long conversation to potentially trigger compression
+        print("   Testing long conversation for compression...")
+        
+        # Create a longer conversation history
+        long_history = []
+        for i in range(15):  # 15 exchanges = 30 messages
+            long_history.extend([
+                {"role": "user", "content": f"This is user message number {i+1}. I'm asking about React development, specifically about component lifecycle, state management, props passing, event handling, and performance optimization. Can you explain these concepts in detail?"},
+                {"role": "assistant", "content": f"This is assistant response number {i+1}. React components have a lifecycle with mounting, updating, and unmounting phases. State management can be done with useState for local state or useReducer for complex state. Props are passed down from parent to child components. Event handling uses synthetic events. Performance can be optimized with React.memo, useMemo, and useCallback hooks."}
+            ])
+        
+        long_payload = {
+            "message": "Now summarize everything we've discussed about React",
+            "history": long_history,
+            "model": "anthropic/claude-3.5-sonnet",
+            "session_id": session_id
+        }
+        
+        try:
+            response = self.session.post(
+                f"{BACKEND_URL}/chat",
+                json=long_payload,
+                timeout=45  # Longer timeout for potential compression
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                context_usage = data.get('context_usage', {})
+                new_session_id = data.get('new_session_id')
+                context_warning = data.get('context_warning', '')
+                
+                # Check if compression or new session was triggered
+                if new_session_id and new_session_id != session_id:
+                    self.log_test(
+                        "Chat Context Management - New Session Created",
+                        True,
+                        f"New session created due to context limit: {new_session_id}",
+                        {"old_session": session_id, "new_session": new_session_id, "context_usage": context_usage}
+                    )
+                elif 'compress' in context_warning.lower() or context_usage.get('percentage', 0) > 0.5:
+                    self.log_test(
+                        "Chat Context Management - Compression Triggered",
+                        True,
+                        f"Context compression likely triggered: {context_usage.get('percentage_display', 'N/A')}",
+                        {"context_usage": context_usage, "warning": context_warning}
+                    )
+                else:
+                    self.log_test(
+                        "Chat Context Management - Long Conversation Handled",
+                        True,
+                        f"Long conversation handled successfully: {context_usage.get('percentage_display', 'N/A')}",
+                        {"context_usage": context_usage, "message_count": len(long_history)}
+                    )
+            else:
+                self.log_test(
+                    "Chat Context Management - Long Conversation Error",
+                    False,
+                    f"Long conversation failed: HTTP {response.status_code}",
+                    {"status_code": response.status_code}
+                )
+                
+        except Exception as e:
+            self.log_test(
+                "Chat Context Management - Long Conversation Exception",
+                False,
+                f"Long conversation test failed: {str(e)}",
+                {"error_type": type(e).__name__}
+            )
+    
+    def test_openrouter_balance_endpoint(self):
+        """Test GET /api/openrouter/balance endpoint"""
+        print("\n🧪 Testing OpenRouter Balance Endpoint...")
+        
+        try:
+            response = self.session.get(f"{BACKEND_URL}/openrouter/balance", timeout=15)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check required fields
+                required_fields = ['balance', 'used', 'remaining', 'label', 'is_free_tier']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if not missing_fields:
+                    balance = data['balance']
+                    remaining = data['remaining']
+                    is_free_tier = data['is_free_tier']
+                    
+                    # Validate balance data
+                    if isinstance(balance, (int, float)) or balance == -1:  # -1 for unlimited
+                        self.log_test(
+                            "OpenRouter Balance - Success",
+                            True,
+                            f"Balance retrieved: ${balance} (remaining: ${remaining}, free_tier: {is_free_tier})",
+                            {"balance": balance, "remaining": remaining, "is_free_tier": is_free_tier}
+                        )
+                    else:
+                        self.log_test(
+                            "OpenRouter Balance - Invalid Balance",
+                            False,
+                            f"Invalid balance format: {balance}",
+                            {"balance": balance, "balance_type": type(balance).__name__}
+                        )
+                else:
+                    self.log_test(
+                        "OpenRouter Balance - Missing Fields",
+                        False,
+                        f"Response missing required fields: {missing_fields}",
+                        {"missing_fields": missing_fields, "response_keys": list(data.keys())}
+                    )
+            else:
+                self.log_test(
+                    "OpenRouter Balance - HTTP Error",
+                    False,
+                    f"HTTP {response.status_code}: {response.text}",
+                    {"status_code": response.status_code}
+                )
+                
+        except Exception as e:
+            self.log_test(
+                "OpenRouter Balance - Exception",
+                False,
+                f"Unexpected error: {str(e)}",
+                {"error_type": type(e).__name__}
+            )
+
     # ============= RESEARCH PLANNER TESTS =============
     
     def test_research_task_simple_analyze(self):
