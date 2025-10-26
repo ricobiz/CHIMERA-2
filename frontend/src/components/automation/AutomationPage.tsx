@@ -202,7 +202,7 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
       </div>
 
       {/* Controls */}
-      <div className="px-6 py-4">
+      <div className="px-4 md:px-6 py-3 md:py-4 border-b border-gray-800 flex-shrink-0">
         <Controls
           goal={session.goal}
           onGoalChange={handleGoalChange}
