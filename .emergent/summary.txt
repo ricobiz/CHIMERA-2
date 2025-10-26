@@ -1,118 +1,75 @@
 <analysis>
-The AI engineer started by summarizing the prior work on an AI code generation app, a clone of lovable.dev, featuring a React frontend, FastAPI backend, and MongoDB. The initial work focused on UI/UX, OpenRouter integration, session management, and a basic visual validator. Challenges included backend errors and frontend UI issues.
+The previous AI engineer effectively transitioned the AI code generation app from MVP to a more feature-rich product. Initially, the focus was on core UI/UX, session management, and basic code generation. The work then expanded to include robust session management, dynamic input styling, and UI aesthetic improvements. A significant bug in the chat mode, where the LLM was not responding conversationally due to a missing API prefix in the backend router, was identified and fixed.
 
-Throughout the trajectory, the AI engineer incrementally addressed a series of user-requested improvements. Key tasks involved: refactoring the navigation and settings access with a new gear icon; implementing comprehensive session management (create, load, history); enhancing the input field with dynamic, glowing borders based on generation status; redesigning the Preview button and general UI aesthetics for minimalism and dark theme consistency; introducing a Chat/Agent mode toggle for distinct interaction flows; developing a dynamic Development Plan display with task progress and validation; and enabling message actions (edit, regenerate, delete).
-
-Significant effort was dedicated to resolving visual glitches, such as the persistent Made with Emergent badge, fullscreen layout issues, and refining chat bubble aesthetics and icon visibility. The engineer also introduced a backend endpoint for chat mode, ensuring the LLM responds conversationally without initiating code generation. The current focus, as indicated by the last exchange, is on integrating additional LLM connectors and MCP server options into the settings.
+The engineer then fully implemented the Design-first workflow, visual validation, and OpenRouter API balance display as per user requests. A new Research Planner role was introduced for pre-computation research. Most recently, a major Automation tab was introduced. Initially conceived with simulations, the user demanded real browser automation, leading to the integration of Playwright, a local vision model for element detection (downloaded from Hugging Face), a vector-based AI memory system, and a thinking service for advanced reasoning. The immediate next step is to implement context window management for AI memory.
 </analysis>
+
 <product_requirements>
-The primary objective was to replicate , an AI code generation application, leveraging the OpenRouter API for code generation, live preview, and a Firebase-style dark-themed UI.
+The goal is to replicate , an AI code generation app with a Firebase-style dark theme UI, OpenRouter API integration, live preview, and mobile responsiveness. Key features include a minimalist UI, custom SVG icons, dynamic input field borders (blue/green/red), file/microphone input, and a stop button during generation.
 
-**Key Feature and Design Requests:**
-- **Frontend UI:** Firebase-style dark theme, pixel-perfect replication, mobile responsiveness, minimalist aesthetics with subtle glowing borders, custom SVG icons (code, eye, gear, save), compact model indicators, display of OpenRouter API balance.
-- **Navigation & Settings:** Replace large menu button with a small gear (⚙️) icon for settings access. Implement session management (create, load by ID, history) accessible via a clickable session ID in the header.
-- **Input & Interaction:** Dynamic glowing border around input field (blue for generating, green for success, red for error). Add file upload (any type) and microphone (dictation) icons. Transform send button into a stop (⏹) button during generation, reverting after completion.
-- **Preview & Progress:** Floating Preview button (tab/ear) on the right, showing generation logs if no UI is available; styled contoured appearance without bright colors.
-- **AI Workflow:** Chat vs. Agent mode toggle (tumbler style) in the input field. Automatic plan (TODO list) generation with progress visualization (indicators, progress bar, validation steps). Automated visual validation after code generation, prompting Accept / Revise options. Plan for revisions before execution.
-- **Backend & Data:** AI model should distinguish between chat (conversational) and agent (code generation) modes. Agent mode should be locked during generation. Autonomous process, preserving state across reloads (session persistence).
-- **Customization:** Ability to add OpenRouter API keys and other generic secrets/credentials in the settings.
-- **Accessibility & Polish:** Ensure chat is visible by default on mobile, fix fullscreen layout issues. Add animated indicator when assistant types. Stylize chat bubbles with minimalist contours and good contrast. Make all header icons bright and visible. Ensure generated code in the preview iframe has a dark theme.
-- **Future Integration:** Add connectors for various LLM providers (Claude, ChatGPT, etc.) and custom MCP (Model Compute Platform) server integration options in settings.
+The app requires a floating Preview button, a Chat/Agent mode toggle, automatic development plan generation with progress visualization, and automated visual validation with Accept/Revise options. Backend must differentiate chat/agent modes, lock agent during generation, and preserve state. Settings must support OpenRouter API keys and other secrets.
+
+Recent additions include:
+- Integration of Hugging Face, GitHub, Gmail, Google Drive, and custom MCP servers in settings.
+- A Research Planner agent role, configurable in settings, to perform web research and update knowledge before complex tasks.
+- An Automation tab for real browser automation using an Execution Agent, with visual browser control (), real-time  (chronology, goal, subtask), and  (goal input, start/abort, block input toggle). The agent workflow involves a Planner (generates ActionPlan), ExecutionAgent (performs browser actions, updates logs/viewport), and Validator (confirms/retries steps).
 </product_requirements>
+
 <key_technical_concepts>
-- **Full-stack Architecture:** React (frontend), FastAPI (backend), MongoDB (database).
-- **LLM Integration:** OpenRouter API (for various LLM models), Web Speech API (for microphone input).
-- **UI Frameworks:** Shadcn UI components, Tailwind CSS,  (icons).
-- **State Management:** React context, ,  for lifecycle management.
-- **API Interaction:** Axios (frontend),  (backend).
-- **Session Management:** MongoDB for persisting chat sessions and project data, UUIDs for session IDs.
-- **Visual AI:** Utilizes vision models for UI validation (backend service).
-- **Dynamic Styling:** Tailwind CSS for conditional styling, glowing borders, and responsive design.
+- **Full-stack:** React, FastAPI, MongoDB.
+- **LLM Integration:** OpenRouter API, emergentintegrations.
+- **UI/Styling:** Tailwind CSS, Shadcn UI, lucide-react.
+- **State Management:** React /.
+- **API Interaction:** Axios, httpx.
+- **Session Management:** MongoDB, UUIDs.
+- **Browser Automation:** Playwright.
+- **Vision Models:** Local vision model (from Hugging Face), .
+- **AI Reasoning:** Chain-of-Thought (Thinking Service).
+- **AI Memory:** Vector database (Qdrant), embeddings (FastEmbed).
+- **Tokenization:** .
 </key_technical_concepts>
+
 <code_architecture>
-The application uses a standard full-stack setup:
 
-
-
--   ****: Main FastAPI app, handles CORS.
-    -   **Changes**: Added  to include a new router for conversational AI.
--   ****: *NEW FILE*.
-    -   **Summary**: Created to handle non-code-generating chat interactions, ensuring the model behaves conversationally in Chat mode.
--   ****: Core logic for code generation.
-    -   **Changes**: Logic was refactored, especially around declare -x DEBIAN_FRONTEND="noninteractive"
-declare -x ENABLE_RELOAD="true"
-declare -x GPG_KEY="A035C8C19219BA821ECEA86B64E628F8D684696D"
-declare -x HOME="/root"
-declare -x HOSTNAME="agent-env-e94364b3-d575-4a74-b69e-13520327ea15"
-declare -x KUBERNETES_PORT="tcp://34.118.224.1:443"
-declare -x KUBERNETES_PORT_443_TCP="tcp://34.118.224.1:443"
-declare -x KUBERNETES_PORT_443_TCP_ADDR="34.118.224.1"
-declare -x KUBERNETES_PORT_443_TCP_PORT="443"
-declare -x KUBERNETES_PORT_443_TCP_PROTO="tcp"
-declare -x KUBERNETES_SERVICE_HOST="34.118.224.1"
-declare -x KUBERNETES_SERVICE_PORT="443"
-declare -x KUBERNETES_SERVICE_PORT_HTTPS="443"
-declare -x LANG="C.UTF-8"
-declare -x NEXT_TELEMETRY_DISABLED="1"
-declare -x NODE_VERSION="20"
-declare -x OLDPWD
-declare -x PATH="/root/.venv/bin:/opt/plugins-venv/bin:/opt/bin:/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-declare -x PIP_NO_INPUT="1"
-declare -x PLAYWRIGHT_BROWSERS_PATH="/pw-browsers"
-declare -x PLUGIN_VENV_PATH="/opt/plugins-venv"
-declare -x PREVIEW_PROXY_SERVICE_PORT="tcp://34.118.225.58:80"
-declare -x PREVIEW_PROXY_SERVICE_PORT_80_TCP="tcp://34.118.225.58:80"
-declare -x PREVIEW_PROXY_SERVICE_PORT_80_TCP_ADDR="34.118.225.58"
-declare -x PREVIEW_PROXY_SERVICE_PORT_80_TCP_PORT="80"
-declare -x PREVIEW_PROXY_SERVICE_PORT_80_TCP_PROTO="tcp"
-declare -x PREVIEW_PROXY_SERVICE_SERVICE_HOST="34.118.225.58"
-declare -x PREVIEW_PROXY_SERVICE_SERVICE_PORT="80"
-declare -x PREVIEW_PROXY_SERVICE_SERVICE_PORT_HTTP="80"
-declare -x PWD="/app"
-declare -x PYTHONUNBUFFERED="1"
-declare -x PYTHON_SHA256="8d3ed8ec5c88c1c95f5e558612a725450d2452813ddad5e58fdb1a53b1209b78"
-declare -x PYTHON_VERSION="3.11.14"
-declare -x SHLVL="1"
-declare -x STRIPE_API_KEY="sk_test_emergent"
-declare -x UV_COMPILE_BYTECODE="1"
-declare -x VIRTUAL_ENV="/root/.venv"
-declare -x base_url="https://demobackend.emergentagent.com"
-declare -x code_server_password="82c61fa1"
-declare -x integration_proxy_url="https://integrations.emergentagent.com"
-declare -x monitor_polling_interval="1"
-declare -x preview_endpoint="https://devai-studio.preview.emergentagent.com"
-declare -x run_id="e94364b3-d575-4a74-b69e-13520327ea15" and  due to previous errors, and integrated with visual validation/progress logic.
--   ****: Main React component, manages global state, routing, and overall application flow.
-    -   **Changes**: Extensive modifications for handling  state,  for task progress,  status, , . Refactored layout for mobile responsiveness, removed old menu button, and integrated new components like  and . Updated  rendering logic and  hooks for session loading.
--   ****: Displays chat, handles user input, and manages messages.
-    -   **Changes**: Major refactoring to incorporate dynamic glowing input borders,  toggle (tumbler), new icons (file upload, microphone),  button during generation. Integrated , , and implemented message actions (edit, regenerate, delete). Heavily updated for session management dropdown, displaying session ID, and improved chat bubble styling.
--   ****: Provides UI for application settings.
-    -   **Changes**: Added a Secrets tab for managing OpenRouter API keys and other credentials.
--   ****: Renders generated code and live preview.
-    -   **Changes**: Stylized the empty preview state with a dark background, animated icon, and descriptive text. Ensured generated code within the iframe also adopts a dark theme by injecting CSS. Removed redundant close button.
--   ****: Navigation and session display.
-    -   **Changes**: Modified to improve session management, supporting New Workspace with session history and load-by-ID functionality.
--   ****: Displays active models.
-    -   **Changes**: Modified to make icons brighter and more visually prominent.
--   ****: *NEW FILE*.
-    -   **Summary**: Created for displaying a rotating/animated indicator when the assistant is processing/typing.
--   ****: *NEW FILE*.
-    -   **Summary**: Created to visualize the development plan with task indicators and a progress bar.
--   ****: Main HTML file.
-    -   **Changes**: The Made with Emergent badge and its associated inline styles/scripts were completely removed from this file.
+-   ****: Main FastAPI app. Now includes , , .
+-   ****: Handles conversational AI. Fixed: added  prefix. Modified to integrate  and .
+-   ****: Core code generation. Modified to include endpoints for design generation, visual validation, OpenRouter balance, and research planner.
+-   ** (NEW)**: Handles CRUD for various third-party integrations (Hugging Face, GitHub, etc.).
+-   ** (NEW)**: Provides API endpoints for real browser automation using Playwright.
+-   ** (NEW)**: Handles API for the AI's vector-based long-term memory.
+-   ****: Updated to use  for design generation.
+-   ****: Updated to use  for visual validation.
+-   ** (NEW)**: Manages web search and research planning for the new agent role.
+-   ** (NEW)**: Implements actual browser automation using Playwright. Modified to integrate .
+-   ** (NEW)**: Uses a local vision model (Hugging Face Transformers/Torch) for element detection in browser automation.
+-   ** (NEW)**: Manages AI's long-term memory using Qdrant (vector database) and FastEmbed.
+-   ** (NEW)**: Provides Chain-of-Thought reasoning capabilities for the AI agent.
+-   ** (NEW)**: Partially implemented, designed for managing AI's contextual window, compression, and session linking.
+-   ****: Main React component. Now manages ,  states, and  for the new tab. Passes new props to  and .
+-   ****: Displays chat, input. Modified to display OpenRouter API balance, and include a robot icon to open the new Automation tab.
+-   ****: UI for settings. Expanded to include Integrations, MCP Servers, and Research Planner tabs/sections with associated model selections and management forms.
+-   ** (NEW Directory)**: Contains modular logic for the Automation agent (types, planner, validator, executionAgent).
+-   ****: Heavily refactored to interact with the real backend browser automation service instead of simulations.
+-   ** (NEW Directory)**: New React components for the Automation tab: , , , .
+-   ****: Updated with new frontend API calls for integrations, MCP servers, OpenRouter balance, research planner, and browser automation.
+-   ** (NEW)**: Documents the architecture of the browser automation.
+-   ** (NEW)**: Documents the usage of the local vision model.
+-   ** (NEW)**: Documents the AI's thinking process.
 </code_architecture>
+
 <pending_tasks>
 - Full implementation and re-integration of code export (download/GitHub upload).
-- Complete functional integration of the Visual Validator (beyond UI scaffolding and mock validation).
-- Integration of OpenRouter API balance display on the frontend.
-- Full implementation of the Design-first generation workflow on the backend.
+- Full implementation of the Visual Validator beyond UI scaffolding and mock validation (backend services are there, but frontend workflow might need refinement).
 - Robust session saving and loading, especially the automatic creation of sessions upon interaction (partially implemented).
-- Add connectors for Claude, ChatGPT, and other LLM providers in Settings.
-- Implement integration for MCP (Model Compute Platform) servers in Settings.
+- Complete the  to implement dynamic context window management.
 </pending_tasks>
+
 <current_work>
-Immediately before this summary, the AI engineer was addressing user feedback regarding visual aesthetics and functionality. The Made with Emergent badge, which was overlapping with the input field and causing layout issues in fullscreen/mobile, has been completely removed. The fullscreen mode layout has been fixed, ensuring the chat input field is always visible and the interface remains stable. The preview panel, previously a white blank screen when empty or displaying generated code, has been restyled with a dark theme, an animated eye icon for the empty state, and injected CSS to ensure generated iframe content also renders dark. Chat bubbles have been restyled to be minimalist, using subtle contours and improved contrast for readability without bright colors, and all header icons (code, eye, gear, save, session ID) have been made more prominent with borders and increased visibility. The chat functionality now correctly differentiates between Chat and Agent modes, with the AI responding conversationally in the former and initiating code generation with a development plan in the latter. Session management is fully functional with clickable session ID, history, and load-by-ID features. The microphone input is enabled, and message actions (edit, regenerate, delete) are available.
+Immediately before this summary, the AI engineer was implementing advanced AI capabilities for the application. The last completed task was the creation and integration of a thinking service () into the . This service enables Chain-of-Thought reasoning and external verification, making the AI agent more thoughtful and reliable as a partner. This was a direct response to the user's request for an agent that can think, prioritize correctness, avoid lying, and verify information from external sources.
+
+The backend was successfully restarted after this integration. The work then pivoted to addressing the user's next request: implementing a system for managing the agent's contextual memory. This involves tracking the remaining context window size, automatically compressing important facts into a concise block when the limit is approached, and seamlessly transitioning this compressed context to new chat branches while maintaining links to previous sessions for recall. The AI engineer started this by creating  and installing the  library for token counting. This work is currently in progress.
 </current_work>
+
 <optional_next_step>
-Plan the integration of various LLM connectors (like in the Claude, ChatGPT, etc apps .) and MCP server options into the Settings page. (Sequential thinking, context7 и так далее) 
+Complete the implementation of the  and integrate  for context window management.
 </optional_next_step>
