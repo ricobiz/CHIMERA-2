@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
 import { Menu, X } from 'lucide-react';
 import { Button } from './components/ui/button';
@@ -30,9 +30,48 @@ function App() {
     localStorage.getItem('visualValidatorModel') || 'google/gemini-2.0-flash-thinking-exp:free'
   );
 
-  const [currentSessionId, setCurrentSessionId] = useState(null);
+  const [currentSessionId, setCurrentSessionId] = useState(
+    localStorage.getItem('currentSessionId') || null
+  );
   const [generationStatus, setGenerationStatus] = useState('idle'); // 'idle', 'generating', 'success', 'error'
-  const [chatMode, setChatMode] = useState('chat'); // 'chat' or 'agent'
+  const [chatMode, setChatMode] = useState(
+    localStorage.getItem('chatMode') || 'chat'
+  ); // 'chat' or 'agent'
+  
+  // Load current session on mount
+  useEffect(() => {
+    const loadCurrentSession = async () => {
+      const sessionId = localStorage.getItem('currentSessionId');
+      if (sessionId) {
+        try {
+          const session = await getSession(sessionId);
+          setMessages(session.messages || []);
+          setGeneratedCode(session.generated_code || '');
+          setTotalCost(session.total_cost || 0);
+          setCurrentSessionId(sessionId);
+        } catch (error) {
+          console.error('Failed to load session:', error);
+          localStorage.removeItem('currentSessionId');
+        }
+      }
+    };
+    
+    loadCurrentSession();
+  }, []);
+  
+  // Save session ID to localStorage when it changes
+  useEffect(() => {
+    if (currentSessionId) {
+      localStorage.setItem('currentSessionId', currentSessionId);
+    } else {
+      localStorage.removeItem('currentSessionId');
+    }
+  }, [currentSessionId]);
+  
+  // Save chat mode to localStorage
+  useEffect(() => {
+    localStorage.setItem('chatMode', chatMode);
+  }, [chatMode]);
   const [developmentPlan, setDevelopmentPlan] = useState([]);
   const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
   const [showApprovalButtons, setShowApprovalButtons] = useState(false);
