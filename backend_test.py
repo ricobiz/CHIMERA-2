@@ -2798,6 +2798,14 @@ export default App;""",
         self.test_validate_visual_endpoint()
         self.test_openrouter_balance_endpoint()
         
+        # Test NEW CONTEXT WINDOW MANAGEMENT ENDPOINTS (as requested in review)
+        print("\n" + "=" * 60)
+        print("🧠 TESTING NEW CONTEXT WINDOW MANAGEMENT ENDPOINTS")
+        print("=" * 60)
+        self.test_context_status_endpoint()
+        self.test_context_switch_model_endpoint()
+        self.test_chat_with_context_management()
+        
         # Test chat endpoint (previously tested)
         self.test_chat_endpoint()
         
