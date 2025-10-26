@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { Send, Sparkles, ChevronDown, Save } from 'lucide-react';
+import React, { useState } from 'react';
+import { Send, ChevronDown, Save } from 'lucide-react';
 import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
 import { samplePrompts } from '../mockData';
+import { CodeIcon, EyeIcon } from './Icons';
 
 const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, onOpenSettings, activeModel, validatorEnabled, validatorModel }) => {
   const [prompt, setPrompt] = useState('');
@@ -25,45 +26,47 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, onOpenS
       {/* Header */}
       <div className="border-b border-gray-800 p-3 md:p-4">
         <div className="flex items-center justify-between flex-wrap gap-2">
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-purple-400" />
-            <h2 className="text-white font-semibold text-sm md:text-base">AI Code Assistant</h2>
+          <div className="flex items-center gap-3">
+            <h2 className="text-white font-semibold text-sm md:text-base">AI Assistant</h2>
+            
+            {/* Active Models - Minimal Display */}
+            <div className="flex items-center gap-3 text-[10px] ml-4">
+              <div className="flex items-center gap-1.5">
+                <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></div>
+                <CodeIcon className="w-3 h-3 text-blue-400" />
+                <span className="text-blue-400">{activeModel?.split('/')[1]?.substring(0, 15) || 'claude-3.5-sonnet'}</span>
+              </div>
+              {validatorEnabled && (
+                <div className="flex items-center gap-1.5">
+                  <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
+                  <EyeIcon className="w-3 h-3 text-green-400" />
+                  <span className="text-green-400">{validatorModel?.split('/')[1]?.substring(0, 15) || 'haiku'}</span>
+                </div>
+              )}
+            </div>
           </div>
+          
           <div className="flex items-center gap-2">
             {/* Cost Display */}
             {totalCost > 0 && (
-              <div className="px-3 py-1 bg-green-600/20 border border-green-600/30 rounded-lg">
-                <span className="text-xs text-green-400 font-mono">
-                  ${totalCost.toFixed(6)}
+              <div className="px-2 py-1 bg-gray-800 rounded">
+                <span className="text-[10px] text-gray-400 font-mono">
+                  ${totalCost.toFixed(4)}
                 </span>
               </div>
             )}
             {messages.length > 0 && (
               <Button
                 onClick={onSave}
-                variant="outline"
+                variant="ghost"
                 size="sm"
-                className="gap-2 border-gray-700 hover:bg-gray-800 text-white"
+                className="text-gray-400 hover:text-white h-7"
               >
-                <Save className="w-4 h-4" />
-                <span className="hidden md:inline">Save</span>
+                <Save className="w-3.5 h-3.5" />
+                <span className="hidden md:inline ml-1 text-xs">Save</span>
               </Button>
             )}
           </div>
-        </div>
-        
-        {/* Active Models Display */}
-        <div className="mt-2 flex flex-wrap gap-2 text-xs">
-          <div className="px-2 py-1 bg-blue-600/10 border border-blue-600/30 rounded">
-            <span className="text-blue-400">🤖 Code: </span>
-            <span className="text-blue-300">{activeModel?.split('/')[1] || 'claude-3.5-sonnet'}</span>
-          </div>
-          {validatorEnabled && (
-            <div className="px-2 py-1 bg-purple-600/10 border border-purple-600/30 rounded">
-              <span className="text-purple-400">👁️ Validator: </span>
-              <span className="text-purple-300">{validatorModel?.split('/')[1] || 'haiku'}</span>
-            </div>
-          )}
         </div>
       </div>
 
@@ -73,20 +76,20 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, onOpenS
           <div className="max-w-3xl mx-auto">
             <div className="text-center mb-6 md:mb-8">
               <h1 className="text-2xl md:text-4xl font-bold text-white mb-2 md:mb-4">
-                Prototype an app with AI
+                Build with AI
               </h1>
               <p className="text-sm md:text-base text-gray-400">
-                Describe your app idea and watch it come to life
+                Describe your app and watch it come to life
               </p>
             </div>
 
             {showSamples && (
               <div className="space-y-2 md:space-y-3 mb-6 md:mb-8">
                 <div className="flex items-center justify-between mb-3 md:mb-4">
-                  <span className="text-xs md:text-sm text-gray-400">Sample prompts</span>
+                  <span className="text-xs md:text-sm text-gray-500">Examples</span>
                   <button
                     onClick={() => setShowSamples(!showSamples)}
-                    className="text-gray-400 hover:text-white transition-colors"
+                    className="text-gray-500 hover:text-gray-400 transition-colors"
                   >
                     <ChevronDown className="w-4 h-4" />
                   </button>
@@ -95,7 +98,7 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, onOpenS
                   <button
                     key={idx}
                     onClick={() => handleSampleClick(sample)}
-                    className="w-full p-3 md:p-4 bg-gray-800/50 hover:bg-gray-800 rounded-lg text-left text-sm md:text-base text-gray-300 transition-colors"
+                    className="w-full p-3 md:p-4 bg-gray-900 hover:bg-gray-800 rounded-lg text-left text-sm md:text-base text-gray-400 hover:text-gray-300 transition-colors border border-gray-800"
                   >
                     {sample}
                   </button>
@@ -108,24 +111,21 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, onOpenS
             {messages.map((msg, idx) => (
               <div
                 key={idx}
-                className={`p-3 md:p-4 rounded-lg text-sm md:text-base ${
+                className={`p-3 md:p-4 rounded-lg text-sm md:text-base border ${
                   msg.role === 'user'
-                    ? 'bg-blue-600/20 border border-blue-600/30 ml-4 md:ml-12'
-                    : 'bg-gray-800/50 border border-gray-700 mr-4 md:mr-12'
+                    ? 'bg-gray-900 border-gray-800 ml-4 md:ml-12'
+                    : 'bg-gray-900/50 border-gray-800/50 mr-4 md:mr-12'
                 }`}
               >
                 <div className="flex items-start gap-2 md:gap-3">
-                  {msg.role === 'assistant' && (
-                    <Sparkles className="w-4 h-4 md:w-5 md:h-5 text-purple-400 mt-1" />
-                  )}
                   <div className="flex-1">
-                    <p className="text-xs md:text-sm text-gray-400 mb-1">
-                      {msg.role === 'user' ? 'You' : 'AI Assistant'}
+                    <p className="text-xs text-gray-500 mb-1">
+                      {msg.role === 'user' ? 'You' : 'Assistant'}
                     </p>
-                    <p className="text-white whitespace-pre-wrap">{msg.content}</p>
+                    <p className="text-gray-300 whitespace-pre-wrap">{msg.content}</p>
                     {msg.cost && (
-                      <p className="text-xs text-green-400 mt-2 font-mono">
-                        Cost: ${msg.cost.total_cost.toFixed(6)} ({msg.cost.total_tokens} tokens)
+                      <p className="text-[10px] text-gray-600 mt-2 font-mono">
+                        ${msg.cost.total_cost.toFixed(6)} • {msg.cost.total_tokens} tokens
                       </p>
                     )}
                   </div>
@@ -149,21 +149,18 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, onOpenS
                   handleSubmit();
                 }
               }}
-              placeholder="Describe your app idea..."
-              className="min-h-[80px] md:min-h-[120px] bg-gray-800/50 border-gray-700 text-sm md:text-base text-white resize-none pr-12"
+              placeholder="Describe your app..."
+              className="min-h-[80px] md:min-h-[100px] bg-gray-900 border-gray-800 text-sm md:text-base text-gray-300 resize-none pr-12 placeholder-gray-600"
             />
             <Button
               onClick={handleSubmit}
               disabled={!prompt.trim()}
-              className="absolute bottom-2 md:bottom-3 right-2 md:right-3 bg-purple-600 hover:bg-purple-700 disabled:opacity-50"
+              className="absolute bottom-2 md:bottom-3 right-2 md:right-3 bg-gray-700 hover:bg-gray-600 disabled:opacity-30 h-7 w-7 p-0"
               size="sm"
             >
-              <Send className="w-4 h-4" />
+              <Send className="w-3.5 h-3.5" />
             </Button>
           </div>
-          <p className="text-xs text-gray-500 mt-2">
-            Press Enter to send, Shift+Enter for new line
-          </p>
         </div>
       </div>
     </div>

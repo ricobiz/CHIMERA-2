@@ -6,12 +6,13 @@ import { Badge } from './ui/badge';
 import { Switch } from './ui/switch';
 import { getModels } from '../services/api';
 import { toast } from '../hooks/use-toast';
+import { CodeIcon, EyeIcon } from './Icons';
 
 const Settings = ({ selectedModel, onModelChange, onClose, visualValidatorEnabled, onVisualValidatorToggle, visualValidatorModel, onVisualValidatorModelChange }) => {
   const [models, setModels] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterType, setFilterType] = useState('all'); // all, free, paid
+  const [filterType, setFilterType] = useState('all');
   const [localValidatorEnabled, setLocalValidatorEnabled] = useState(visualValidatorEnabled);
   const [localValidatorModel, setLocalValidatorModel] = useState(visualValidatorModel);
   const [validatorSearchTerm, setValidatorSearchTerm] = useState('');
@@ -28,7 +29,7 @@ const Settings = ({ selectedModel, onModelChange, onClose, visualValidatorEnable
       console.error('Failed to load models:', error);
       toast({
         title: "Error",
-        description: "Failed to load models. Using default.",
+        description: "Failed to load models.",
         variant: "destructive"
       });
     } finally {
@@ -38,11 +39,10 @@ const Settings = ({ selectedModel, onModelChange, onClose, visualValidatorEnable
 
   const handleModelSelect = (modelId) => {
     onModelChange(modelId);
-    // Save to localStorage
     localStorage.setItem('selectedModel', modelId);
     toast({
       title: "Model Updated",
-      description: "Your AI model preference has been saved.",
+      description: "Your AI model has been updated.",
     });
   };
 
@@ -51,8 +51,8 @@ const Settings = ({ selectedModel, onModelChange, onClose, visualValidatorEnable
     onVisualValidatorToggle(enabled);
     localStorage.setItem('visualValidatorEnabled', enabled);
     toast({
-      title: enabled ? "Visual Validator Enabled" : "Visual Validator Disabled",
-      description: enabled ? "Your code will be validated visually before preview." : "Visual validation is now off.",
+      title: enabled ? "Validator Enabled" : "Validator Disabled",
+      description: enabled ? "Visual validation is now active." : "Visual validation disabled.",
     });
   };
 
@@ -62,7 +62,7 @@ const Settings = ({ selectedModel, onModelChange, onClose, visualValidatorEnable
     localStorage.setItem('visualValidatorModel', modelId);
     toast({
       title: "Validator Model Updated",
-      description: "Visual validator model has been changed.",
+      description: "Validation model changed.",
     });
   };
 
@@ -79,18 +79,9 @@ const Settings = ({ selectedModel, onModelChange, onClose, visualValidatorEnable
     return matchesSearch && matchesFilter;
   });
 
-  // Get all vision-capable models for validator
   const visionModels = models
     .filter(model => {
-      // Check if model has vision capabilities or is multimodal
-      const hasVision = model.capabilities?.vision || 
-                       model.id.toLowerCase().includes('vision') ||
-                       model.id.toLowerCase().includes('nano-banana') ||
-                       model.id.toLowerCase().includes('gemini') && model.id.toLowerCase().includes('pro-vision') ||
-                       model.architecture?.modality?.includes('image') ||
-                       model.name.toLowerCase().includes('vision');
-      
-      // Filter by search term
+      const hasVision = model.capabilities?.vision;
       const matchesSearch = validatorSearchTerm === '' || 
                           model.name.toLowerCase().includes(validatorSearchTerm.toLowerCase()) ||
                           model.id.toLowerCase().includes(validatorSearchTerm.toLowerCase());
@@ -98,7 +89,6 @@ const Settings = ({ selectedModel, onModelChange, onClose, visualValidatorEnable
       return hasVision && matchesSearch;
     })
     .sort((a, b) => {
-      // Sort by price: free first, then by prompt price
       const priceA = a.pricing.prompt + a.pricing.completion;
       const priceB = b.pricing.prompt + b.pricing.completion;
       return priceA - priceB;
@@ -114,232 +104,177 @@ const Settings = ({ selectedModel, onModelChange, onClose, visualValidatorEnable
               onClick={onClose}
               variant="ghost"
               size="sm"
-              className="text-gray-400 hover:text-white"
+              className="text-gray-500 hover:text-gray-400"
             >
               <ChevronLeft className="w-5 h-5" />
             </Button>
             <div className="flex items-center gap-2">
-              <SettingsIcon className="w-5 h-5 text-purple-400" />
-              <h2 className="text-white font-semibold text-lg">Settings</h2>
+              <SettingsIcon className="w-5 h-5 text-gray-400" />
+              <h2 className="text-gray-300 font-semibold text-lg">Settings</h2>
             </div>
           </div>
+          <Button
+            onClick={onClose}
+            className="bg-gray-700 hover:bg-gray-600 text-gray-300"
+            size="sm"
+          >
+            Save & Close
+          </Button>
         </div>
       </div>
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-4 md:p-6">
-        <div className="max-w-4xl mx-auto space-y-8">
-          
-          {/* Save Button */}
-          <div className="flex justify-end">
-            <Button
-              onClick={onClose}
-              className="bg-purple-600 hover:bg-purple-700 text-white"
-            >
-              Save & Close Settings
-            </Button>
-          </div>
+        <div className="max-w-4xl mx-auto space-y-6">
           
           {/* Visual Validator Section */}
-          <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-6">
+          <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-5">
             <div className="flex items-start justify-between mb-4">
               <div className="flex-1">
-                <h3 className="text-white font-semibold text-lg mb-2 flex items-center gap-2">
-                  <span className="text-2xl">👁️</span>
-                  Visual Validator
-                </h3>
-                <p className="text-gray-400 text-sm">
-                  Enable a second AI model to validate your generated code visually before displaying in preview. 
-                  This helps catch UI issues and ensures code quality.
+                <div className="flex items-center gap-2 mb-2">
+                  <EyeIcon className="w-4 h-4 text-gray-400" />
+                  <h3 className="text-gray-300 font-semibold text-base">Visual Validator</h3>
+                </div>
+                <p className="text-gray-500 text-sm">
+                  Enable AI-powered visual validation to ensure UI quality and catch layout issues.
                 </p>
               </div>
               <Switch
                 checked={localValidatorEnabled}
                 onCheckedChange={handleValidatorToggle}
-                className="data-[state=checked]:bg-purple-600"
+                className="data-[state=checked]:bg-gray-600"
               />
             </div>
 
             {localValidatorEnabled && (
-              <div className="mt-4 pt-4 border-t border-gray-700">
-                <label className="text-sm text-gray-400 mb-3 block font-medium">
-                  Select Vision-Capable Model ({visionModels.length} available)
-                </label>
+              <div className="mt-4 pt-4 border-t border-gray-800">
+                <label className="text-xs text-gray-500 mb-3 block font-medium">Validator Model ({visionModels.length} available)</label>
                 
-                {/* Search for validator models */}
                 <input
                   type="text"
-                  placeholder="Search vision models..."
+                  placeholder="Search..."
                   value={validatorSearchTerm}
                   onChange={(e) => setValidatorSearchTerm(e.target.value)}
-                  className="w-full p-2 mb-3 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm placeholder-gray-500"
+                  className="w-full p-2 mb-3 bg-gray-900 border border-gray-800 rounded text-gray-300 text-xs placeholder-gray-600"
                 />
 
-                <div className="grid gap-2 max-h-96 overflow-y-auto pr-2">
-                  {visionModels.length === 0 ? (
-                    <p className="text-center text-gray-500 py-4">No vision models found</p>
-                  ) : (
-                    visionModels.map((model) => {
-                      const isFree = model.pricing.prompt === 0 && model.pricing.completion === 0;
-                      return (
-                        <div
-                          key={model.id}
-                          onClick={() => handleValidatorModelSelect(model.id)}
-                          className={`p-3 rounded-lg cursor-pointer transition-all border ${
-                            localValidatorModel === model.id
-                              ? 'bg-purple-600/20 border-purple-500 shadow-lg shadow-purple-500/20'
-                              : 'bg-gray-800 border-gray-700 hover:border-purple-500'
-                          }`}
-                        >
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
-                                <p className="text-white text-sm font-medium">{model.name}</p>
-                                {localValidatorModel === model.id && (
-                                  <Check className="w-4 h-4 text-purple-400" />
-                                )}
-                                {isFree && (
-                                  <Badge variant="secondary" className="text-xs bg-green-600/20 text-green-400 border-green-600/30">
-                                    FREE
-                                  </Badge>
-                                )}
-                              </div>
-                              <p className="text-xs text-gray-500 mb-2">{model.id}</p>
-                              <div className="flex items-center gap-2 flex-wrap">
-                                {isFree ? (
-                                  <span className="text-xs text-green-400 font-mono">
-                                    💰 Free to use
-                                  </span>
-                                ) : (
-                                  <span className="text-xs text-gray-400 font-mono">
-                                    💰 ${(model.pricing.prompt * 1000000).toFixed(2)}/M in • ${(model.pricing.completion * 1000000).toFixed(2)}/M out
-                                  </span>
-                                )}
-                                <Badge variant="secondary" className="text-xs bg-green-600/20 text-green-400 border-green-600/30">
-                                  Vision
-                                </Badge>
-                                {model.capabilities.tools && (
-                                  <Badge variant="secondary" className="text-xs bg-blue-600/20 text-blue-400 border-blue-600/30">
-                                    Tools
-                                  </Badge>
-                                )}
-                              </div>
+                <div className="grid gap-2 max-h-72 overflow-y-auto pr-2">
+                  {visionModels.map((model) => {
+                    const isFree = model.pricing.prompt === 0 && model.pricing.completion === 0;
+                    return (
+                      <div
+                        key={model.id}
+                        onClick={() => handleValidatorModelSelect(model.id)}
+                        className={`p-2.5 rounded cursor-pointer transition-all border text-xs ${
+                          localValidatorModel === model.id
+                            ? 'bg-gray-800 border-gray-700'
+                            : 'bg-gray-900/50 border-gray-800/50 hover:border-gray-700'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <p className="text-gray-300 font-medium">{model.name}</p>
+                              {localValidatorModel === model.id && (
+                                <Check className="w-3 h-3 text-gray-500" />
+                              )}
+                              {isFree && (
+                                <span className="text-[10px] text-gray-500">FREE</span>
+                              )}
+                            </div>
+                            <p className="text-[10px] text-gray-600 mb-1.5">{model.id}</p>
+                            <div className="flex items-center gap-2">
+                              <span className="text-[10px] text-gray-600 font-mono">
+                                {isFree ? 'No cost' : `$${(model.pricing.prompt * 1000000).toFixed(2)}/M`}
+                              </span>
                             </div>
                           </div>
                         </div>
-                      );
-                    })
-                  )}
-                </div>
-                <div className="mt-3 p-3 bg-blue-600/10 border border-blue-600/30 rounded-lg">
-                  <p className="text-xs text-blue-400">
-                    💡 <strong>Tip:</strong> Free models like Nano Banana are great for quick validation. For higher quality, use Claude Haiku or GPT-4 Vision.
-                  </p>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}
           </div>
 
           {/* Model Selection Section */}
-          <div>
-            <h3 className="text-white font-semibold text-xl mb-2">AI Model Selection</h3>
-            <p className="text-gray-400 text-sm mb-4">
-              Choose the AI model that best fits your needs. Each model has different capabilities and pricing.
+          <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <CodeIcon className="w-4 h-4 text-gray-400" />
+              <h3 className="text-gray-300 font-semibold text-base">Code Generation Model</h3>
+            </div>
+            <p className="text-gray-500 text-sm mb-4">
+              Select the AI model for generating code.
             </p>
 
-            {/* Search */}
             <div className="flex gap-2 mb-4">
               <input
                 type="text"
                 placeholder="Search models..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="flex-1 p-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500"
+                className="flex-1 p-2 bg-gray-900 border border-gray-800 rounded text-gray-300 text-xs placeholder-gray-600"
               />
               <select
                 value={filterType}
                 onChange={(e) => setFilterType(e.target.value)}
-                className="p-3 bg-gray-800 border border-gray-700 rounded-lg text-white"
+                className="p-2 bg-gray-900 border border-gray-800 rounded text-gray-300 text-xs"
               >
-                <option value="all">All Models</option>
-                <option value="free">Free Only</option>
-                <option value="paid">Paid Only</option>
+                <option value="all">All</option>
+                <option value="free">Free</option>
+                <option value="paid">Paid</option>
               </select>
             </div>
 
-            {/* Model Count */}
-            <p className="text-sm text-gray-400 mb-4">
-              Showing {filteredModels.length} of {models.length} models
+            <p className="text-[10px] text-gray-600 mb-3">
+              {filteredModels.length} of {models.length} models
             </p>
 
-            {/* Models List */}
             {loading ? (
-              <div className="text-center py-8 text-gray-400">Loading models...</div>
+              <div className="text-center py-6 text-gray-600 text-sm">Loading...</div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-2 max-h-96 overflow-y-auto pr-2">
                 {filteredModels.map((model) => (
                   <Card
                     key={model.id}
                     onClick={() => handleModelSelect(model.id)}
-                    className={`p-4 cursor-pointer transition-all hover:border-purple-500 ${
+                    className={`p-2.5 cursor-pointer transition-all text-xs ${
                       selectedModel === model.id
-                        ? 'bg-purple-600/20 border-purple-500'
-                        : 'bg-gray-800/50 border-gray-700'
+                        ? 'bg-gray-800 border-gray-700'
+                        : 'bg-gray-900/50 border-gray-800/50 hover:border-gray-700'
                     }`}
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <h4 className="text-white font-medium">{model.name}</h4>
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className="text-gray-300 font-medium">{model.name}</h4>
                           {selectedModel === model.id && (
-                            <Check className="w-5 h-5 text-purple-400" />
+                            <Check className="w-3 h-3 text-gray-500" />
                           )}
                         </div>
                         
-                        {model.description && (
-                          <p className="text-sm text-gray-400 mb-3 line-clamp-2">
-                            {model.description}
-                          </p>
-                        )}
-
-                        {/* Capabilities */}
-                        <div className="flex flex-wrap gap-2 mb-3">
-                          {model.capabilities.tools && (
-                            <Badge variant="secondary" className="text-xs bg-blue-600/20 text-blue-400 border-blue-600/30">
-                              Tools
-                            </Badge>
-                          )}
+                        <div className="flex items-center gap-2 mb-1.5">
                           {model.capabilities.vision && (
-                            <Badge variant="secondary" className="text-xs bg-green-600/20 text-green-400 border-green-600/30">
-                              Vision
-                            </Badge>
+                            <span className="text-[10px] text-gray-600">Vision</span>
                           )}
-                          {model.capabilities.streaming && (
-                            <Badge variant="secondary" className="text-xs bg-purple-600/20 text-purple-400 border-purple-600/30">
-                              Streaming
-                            </Badge>
+                          {model.capabilities.tools && (
+                            <span className="text-[10px] text-gray-600">Tools</span>
                           )}
                           {model.context_length > 0 && (
-                            <Badge variant="secondary" className="text-xs bg-gray-600/20 text-gray-400 border-gray-600/30">
-                              {(model.context_length / 1000).toFixed(0)}K context
-                            </Badge>
+                            <span className="text-[10px] text-gray-600">
+                              {(model.context_length / 1000).toFixed(0)}K
+                            </span>
                           )}
                         </div>
 
-                        {/* Pricing */}
-                        <div className="flex items-center gap-4 text-xs">
-                          <div className="text-gray-400">
-                            <span className="text-gray-500">Input:</span>{' '}
-                            <span className="text-green-400 font-mono">
-                              ${(model.pricing.prompt * 1000000).toFixed(2)}/M
-                            </span>
-                          </div>
-                          <div className="text-gray-400">
-                            <span className="text-gray-500">Output:</span>{' '}
-                            <span className="text-green-400 font-mono">
-                              ${(model.pricing.completion * 1000000).toFixed(2)}/M
-                            </span>
-                          </div>
+                        <div className="flex items-center gap-3 text-[10px]">
+                          <span className="text-gray-600 font-mono">
+                            ${(model.pricing.prompt * 1000000).toFixed(2)}/M in
+                          </span>
+                          <span className="text-gray-600 font-mono">
+                            ${(model.pricing.completion * 1000000).toFixed(2)}/M out
+                          </span>
                         </div>
                       </div>
                     </div>
