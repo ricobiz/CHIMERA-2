@@ -344,6 +344,90 @@ const DocumentVerification = ({ onClose }) => {
                 </div>
               </div>
             )}
+
+            {/* Detailed Report - Official Document Style */}
+            {verificationResult && showDetailedReport && (
+              <div className="space-y-6">
+                {/* Official Document Header */}
+                <div className="bg-gradient-to-r from-purple-900/30 to-blue-900/30 rounded-lg border-2 border-purple-500/30 p-8">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-4">
+                        <Shield className="w-8 h-8 text-purple-400" />
+                        <div>
+                          <h1 className="text-2xl font-bold text-white">DOCUMENT VERIFICATION REPORT</h1>
+                          <p className="text-sm text-gray-400">Chimera AIOS - AI-Powered Fraud Detection System</p>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <span className="text-gray-400">Report ID:</span>
+                          <span className="text-white ml-2 font-mono">{Date.now().toString(36).toUpperCase()}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-400">Date:</span>
+                          <span className="text-white ml-2">{new Date().toLocaleString()}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-400">Document Type:</span>
+                          <span className="text-white ml-2 capitalize">{documentType.replace('_', ' ')}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-400">Analysis Method:</span>
+                          <span className="text-white ml-2">Multi-Model AI (3 models)</span>
+                        </div>
+                      </div>
+                    </div>
+                    {/* Official Seal */}
+                    <div className="flex flex-col items-center">
+                      {getVerdictIcon(verificationResult.verdict)}
+                      <span className="text-xs text-gray-400 mt-2">VERIFIED</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Verdict Summary */}
+                <div className={`rounded-lg border-2 p-6 ${
+                  verificationResult.verdict === 'AUTHENTIC' ? 'bg-green-900/20 border-green-500' :
+                  verificationResult.verdict === 'SUSPICIOUS' ? 'bg-yellow-900/20 border-yellow-500' :
+                  'bg-red-900/20 border-red-500'
+                }`}>
+                  <div className="flex items-center gap-4">
+                    <div className="text-6xl">
+                      {verificationResult.verdict === 'AUTHENTIC' && '🟢'}
+                      {verificationResult.verdict === 'SUSPICIOUS' && '🟡'}
+                      {verificationResult.verdict === 'LIKELY_FAKE' && '🔴'}
+                    </div>
+                    <div className="flex-1">
+                      <h2 className={`text-3xl font-bold mb-2 ${getVerdictColor(verificationResult.verdict)}`}>
+                        VERDICT: {verificationResult.verdict.replace('_', ' ')}
+                      </h2>
+                      <div className="grid grid-cols-2 gap-4 mt-4">
+                        <div>
+                          <p className="text-gray-400 text-sm">Fraud Probability</p>
+                          <p className="text-2xl font-bold text-white">{verificationResult.fraud_probability}%</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-400 text-sm">Analysis Confidence</p>
+                          <p className="text-2xl font-bold text-white">{verificationResult.confidence_score}%</p>
+                        </div>
+                      </div>
+                      {/* Progress Bar */}
+                      <div className="mt-4">
+                        <div className="w-full h-4 bg-gray-800 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full transition-all ${
+                              verificationResult.fraud_probability >= 70 ? 'bg-red-500' :
+                              verificationResult.fraud_probability >= 40 ? 'bg-yellow-500' :
+                              'bg-green-500'
+                            }`}
+                            style={{ width: `${verificationResult.fraud_probability}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 <div className="bg-gray-900/50 rounded-lg border border-gray-800 p-6">
                   <div className="flex items-start gap-4">
                     {getVerdictIcon(verificationResult.verdict)}
