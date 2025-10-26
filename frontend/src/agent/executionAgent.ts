@@ -130,6 +130,7 @@ class ExecutionAgentService {
       
       for (let i = 0; i < plan.steps.length; i++) {
         console.log(`[ExecutionAgent] 📍 Loop iteration ${i + 1}/${plan.steps.length}`);
+        console.log(`[ExecutionAgent] Current step object:`, plan.steps[i]);
         
         if (this.aborted) {
           console.log('[ExecutionAgent] Automation aborted by user');
@@ -152,7 +153,13 @@ class ExecutionAgentService {
         }
 
         console.log(`[ExecutionAgent] Updating current step index to ${i}`);
-        this.updateState({ currentStepIndex: i });
+        try {
+          this.updateState({ currentStepIndex: i });
+          console.log(`[ExecutionAgent] ✅ currentStepIndex updated to ${i}`);
+        } catch (error) {
+          console.error(`[ExecutionAgent] ❌ Error updating currentStepIndex:`, error);
+        }
+        
         const step = plan.steps[i];
         
         console.log(`[ExecutionAgent] Executing step: ${step.actionType} - ${step.targetDescription}`);
