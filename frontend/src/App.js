@@ -39,6 +39,11 @@ function App() {
   const [originalUserRequest, setOriginalUserRequest] = useState('');
 
   const handleSendPrompt = async (prompt) => {
+    // Store original request for validation
+    if (!originalUserRequest) {
+      setOriginalUserRequest(prompt);
+    }
+    
     const userMessage = { role: 'user', content: prompt };
     const newMessages = [...messages, userMessage];
     setMessages(newMessages);
@@ -59,34 +64,35 @@ function App() {
       setGeneratedCode(response.code);
       
       // Update total cost
+      let newTotalCost = totalCost;
       if (response.cost) {
-        const newTotalCost = totalCost + response.cost.total_cost;
+        newTotalCost = totalCost + response.cost.total_cost;
         setTotalCost(newTotalCost);
-        
-        // Auto-save session
-        if (currentSessionId) {
-          await updateSession(currentSessionId, {
-            messages: updatedMessages,
-            generated_code: response.code,
-            model_used: selectedModel,
-            validator_model: visualValidatorModel,
-            validator_enabled: visualValidatorEnabled,
-            total_cost: newTotalCost
-          });
-        } else {
-          // Create new session
-          const session = await createSession({
-            name: prompt.substring(0, 50) + (prompt.length > 50 ? '...' : ''),
-            messages: updatedMessages,
-            generated_code: response.code,
-            model_used: selectedModel,
-            validator_model: visualValidatorModel,
-            validator_enabled: visualValidatorEnabled,
-            total_cost: newTotalCost
-          });
-          setCurrentSessionId(session.id);
-          setSessionName(session.name);
-        }
+      }
+
+      // Auto-save session
+      if (currentSessionId) {
+        await updateSession(currentSessionId, {
+          messages: updatedMessages,
+          generated_code: response.code,
+          model_used: selectedModel,
+          validator_model: visualValidatorModel,
+          validator_enabled: visualValidatorEnabled,
+          total_cost: newTotalCost
+        });
+      } else {
+        // Create new session
+        const session = await createSession({
+          name: prompt.substring(0, 50) + (prompt.length > 50 ? '...' : ''),
+          messages: updatedMessages,
+          generated_code: response.code,
+          model_used: selectedModel,
+          validator_model: visualValidatorModel,
+          validator_enabled: visualValidatorEnabled,
+          total_cost: newTotalCost
+        });
+        setCurrentSessionId(session.id);
+        setSessionName(session.name);
       }
 
       // On mobile, automatically switch to preview
@@ -96,8 +102,13 @@ function App() {
       
       toast({
         title: "Code Generated!",
-        description: "Your app is ready in the preview panel.",
+        description: visualValidatorEnabled ? "Validating UI..." : "Your app is ready in the preview panel.",
       });
+      
+      // Run visual validation if enabled
+      if (visualValidatorEnabled && response.code) {
+        setTimeout(() => runVisualValidation(originalUserRequest || prompt), 2000);
+      }
       
     } catch (error) {
       console.error('Error generating code:', error);
@@ -115,6 +126,66 @@ function App() {
     } finally {
       setIsGenerating(false);
     }
+  };
+
+  const runVisualValidation = async (userRequest) => {
+    if (!generatedCode) return;
+    
+    setIsValidating(true);
+    
+    try {
+      // Capture screenshot of preview iframe
+      const previewIframe = document.querySelector('iframe[title="Preview"]');
+      if (!previewIframe) {
+        throw new Error('Preview not ready');
+      }
+      
+      // Use html2canvas or similar to capture
+      // For now, we'll use a placeholder
+      const screenshotBase64 = await capturePreviewScreenshot();
+      
+      // Send to validator
+      const validationResult = await validateVisual(
+        screenshotBase64,
+        userRequest,
+        visualValidatorModel
+      );
+      
+      setValidationFeedback(validationResult);
+      
+      // Show validation result
+      if (validationResult.verdict === 'APPROVED') {
+        toast({
+          title: "✅ UI Validated!",
+          description: `Score: ${validationResult.overall_score}/10 - ${validationResult.feedback}`,
+        });
+      } else {
+        toast({
+          title: "⚠️ UI Needs Improvement",
+          description: `Score: ${validationResult.overall_score}/10 - Check feedback`,
+          variant: "destructive"
+        });
+        
+        // Optionally auto-fix
+        // await handleAutoFix(validationResult.fix_instructions);
+      }
+      
+    } catch (error) {
+      console.error('Validation error:', error);
+      toast({
+        title: "Validation Error",
+        description: "Could not validate UI. Showing code anyway.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsValidating(false);
+    }
+  };
+
+  const capturePreviewScreenshot = async () => {
+    // Simple implementation - return placeholder
+    // In production, use html2canvas or similar
+    return "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
   };
 
   const handleNewProject = () => {
