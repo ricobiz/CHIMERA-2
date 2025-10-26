@@ -54,6 +54,11 @@ function App() {
     localStorage.getItem('chatMode') || 'chat'
   ); // 'chat' or 'agent'
   
+  // Design approval workflow
+  const [pendingDesign, setPendingDesign] = useState(null);
+  const [pendingPrompt, setPendingPrompt] = useState('');
+  const [awaitingDesignApproval, setAwaitingDesignApproval] = useState(false);
+  
   // Refs to store interval IDs for proper cleanup
   const revisionIntervalRef = useRef(null);
   const progressIntervalRef = useRef(null);
