@@ -4,6 +4,7 @@ from typing import List, Dict, Optional
 import httpx
 import os
 import logging
+from services.ai_memory_service import memory_service
 
 logger = logging.getLogger(__name__)
 
