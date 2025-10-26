@@ -8,9 +8,9 @@ interface BrowserViewportProps {
 
 const BrowserViewport: React.FC<BrowserViewportProps> = ({ browserState, status }) => {
   return (
-    <div className="flex flex-col h-full bg-gray-900 border border-gray-800 rounded-lg overflow-hidden">
+    <div className="flex flex-col bg-gray-900 border border-gray-800 rounded-lg overflow-hidden" style={{ height: '100%', minHeight: '300px' }}>
       {/* Viewport Header */}
-      <div className="flex items-center justify-between px-4 py-2 bg-gray-800 border-b border-gray-700">
+      <div className="flex items-center justify-between px-4 py-2 bg-gray-800 border-b border-gray-700 flex-shrink-0">
         <div className="flex items-center gap-2">
           <div className="flex gap-1.5">
             <div className="w-3 h-3 rounded-full bg-red-500"></div>
