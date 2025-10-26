@@ -22,6 +22,15 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
   const [loadingSessionId, setLoadingSessionId] = useState('');
   const [editingMessageIndex, setEditingMessageIndex] = useState(null);
   const [editedContent, setEditedContent] = useState('');
+  
+  // Personalization: User and AI names
+  const [userName, setUserName] = useState(localStorage.getItem('chimera_user_name') || null);
+  const [aiName] = useState(localStorage.getItem('chimera_ai_name') || 'Aria'); // AI chooses her name
+  const [showNamePrompt, setShowNamePrompt] = useState(!userName && messages.length === 0);
+
+  // Content folder state
+  const [showContent, setShowContent] = useState(false);
+  const [sessionContent, setSessionContent] = useState([]);
 
   const handleSubmit = () => {
     if (prompt.trim()) {
