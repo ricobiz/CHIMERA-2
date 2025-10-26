@@ -100,6 +100,19 @@ async def get_projects():
                 time_ago = f"{int(time_diff.total_seconds() / 3600)} hours ago"
             else:
                 time_ago = f"{int(time_diff.days)} days ago"
+            
+            result.append(ProjectListItem(
+                id=proj['id'],
+                name=proj['name'],
+                description=proj['description'],
+                last_accessed=time_ago,
+                icon=proj.get('icon', '🚀')
+            ))
+        
+        return result
+    except Exception as e:
+        logger.error(f"Error fetching projects: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/export")
 async def export_project(request: dict):
