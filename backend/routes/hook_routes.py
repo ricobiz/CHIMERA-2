@@ -9,10 +9,19 @@ from typing import List, Optional, Dict, Any
 import uuid
 from datetime import datetime
 import logging
+from services.supervisor_service import mission_supervisor
+from motor.motor_asyncio import AsyncIOMotorClient
+import os
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/hook", tags=["agent-hook"])
+
+# MongoDB connection
+mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
+client = AsyncIOMotorClient(mongo_url)
+db = client[os.environ.get('DB_NAME', 'chimera_db')]
+automation_history_collection = db['automation_history']
 
 # Global state objects - REAL, not mocked
 current_task = {"text": "", "job_id": None, "timestamp": None}
