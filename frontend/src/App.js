@@ -196,15 +196,7 @@ function App() {
 
   return (
     <div className="flex h-screen overflow-hidden bg-[#0f0f10]">
-      {/* Mobile menu button for sidebar */}
-      <Button
-        onClick={() => setSidebarOpen(!sidebarOpen)}
-        className="fixed top-4 left-4 z-50 md:hidden bg-gray-800 hover:bg-gray-700"
-        size="sm"
-      >
-        {sidebarOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
-      </Button>
-
+      {/* Sidebar - только на мобильных устройствах показываем через кнопку */}
       <div className={`
         fixed md:relative inset-y-0 left-0 z-40
         transform transition-transform duration-300
@@ -226,7 +218,7 @@ function App() {
         />
       )}
 
-      <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
+      <div className="flex-1 flex flex-col md:flex-row overflow-hidden relative">
         <div className={`${showPreview ? 'hidden md:flex' : 'flex'} flex-1`}>
           <ChatInterface 
             onSendPrompt={handleSendPrompt} 
@@ -238,6 +230,10 @@ function App() {
             validatorModel={visualValidatorModel}
             generationStatus={generationStatus}
             onOpenSettings={handleOpenSettings}
+            onNewProject={handleNewProject}
+            currentSessionId={currentSessionId}
+            isGenerating={isGenerating}
+            onStopGeneration={handleStopGeneration}
           />
         </div>
 
