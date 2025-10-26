@@ -1098,8 +1098,100 @@ const Settings = ({ selectedModel, onModelChange, onClose, visualValidatorEnable
               </div>
             </div>
           )}
+
+          {/* Language Tab */}
+          {activeTab === 'language' && (
+            <div className="space-y-6">
+              {/* Language Selection */}
+              <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-5">
+                <h3 className="text-gray-300 font-semibold text-base mb-4">Language Settings</h3>
+                <p className="text-gray-500 text-sm mb-4">
+                  Choose your preferred language for the interface
+                </p>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <button
+                    onClick={() => handleLanguageChange('en')}
+                    className={`p-4 rounded-lg border-2 transition-all ${
+                      language === 'en'
+                        ? 'border-purple-500 bg-purple-500/10'
+                        : 'border-gray-700 hover:border-gray-600'
+                    }`}
+                  >
+                    <div className="text-center">
+                      <div className="text-4xl mb-2">🇬🇧</div>
+                      <div className="text-gray-300 font-semibold">English</div>
+                      {language === 'en' && (
+                        <div className="mt-2">
+                          <Check className="w-5 h-5 text-purple-400 mx-auto" />
+                        </div>
+                      )}
+                    </div>
+                  </button>
+                  
+                  <button
+                    onClick={() => handleLanguageChange('ru')}
+                    className={`p-4 rounded-lg border-2 transition-all ${
+                      language === 'ru'
+                        ? 'border-purple-500 bg-purple-500/10'
+                        : 'border-gray-700 hover:border-gray-600'
+                    }`}
+                  >
+                    <div className="text-center">
+                      <div className="text-4xl mb-2">🇷🇺</div>
+                      <div className="text-gray-300 font-semibold">Русский</div>
+                      {language === 'ru' && (
+                        <div className="mt-2">
+                          <Check className="w-5 h-5 text-purple-400 mx-auto" />
+                        </div>
+                      )}
+                    </div>
+                  </button>
+                </div>
+              </div>
+
+              {/* Knowledge Base Button */}
+              <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <Book className="w-5 h-5 text-blue-400" />
+                  <h3 className="text-gray-300 font-semibold text-base">Knowledge Base</h3>
+                </div>
+                <p className="text-gray-500 text-sm mb-4">
+                  {language === 'en' 
+                    ? 'Access comprehensive documentation about all platform features, tips, and best practices.'
+                    : 'Доступ к полной документации о всех возможностях платформы, советах и лучших практиках.'
+                  }
+                </p>
+                <Button
+                  onClick={() => setShowKnowledgeBase(true)}
+                  className="w-full bg-blue-600 hover:bg-blue-500 text-white flex items-center justify-center gap-2"
+                >
+                  <Book className="w-4 h-4" />
+                  {language === 'en' ? 'Open Knowledge Base' : 'Открыть Базу Знаний'}
+                </Button>
+              </div>
+
+              {/* Info */}
+              <div className="bg-blue-900/20 border border-blue-800/50 rounded-lg p-4">
+                <p className="text-blue-400 text-sm">
+                  {language === 'en' 
+                    ? 'The interface will automatically switch to your selected language. AI responses will also adapt to match your language preferences based on your messages.'
+                    : 'Интерфейс автоматически переключится на выбранный язык. AI ответы также адаптируются под ваш язык на основе ваших сообщений.'
+                  }
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
+      
+      {/* Knowledge Base Modal */}
+      {showKnowledgeBase && (
+        <KnowledgeBase 
+          onClose={() => setShowKnowledgeBase(false)}
+          language={language}
+        />
+      )}
     </div>
   );
 };
