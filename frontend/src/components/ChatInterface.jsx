@@ -32,6 +32,19 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
   const [showContent, setShowContent] = useState(false);
   const [sessionContent, setSessionContent] = useState([]);
 
+  // AI Introduction on first launch
+  useEffect(() => {
+    if (!userName && messages.length === 0) {
+      // AI introduces herself
+      const introMessage = {
+        role: 'assistant',
+        content: `Hello! I'm ${aiName}, your AI companion for creating amazing applications. 🎨✨\n\nI can help you build full-stack apps, automate browser tasks, verify documents, and much more!\n\nWhat should I call you? Feel free to share your name, or we can dive right into creating something awesome together!`
+      };
+      // Add intro message (would need to update messages in parent, but for now just show prompt)
+      setShowNamePrompt(true);
+    }
+  }, []);
+
   const handleSubmit = () => {
     if (prompt.trim()) {
       onSendPrompt(prompt);
