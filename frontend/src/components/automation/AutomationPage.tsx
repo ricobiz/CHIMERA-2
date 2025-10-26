@@ -213,8 +213,8 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
       </div>
 
       {/* Main Content Area: Viewport + Log */}
-      <div className="flex-1 px-6 pb-6 min-h-0">
-        <div className="flex gap-4 h-full">
+      <div className="flex-1 px-6 pb-6 min-h-0 overflow-y-auto">
+        <div className="flex gap-4 h-full min-h-[600px]">
           {/* Browser Viewport (Left/Center - 60%) */}
           <div className="flex-1 min-w-0">
             <BrowserViewport
