@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
 import { Menu, X } from 'lucide-react';
 import { Button } from './components/ui/button';
@@ -53,6 +53,11 @@ function App() {
   const [chatMode, setChatMode] = useState(
     localStorage.getItem('chatMode') || 'chat'
   ); // 'chat' or 'agent'
+  
+  // Refs to store interval IDs for proper cleanup
+  const revisionIntervalRef = useRef(null);
+  const progressIntervalRef = useRef(null);
+  const balanceIntervalRef = useRef(null);
   
   // Load current session on mount
   useEffect(() => {
