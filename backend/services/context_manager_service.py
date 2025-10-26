@@ -93,7 +93,7 @@ class ContextWindowManager:
         # Fallback to hardcoded limits
         return self.MODEL_LIMITS.get(model, self.MODEL_LIMITS["default"])
     
-    def calculate_usage(self, messages: List[Dict], model: str) -> Dict[str, Any]:
+    async def calculate_usage(self, messages: List[Dict], model: str) -> Dict[str, Any]:
         """
         Рассчитать использование контекста
         
@@ -108,7 +108,7 @@ class ContextWindowManager:
             }
         """
         current = self.count_messages_tokens(messages)
-        maximum = self.get_model_limit(model)
+        maximum = await self.get_model_limit(model)
         percentage = current / maximum if maximum > 0 else 0
         
         return {
