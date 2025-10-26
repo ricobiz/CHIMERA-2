@@ -255,32 +255,6 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, activeM
       {/* Input */}
       <div className="border-t border-gray-800 p-3 md:p-6">
         <div className="max-w-3xl mx-auto">
-          {/* Mode Switcher */}
-          <div className="flex items-center justify-center mb-3">
-            <div className="inline-flex items-center bg-gray-900 rounded-full p-1 border border-gray-700">
-              <button
-                onClick={() => onChatModeChange('chat')}
-                className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${
-                  chatMode === 'chat'
-                    ? 'bg-gray-700 text-white'
-                    : 'text-gray-500 hover:text-gray-400'
-                }`}
-              >
-                💬 Chat
-              </button>
-              <button
-                onClick={() => onChatModeChange('agent')}
-                className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${
-                  chatMode === 'agent'
-                    ? 'bg-gray-700 text-white'
-                    : 'text-gray-500 hover:text-gray-400'
-                }`}
-              >
-                🤖 Agent
-              </button>
-            </div>
-          </div>
-
           <div className="relative">
             <Textarea
               value={prompt}
@@ -292,7 +266,7 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, activeM
                 }
               }}
               placeholder={chatMode === 'chat' ? 'Chat about your app idea...' : 'Describe your app...'}
-              className={`min-h-[80px] md:min-h-[100px] bg-gray-900 text-sm md:text-base text-gray-300 resize-none pr-32 pl-3 placeholder-gray-600 transition-all duration-300 ${
+              className={`min-h-[80px] md:min-h-[100px] bg-gray-900 text-sm md:text-base text-gray-300 resize-none pr-32 pl-3 pb-10 placeholder-gray-600 transition-all duration-300 ${
                 generationStatus === 'generating' 
                   ? 'border-2 border-blue-400 shadow-lg shadow-blue-500/50' 
                   : generationStatus === 'success'
@@ -303,8 +277,32 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, activeM
               }`}
             />
             
-            {/* Action buttons */}
-            <div className="absolute bottom-2 md:bottom-3 right-2 md:right-3 flex items-center gap-2">
+            {/* Bottom left controls */}
+            <div className="absolute bottom-2 md:bottom-3 left-3 flex items-center gap-3">
+              {/* Mode Toggle Switch */}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => onChatModeChange(chatMode === 'chat' ? 'agent' : 'chat')}
+                  className={`relative w-12 h-5 rounded-full transition-all duration-300 ${
+                    chatMode === 'agent' 
+                      ? 'bg-gray-700 border border-blue-500/50' 
+                      : 'bg-gray-700 border border-gray-600'
+                  }`}
+                  title={chatMode === 'chat' ? 'Switch to Agent mode' : 'Switch to Chat mode'}
+                >
+                  <div
+                    className={`absolute top-0.5 w-4 h-4 rounded-full transition-all duration-300 ${
+                      chatMode === 'agent'
+                        ? 'left-[26px] bg-blue-500 shadow-lg shadow-blue-500/50'
+                        : 'left-0.5 bg-gray-500'
+                    }`}
+                  />
+                </button>
+                <span className="text-[10px] text-gray-500 font-medium">
+                  {chatMode === 'chat' ? 'Chat' : 'Agent'}
+                </span>
+              </div>
+              
               {/* File upload */}
               <label className="cursor-pointer text-gray-500 hover:text-gray-400 transition-colors">
                 <input
@@ -324,6 +322,10 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, activeM
               >
                 <Mic className="w-4 h-4" />
               </button>
+            </div>
+            
+            {/* Action buttons (right side) */}
+            <div className="absolute bottom-2 md:bottom-3 right-2 md:right-3 flex items-center gap-2">
               
               {/* Send/Stop button */}
               {isGenerating ? (
