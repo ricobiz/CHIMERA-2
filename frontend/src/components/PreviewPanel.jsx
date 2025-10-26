@@ -54,7 +54,8 @@ const PreviewPanel = ({ generatedCode, isGenerating }) => {
     
     let cleanCode = generatedCode
       .replace(/export\s+default\s+\w+;?/g, '')
-      .replace(/export\s+{[^}]*};?/g, '');
+      .replace(/export\s+{[^}]*};?/g, '')
+      .replace(/\$\{/g, '\\${'); // Escape template literals
     
     return `
 <!DOCTYPE html>
