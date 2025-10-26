@@ -148,3 +148,31 @@ code {
     -webkit-mask-composite: xor;
     mask-composite: exclude;
 }
+
+/* Mobile Viewport Fixes */
+@media (max-width: 768px) {
+    html, body {
+        height: 100%;
+        height: 100dvh; /* Dynamic viewport height */
+        overflow: hidden;
+        position: fixed;
+        width: 100%;
+        overscroll-behavior: none;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    #root {
+        height: 100%;
+        height: 100dvh;
+        overflow: hidden;
+    }
+    
+    /* Prevent iOS Safari bottom bar from causing layout issues */
+    @supports (-webkit-touch-callout: none) {
+        body {
+            /* iOS Safari specific */
+            min-height: -webkit-fill-available;
+        }
+    }
+}
+
