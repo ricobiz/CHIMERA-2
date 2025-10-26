@@ -343,16 +343,19 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, activeM
             
             {/* Bottom left controls */}
             <div className="absolute bottom-2 md:bottom-3 left-3 flex items-center gap-3">
-              {/* Mode Toggle Switch */}
+              {/* Mode Toggle Switch - DISABLED during generation */}
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => onChatModeChange(chatMode === 'chat' ? 'agent' : 'chat')}
+                  onClick={() => !isGenerating && onChatModeChange(chatMode === 'chat' ? 'agent' : 'chat')}
+                  disabled={isGenerating}
                   className={`relative w-12 h-5 rounded-full transition-all duration-300 ${
+                    isGenerating ? 'opacity-50 cursor-not-allowed' : ''
+                  } ${
                     chatMode === 'agent' 
                       ? 'bg-gray-700 border border-blue-500/50' 
                       : 'bg-gray-700 border border-gray-600'
                   }`}
-                  title={chatMode === 'chat' ? 'Switch to Agent mode' : 'Switch to Chat mode'}
+                  title={isGenerating ? 'Cannot switch during generation' : chatMode === 'chat' ? 'Switch to Agent mode' : 'Switch to Chat mode'}
                 >
                   <div
                     className={`absolute top-0.5 w-4 h-4 rounded-full transition-all duration-300 ${
