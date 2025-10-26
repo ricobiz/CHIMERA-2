@@ -5,6 +5,7 @@ import httpx
 import os
 import logging
 from services.ai_memory_service import memory_service
+from services.openrouter_service import openrouter_service
 
 logger = logging.getLogger(__name__)
 
