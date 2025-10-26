@@ -401,6 +401,9 @@ function App() {
             onChatModeChange={setChatMode}
             developmentPlan={developmentPlan}
             currentTaskIndex={currentTaskIndex}
+            showApprovalButtons={showApprovalButtons}
+            onApprove={handleApprove}
+            onRevise={handleRevise}
           />
         </div>
 
