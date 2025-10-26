@@ -166,17 +166,53 @@ backend:
         comment: "✅ Specific project retrieval working correctly. Successfully retrieved project by ID. All required fields present (id, name, description, code, conversation_history, created_at, updated_at, last_accessed, icon). 404 error handling also tested and working correctly for invalid IDs."
 
 frontend:
-  - task: "Frontend testing not performed"
+  - task: "Settings icon in header (gear icon)"
     implemented: true
-    working: "NA"
-    file: "N/A"
+    working: true
+    file: "/app/frontend/src/components/ChatInterface.jsx"
     stuck_count: 0
-    priority: "low"
+    priority: "high"
     needs_retesting: false
     status_history:
-      - working: "NA"
-        agent: "testing"
-        comment: "Frontend testing not performed as per testing agent instructions - only backend testing was requested."
+      - working: true
+        agent: "main"
+        comment: "✅ Added small settings gear icon next to model indicators (code & eye icons). Removed large menu button. Settings icon opens Settings page on click. Tested and working on desktop."
+
+  - task: "New Workspace dropdown menu with session management"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/components/Sidebar.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "✅ Made 'New Workspace' button functional with dropdown menu. Features: Create New Session button, Load Session by ID input field with search, Recent Sessions list (top 5). Click outside closes menu. Tested and working."
+
+  - task: "Dynamic glowing border for input field"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/components/ChatInterface.jsx, /app/frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "✅ Implemented dynamic border colors for textarea input field: Blue neon glow during code generation (generating state), Green glow on success, Red glow on error, Default gray border when idle. Auto-resets to idle after 3s (success) or 5s (error). Tested with actual code generation - blue border appears during generation."
+
+  - task: "Mobile UI - no button overlap"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "✅ Verified mobile layout (375x667px). Menu button (☰) on left, icons (code, eye, settings) on right. No overlapping issues. All elements properly positioned and visible."
 
 metadata:
   created_by: "testing_agent"
