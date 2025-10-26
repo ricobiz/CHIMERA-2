@@ -121,6 +121,31 @@ function App() {
     setTotalCost(0);
     setShowPreview(false);
     setSidebarOpen(false);
+    setCurrentSessionId(null);
+    setSessionName('New Session');
+  };
+
+  const handleSessionSelect = async (session) => {
+    try {
+      const fullSession = await getSession(session.id);
+      setMessages(fullSession.messages || []);
+      setGeneratedCode(fullSession.generated_code || '');
+      setTotalCost(fullSession.total_cost || 0);
+      setCurrentSessionId(fullSession.id);
+      setSessionName(fullSession.name);
+      setSidebarOpen(false);
+      
+      toast({
+        title: "Session Loaded",
+        description: `Loaded "${fullSession.name}"`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load session.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleSaveProject = async () => {
