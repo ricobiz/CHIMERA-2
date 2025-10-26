@@ -303,16 +303,52 @@ Example: Register new Gmail account, bypass CAPTCHA, return login/password and c
             </div>
           </div>
 
-          {/* Result (Reserved) */}
+          {/* Result */}
           <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-4">
-            <label className="block text-sm text-gray-400 font-medium mb-2">RESULT</label>
-            <div className="text-sm text-gray-600 italic">
-              {result ? (
-                <pre className="text-green-400 whitespace-pre-wrap">{JSON.stringify(result, null, 2)}</pre>
-              ) : (
-                'Final artifacts will appear here...'
-              )}
+            <div className="flex items-center justify-between mb-3">
+              <label className="text-sm text-gray-400 font-medium">RESULT</label>
+              {result?.completed && <CheckCircle className="w-4 h-4 text-green-400" />}
             </div>
+            {result && result.completed ? (
+              <div className="space-y-3">
+                {result.credentials && (
+                  <div className="bg-gray-950 rounded p-3 border border-gray-700">
+                    <div className="text-xs text-gray-500 mb-2">Credentials:</div>
+                    <div className="space-y-1 text-sm font-mono">
+                      <div className="flex items-center gap-2">
+                        <span className="text-gray-400">Login:</span>
+                        <span className="text-green-400">{result.credentials.login}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-gray-400">Pass:</span>
+                        <span className="text-green-400">{result.credentials.password}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {result.screenshot && (
+                  <div className="bg-gray-950 rounded p-3 border border-gray-700">
+                    <div className="text-xs text-gray-500 mb-2">Screenshot:</div>
+                    <div className="text-sm text-blue-400 font-mono break-all">
+                      {result.screenshot}
+                    </div>
+                  </div>
+                )}
+                <button
+                  onClick={loadResult}
+                  className="w-full px-3 py-2 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-600/50 text-blue-400 rounded text-sm font-medium transition-colors"
+                >
+                  Refresh Result
+                </button>
+              </div>
+            ) : (
+              <div className="text-sm text-gray-600 italic text-center py-4">
+                {result === null 
+                  ? 'Final artifacts will appear here...'
+                  : 'Task in progress...'
+                }
+              </div>
+            )}
           </div>
         </div>
 
