@@ -20,6 +20,7 @@ class LovableBackendTester:
         self.created_project_id = None
         self.created_integration_id = None
         self.created_mcp_server_id = None
+        self.created_automation_session_id = None
         
     def log_test(self, test_name, success, message, details=None):
         """Log test results"""
