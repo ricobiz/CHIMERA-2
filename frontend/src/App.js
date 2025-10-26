@@ -584,6 +584,7 @@ function App() {
             onOpenSettings={handleOpenSettings}
             onOpenAutomation={() => setShowAutomation(true)}
             onOpenDocVerification={() => setShowDocVerification(true)}
+            onOpenSelfImprovement={() => setShowSelfImprovement(true)}
             onNewProject={handleNewProject}
             currentSessionId={currentSessionId}
             isGenerating={isGenerating}
