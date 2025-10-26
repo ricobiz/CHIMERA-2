@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { AgentLogEntry } from '../../agent/types';
+import { AgentLogEntry } from '../../agent/types.ts';
 import { CheckCircle2, XCircle, Clock, RotateCcw } from 'lucide-react';
 
 interface AgentLogProps {
