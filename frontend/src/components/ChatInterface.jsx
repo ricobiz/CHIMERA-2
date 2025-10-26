@@ -167,12 +167,109 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, activeM
       {/* Header */}
       <div className="border-b border-gray-800 p-3 md:p-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <h2 className="text-white font-medium text-sm">AI Assistant</h2>
-            {currentSessionId && (
-              <span className="text-xs text-gray-500 font-mono">
-                ID: {currentSessionId.slice(0, 8)}...
-              </span>
+          {/* Session Info - Clickable */}
+          <div className="relative session-menu-container">
+            <button
+              onClick={() => setShowSessionMenu(!showSessionMenu)}
+              className="flex items-center gap-2 hover:bg-gray-800/50 rounded px-2 py-1 transition-colors group"
+            >
+              <h2 className="text-white font-medium text-sm">AI Assistant</h2>
+              {currentSessionId && (
+                <span className="text-xs text-gray-500 font-mono group-hover:text-gray-400">
+                  ID: {currentSessionId.slice(0, 8)}...
+                </span>
+              )}
+              <List className="w-3 h-3 text-gray-500 group-hover:text-gray-400" />
+            </button>
+
+            {/* Session Menu Dropdown */}
+            {showSessionMenu && (
+              <div className="absolute top-full left-0 mt-2 w-96 bg-gray-900 border border-gray-700 rounded-lg shadow-xl z-50 max-h-96 overflow-hidden flex flex-col">
+                {/* Load by ID */}
+                <div className="p-3 border-b border-gray-800">
+                  <p className="text-xs text-gray-400 mb-2">Load Session by ID</p>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={loadingSessionId}
+                      onChange={(e) => setLoadingSessionId(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          handleLoadSessionById();
+                        }
+                      }}
+                      placeholder="Enter full session ID..."
+                      className="flex-1 px-3 py-2 bg-gray-800 border border-gray-700 rounded text-xs text-gray-300 placeholder-gray-600 focus:border-purple-500 focus:outline-none"
+                    />
+                    <Button
+                      onClick={handleLoadSessionById}
+                      size="sm"
+                      className="bg-purple-600 hover:bg-purple-500 px-3 text-xs"
+                    >
+                      Load
+                    </Button>
+                  </div>
+                </div>
+
+                {/* All Sessions List */}
+                <div className="flex-1 overflow-y-auto p-3">
+                  <p className="text-xs text-gray-400 mb-2">All Sessions ({allSessions.length})</p>
+                  {allSessions.length === 0 ? (
+                    <p className="text-gray-600 text-xs text-center py-4">No sessions yet</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {allSessions.map((session) => (
+                        <button
+                          key={session.id}
+                          onClick={() => handleSessionClick(session.id)}
+                          className={`w-full text-left px-3 py-2 rounded text-xs transition-colors ${
+                            currentSessionId === session.id
+                              ? 'bg-purple-600/20 border border-purple-600'
+                              : 'bg-gray-800/50 hover:bg-gray-800 border border-transparent'
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex-1 min-w-0">
+                              <p className={`font-medium truncate ${
+                                currentSessionId === session.id ? 'text-purple-400' : 'text-gray-300'
+                              }`}>
+                                {session.name || 'Untitled'}
+                              </p>
+                              <p className="text-gray-500 text-[10px] mt-0.5 font-mono">
+                                ID: {session.id}
+                              </p>
+                              <div className="flex items-center gap-2 mt-1 text-gray-600 text-[10px]">
+                                <span>{session.message_count || 0} msgs</span>
+                                <span>•</span>
+                                <span>${(session.total_cost || 0).toFixed(4)}</span>
+                                <span>•</span>
+                                <span>{session.last_updated || 'N/A'}</span>
+                              </div>
+                            </div>
+                            {currentSessionId === session.id && (
+                              <Check className="w-3 h-3 text-purple-400 flex-shrink-0" />
+                            )}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* New Session Button */}
+                <div className="p-3 border-t border-gray-800">
+                  <Button
+                    onClick={() => {
+                      onNewProject();
+                      setShowSessionMenu(false);
+                    }}
+                    className="w-full bg-green-600 hover:bg-green-500 text-white text-xs flex items-center justify-center gap-2"
+                  >
+                    <Plus className="w-3 h-3" />
+                    New Session
+                  </Button>
+                </div>
+              </div>
             )}
           </div>
           
