@@ -763,10 +763,11 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Context Window Management - All backend endpoints"
-    - "Context Window Management - Frontend integration"
-    - "POST /api/context/status endpoint"
-    - "POST /api/context/switch-model endpoint"
+    - "Browser Automation - JustFans.uno Registration Flow"
+    - "POST /api/automation/session/create endpoint"
+    - "POST /api/automation/navigate endpoint"
+    - "POST /api/automation/find-elements endpoint"
+    - "POST /api/automation/smart-click endpoint"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
