@@ -1284,11 +1284,211 @@ export default App;""",
                 {"error_type": type(e).__name__}
             )
     
+    def test_chat_endpoint(self):
+        """Test POST /api/chat endpoint - Chat conversation mode"""
+        print("\n🧪 Testing Chat Endpoint...")
+        
+        # Test 1: Basic chat in English
+        print("   Testing basic chat in English...")
+        payload_english = {
+            "message": "Hello, how are you?",
+            "history": [],
+            "model": "anthropic/claude-3.5-sonnet"
+        }
+        
+        try:
+            response = self.session.post(
+                f"{BACKEND_URL}/chat",
+                json=payload_english,
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check required fields
+                required_fields = ['message', 'response', 'cost']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if not missing_fields:
+                    # Check if response is not a fallback stub
+                    response_text = data['message']
+                    if len(response_text) > 10 and "Hello" in response_text or "Hi" in response_text:
+                        self.log_test(
+                            "Chat - Basic English",
+                            True,
+                            f"Chat responded naturally in English ({len(response_text)} chars)",
+                            {"response_length": len(response_text), "has_cost": bool(data.get('cost'))}
+                        )
+                    else:
+                        self.log_test(
+                            "Chat - Basic English - Stub Response",
+                            False,
+                            "Response appears to be a fallback stub message",
+                            {"response_preview": response_text[:100]}
+                        )
+                else:
+                    self.log_test(
+                        "Chat - Basic English - Missing Fields",
+                        False,
+                        f"Response missing required fields: {missing_fields}",
+                        {"missing_fields": missing_fields, "response_keys": list(data.keys())}
+                    )
+            else:
+                self.log_test(
+                    "Chat - Basic English - HTTP Error",
+                    False,
+                    f"HTTP {response.status_code}: {response.text}",
+                    {"status_code": response.status_code}
+                )
+                
+        except requests.exceptions.Timeout:
+            self.log_test(
+                "Chat - Basic English - Timeout",
+                False,
+                "Chat request timed out after 30 seconds",
+                {"timeout": 30}
+            )
+        except Exception as e:
+            self.log_test(
+                "Chat - Basic English - Exception",
+                False,
+                f"Unexpected error: {str(e)}",
+                {"error_type": type(e).__name__}
+            )
+        
+        # Test 2: Chat in Russian
+        print("   Testing chat in Russian...")
+        payload_russian = {
+            "message": "Привет! Как дела?",
+            "history": [],
+            "model": "anthropic/claude-3.5-sonnet"
+        }
+        
+        try:
+            response = self.session.post(
+                f"{BACKEND_URL}/chat",
+                json=payload_russian,
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'message' in data and 'response' in data:
+                    response_text = data['message']
+                    # Check if response contains Cyrillic characters (indicating Russian response)
+                    has_cyrillic = any('\u0400' <= char <= '\u04FF' for char in response_text)
+                    
+                    if has_cyrillic and len(response_text) > 10:
+                        self.log_test(
+                            "Chat - Russian Language",
+                            True,
+                            f"Chat responded in Russian ({len(response_text)} chars)",
+                            {"response_length": len(response_text), "has_cyrillic": has_cyrillic}
+                        )
+                    else:
+                        self.log_test(
+                            "Chat - Russian Language - Wrong Language",
+                            False,
+                            "Response not in Russian or too short",
+                            {"response_preview": response_text[:100], "has_cyrillic": has_cyrillic}
+                        )
+                else:
+                    self.log_test(
+                        "Chat - Russian Language - Missing Fields",
+                        False,
+                        "Response missing required fields",
+                        {"response_keys": list(data.keys())}
+                    )
+            else:
+                self.log_test(
+                    "Chat - Russian Language - HTTP Error",
+                    False,
+                    f"HTTP {response.status_code}: {response.text}",
+                    {"status_code": response.status_code}
+                )
+                
+        except Exception as e:
+            self.log_test(
+                "Chat - Russian Language - Exception",
+                False,
+                f"Unexpected error: {str(e)}",
+                {"error_type": type(e).__name__}
+            )
+        
+        # Test 3: Chat with history
+        print("   Testing chat with conversation history...")
+        payload_with_history = {
+            "message": "What colors would look good?",
+            "history": [
+                {"role": "user", "content": "I want to build a fitness app"},
+                {"role": "assistant", "content": "That sounds great! What features are you thinking about?"}
+            ],
+            "model": "anthropic/claude-3.5-sonnet"
+        }
+        
+        try:
+            response = self.session.post(
+                f"{BACKEND_URL}/chat",
+                json=payload_with_history,
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'message' in data and 'response' in data:
+                    response_text = data['message']
+                    # Check if response is contextual (mentions fitness, app, or colors)
+                    contextual_keywords = ['fitness', 'app', 'color', 'blue', 'green', 'red', 'design']
+                    has_context = any(keyword.lower() in response_text.lower() for keyword in contextual_keywords)
+                    
+                    if has_context and len(response_text) > 20:
+                        self.log_test(
+                            "Chat - With History Context",
+                            True,
+                            f"Chat provided contextual response about fitness app colors ({len(response_text)} chars)",
+                            {"response_length": len(response_text), "contextual": has_context}
+                        )
+                    else:
+                        self.log_test(
+                            "Chat - With History Context - No Context",
+                            False,
+                            "Response doesn't appear contextual to fitness app discussion",
+                            {"response_preview": response_text[:150], "contextual": has_context}
+                        )
+                else:
+                    self.log_test(
+                        "Chat - With History Context - Missing Fields",
+                        False,
+                        "Response missing required fields",
+                        {"response_keys": list(data.keys())}
+                    )
+            else:
+                self.log_test(
+                    "Chat - With History Context - HTTP Error",
+                    False,
+                    f"HTTP {response.status_code}: {response.text}",
+                    {"status_code": response.status_code}
+                )
+                
+        except Exception as e:
+            self.log_test(
+                "Chat - With History Context - Exception",
+                False,
+                f"Unexpected error: {str(e)}",
+                {"error_type": type(e).__name__}
+            )
+
     def run_all_tests(self):
         """Run all backend tests"""
         print("🚀 Starting Lovable.dev Clone Backend API Tests")
         print(f"🔗 Backend URL: {BACKEND_URL}")
         print("=" * 60)
+        
+        # Test chat endpoint first (as requested in review)
+        self.test_chat_endpoint()
         
         # Test original endpoints
         self.test_generate_code_endpoint()
