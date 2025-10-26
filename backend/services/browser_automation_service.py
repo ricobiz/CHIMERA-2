@@ -1,6 +1,7 @@
 """
 Real Browser Automation Service using Playwright
 No mocks, no simulations - actual browser control
+Integrated with local vision model for element detection
 """
 import asyncio
 import logging
@@ -8,6 +9,7 @@ import base64
 from playwright.async_api import async_playwright, Browser, Page, BrowserContext
 from typing import Dict, Any, Optional, List
 import os
+from services.local_vision_service import vision_service
 
 logger = logging.getLogger(__name__)
 
