@@ -37,7 +37,7 @@ function App() {
     localStorage.getItem('researchPlannerEnabled') === 'true'
   );
   const [researchPlannerModel, setResearchPlannerModel] = useState(
-    localStorage.getItem('researchPlannerModel') || 'anthropic/claude-3.5-sonnet'
+    localStorage.getItem('researchPlannerModel') || 'openai/gpt-5'
   );
 
   const [currentSessionId, setCurrentSessionId] = useState(
