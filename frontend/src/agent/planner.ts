@@ -1,5 +1,5 @@
 // Planner Module: Converts high-level goals into ActionPlans
-import { ActionPlan, ActionStep, PlannerResponse } from './types';
+import { ActionPlan, ActionStep, PlannerResponse } from './types.ts';
 import { researchTask } from '../services/api';
 
 class PlannerService {
