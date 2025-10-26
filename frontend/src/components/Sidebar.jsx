@@ -99,13 +99,82 @@ const Sidebar = ({ onNewProject, onProjectSelect, onOpenSettings, onSessionSelec
       <div className="p-6 border-b border-gray-800">
         <h2 className="text-sm text-gray-400 mb-4">Start coding an app</h2>
         <div className="space-y-2">
-          <Button
-            onClick={onNewProject}
-            className="w-full justify-start gap-2 bg-gray-800 hover:bg-gray-700 text-white border-0"
-          >
-            <Plus className="w-4 h-4" />
-            New Workspace
-          </Button>
+          {/* New Workspace Button with Dropdown */}
+          <div className="relative">
+            <Button
+              onClick={() => setShowSessionMenu(!showSessionMenu)}
+              className="w-full justify-start gap-2 bg-gray-800 hover:bg-gray-700 text-white border-0"
+            >
+              <Plus className="w-4 h-4" />
+              New Workspace
+            </Button>
+            
+            {/* Session Menu Dropdown */}
+            {showSessionMenu && (
+              <div className="absolute top-full left-0 right-0 mt-2 bg-gray-900 border border-gray-700 rounded-lg shadow-xl z-50 p-4 space-y-3">
+                <button
+                  onClick={handleNewWorkspace}
+                  className="w-full px-3 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  Create New Session
+                </button>
+                
+                <div className="border-t border-gray-700 pt-3">
+                  <p className="text-xs text-gray-400 mb-2">Load Session by ID</p>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={sessionIdInput}
+                      onChange={(e) => setSessionIdInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          handleLoadSessionById();
+                        }
+                      }}
+                      placeholder="Enter session ID..."
+                      className="flex-1 px-3 py-2 bg-gray-800 border border-gray-700 rounded text-sm text-gray-300 placeholder-gray-600 focus:border-purple-500 focus:outline-none"
+                    />
+                    <Button
+                      onClick={handleLoadSessionById}
+                      size="sm"
+                      className="bg-blue-600 hover:bg-blue-500 px-3"
+                    >
+                      <Search className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+                
+                {sessions.length > 0 && (
+                  <div className="border-t border-gray-700 pt-3">
+                    <p className="text-xs text-gray-400 mb-2">Recent Sessions</p>
+                    <div className="max-h-48 overflow-y-auto space-y-1">
+                      {sessions.slice(0, 5).map((session) => (
+                        <button
+                          key={session.id}
+                          onClick={() => {
+                            onSessionSelect(session);
+                            setShowSessionMenu(false);
+                          }}
+                          className={`w-full text-left px-3 py-2 rounded text-sm transition-colors ${
+                            currentSessionId === session.id
+                              ? 'bg-purple-600 text-white'
+                              : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                          }`}
+                        >
+                          <div className="truncate">{session.name}</div>
+                          <div className="text-xs text-gray-500 mt-0.5">
+                            {session.message_count} msgs • {session.last_updated}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+          
           <Button
             className="w-full justify-start gap-2 bg-gray-800 hover:bg-gray-700 text-white border-0"
           >
