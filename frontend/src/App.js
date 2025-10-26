@@ -476,6 +476,26 @@ function App() {
     setCurrentSessionId(null);
   };
 
+  const handleBrowserAutomationTask = async (goal) => {
+    console.log('[CHIMERA] 🤖 Starting browser automation from chat:', goal);
+    
+    // Add user message
+    const userMessage = { role: 'user', content: goal };
+    setMessages(prev => [...prev, userMessage]);
+    
+    // Add system message indicating automation started
+    const systemMessage = {
+      role: 'system',
+      content: `🤖 **Browser Automation Started**\n\nGoal: ${goal}\n\n*Initializing automation agent...*`
+    };
+    setMessages(prev => [...prev, systemMessage]);
+    
+    // Switch to automation mode with the goal pre-filled
+    setShowAutomation(true);
+    // TODO: Pass the goal to AutomationPage so it auto-starts
+    // For now, user will see automation page with empty input
+  };
+
   const handleSaveProject = async () => {
     if (!generatedCode) {
       toast({
