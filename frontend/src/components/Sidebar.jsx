@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Upload, MoreVertical, Settings, MessageSquare, Trash2 } from 'lucide-react';
 import { Button } from './ui/button';
 import { getSessions, deleteSession } from '../services/api';
-import { toast } from './hooks/use-toast';
+import { toast } from '../hooks/use-toast';
 
 const Sidebar = ({ onNewProject, onProjectSelect, onOpenSettings, onSessionSelect, currentSessionId }) => {
   const [projects, setProjects] = useState([]);
