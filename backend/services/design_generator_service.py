@@ -42,7 +42,7 @@ Be creative but practical. Ensure the design matches the app's purpose."""
     async def generate_design(self, user_request: str, model: str = None) -> Dict:
         """Generate design specification using vision-capable model"""
         try:
-            selected_model = model or "google/gemini-2.0-flash-thinking-exp:free"
+            selected_model = model or "google/gemini-2.5-flash-image"
             
             prompt = self.design_prompt.format(user_request=user_request)
             
