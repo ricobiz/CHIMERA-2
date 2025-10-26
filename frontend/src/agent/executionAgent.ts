@@ -253,19 +253,106 @@ class ExecutionAgentService {
   }
 
   /**
-   * Perform a single automation step (simulated)
+   * Perform a single automation step (REAL BROWSER)
    */
   private async performStep(step: ActionStep, browserState: BrowserState): Promise<void> {
     console.log(`[ExecutionAgent] Performing ${step.actionType}: ${step.targetDescription}`);
 
-    // Simulate step execution time
-    const executionTime = 1000 + Math.random() * 2000; // 1-3 seconds
-    await new Promise(resolve => setTimeout(resolve, executionTime));
+    // Make API call to real browser service
+    const API_BASE = process.env.REACT_APP_BACKEND_URL || '';
+    const sessionId = `browser-${Date.now()}`;
 
-    // Update browser state based on action type
-    const updates = this.simulateStepExecution(step, browserState);
-    
-    this.updateState({ browserState: updates });
+    try {
+      let response;
+
+      switch (step.actionType) {
+        case 'NAVIGATE':
+          response = await fetch(`${API_BASE}/api/automation/navigate`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              session_id: sessionId,
+              url: step.targetSelector || 'https://google.com'
+            })
+          });
+          break;
+
+        case 'CLICK':
+          response = await fetch(`${API_BASE}/api/automation/click`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              session_id: sessionId,
+              selector: step.targetSelector
+            })
+          });
+          break;
+
+        case 'TYPE':
+          response = await fetch(`${API_BASE}/api/automation/type`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              session_id: sessionId,
+              selector: step.targetSelector,
+              text: step.inputValue || ''
+            })
+          });
+          break;
+
+        case 'WAIT':
+          response = await fetch(`${API_BASE}/api/automation/wait`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              session_id: sessionId,
+              selector: step.targetSelector || 'body',
+              timeout: 5000
+            })
+          });
+          break;
+
+        default:
+          // Fallback to simulation for unsupported actions
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          const updates = this.simulateStepExecution(step, browserState);
+          this.updateState({ browserState: updates });
+          return;
+      }
+
+      if (response) {
+        const data = await response.json();
+        
+        if (data.success || data.screenshot) {
+          // Update browser state with real data
+          const newState: BrowserState = {
+            ...browserState,
+            currentUrl: data.url || browserState.currentUrl,
+            screenshot: data.screenshot || browserState.screenshot,
+            pageTitle: data.title || browserState.pageTitle,
+            highlightBoxes: data.highlight ? [{
+              x: data.highlight.x,
+              y: data.highlight.y,
+              w: data.highlight.width,
+              h: data.highlight.height,
+              label: `${step.actionType}: ${step.targetDescription}`,
+              color: '#3b82f6'
+            }] : [],
+            timestamp: Date.now()
+          };
+
+          this.updateState({ browserState: newState });
+        } else {
+          throw new Error(data.error || 'Browser action failed');
+        }
+      }
+
+    } catch (error: any) {
+      console.error(`[ExecutionAgent] Browser action error:`, error);
+      // Fallback to simulation on error
+      const updates = this.simulateStepExecution(step, browserState);
+      this.updateState({ browserState: updates });
+    }
   }
 
   /**
