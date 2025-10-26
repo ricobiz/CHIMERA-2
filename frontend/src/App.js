@@ -472,6 +472,10 @@ function App() {
           onVisualValidatorToggle={setVisualValidatorEnabled}
           visualValidatorModel={visualValidatorModel}
           onVisualValidatorModelChange={setVisualValidatorModel}
+          researchPlannerEnabled={researchPlannerEnabled}
+          onResearchPlannerToggle={setResearchPlannerEnabled}
+          researchPlannerModel={researchPlannerModel}
+          onResearchPlannerModelChange={setResearchPlannerModel}
         />
         <Toaster />
       </div>
