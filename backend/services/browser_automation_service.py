@@ -254,36 +254,37 @@ class BrowserAutomationService:
             #     center_y = box.get('y', 0) + box.get('height', 0) / 2
             #     
             #     try:
-                    # Get element at point
-                    element_handle = await page.evaluate(f"""
-                        document.elementFromPoint({center_x}, {center_y})
-                    """)
-                    
-                    # Get selector for this element
-                    tag = await page.evaluate("""
-                        (el) => el ? el.tagName.toLowerCase() : null
-                    """, element_handle)
-                    
-                    results.append({
-                        'selector': tag or 'unknown',
-                        'text': text,
-                        'box': box,
-                        'confidence': confidence
-                    })
-                except:
-                    # Fallback if DOM query fails
-                    results.append({
-                        'selector': f"element_at_{int(center_x)}_{int(center_y)}",
-                        'text': text,
-                        'box': box,
-                        'confidence': confidence
-                    })
+            #     try:
+            #         # Get element at point
+            #         element_handle = await page.evaluate(f"""
+            #             document.elementFromPoint({center_x}, {center_y})
+            #         """)
+            #         
+            #         # Get selector for this element
+            #         tag = await page.evaluate("""
+            #             (el) => el ? el.tagName.toLowerCase() : null
+            #         """, element_handle)
+            #         
+            #         results.append({
+            #             'selector': tag or 'unknown',
+            #             'text': text,
+            #             'box': box,
+            #             'confidence': confidence
+            #         })
+            #     except:
+            #         # Fallback if DOM query fails
+            #         results.append({
+            #             'selector': f"element_at_{int(center_x)}_{int(center_y)}",
+            #             'text': text,
+            #             'box': box,
+            #             'confidence': confidence
+            #         })
             
-            logger.info(f"Vision model found {len(results)} elements for '{description}'")
+            logger.info(f"Found {len(results)} elements for '{description}' (vision disabled, using text search)")
             return results
             
         except Exception as e:
-            logger.error(f"Vision-based element finding error: {str(e)}")
+            logger.error(f"Element finding error: {str(e)}")
             
             # Fallback to simple DOM query
             try:
