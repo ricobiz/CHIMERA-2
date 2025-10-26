@@ -394,11 +394,25 @@ export const smartClick = async (sessionId, description) => {
   try {
     const response = await axios.post(`${API}/automation/smart-click`, {
       session_id: sessionId,
-      description
+      target_hint: description
     });
     return response.data;
   } catch (error) {
     console.error('Error smart clicking:', error);
+    throw error;
+  }
+};
+
+export const smartType = async (sessionId, targetHint, text) => {
+  try {
+    const response = await axios.post(`${API}/automation/smart-type`, {
+      session_id: sessionId,
+      target_hint: targetHint,
+      text
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error smart typing:', error);
     throw error;
   }
 };
