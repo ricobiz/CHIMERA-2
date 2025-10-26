@@ -472,7 +472,7 @@ const Settings = ({ selectedModel, onModelChange, onClose, visualValidatorEnable
             </button>
             <button
               onClick={() => setActiveTab('secrets')}
-              className={`px-4 py-2 text-sm font-medium transition-colors rounded-t-lg ${
+              className={`px-3 md:px-4 py-2 text-xs md:text-sm font-medium transition-colors rounded-t-lg whitespace-nowrap ${
                 activeTab === 'secrets'
                   ? 'bg-gray-800 text-white border-b-2 border-purple-500'
                   : 'text-gray-500 hover:text-gray-300'
@@ -482,7 +482,7 @@ const Settings = ({ selectedModel, onModelChange, onClose, visualValidatorEnable
             </button>
             <button
               onClick={() => setActiveTab('integrations')}
-              className={`px-4 py-2 text-sm font-medium transition-colors rounded-t-lg ${
+              className={`px-3 md:px-4 py-2 text-xs md:text-sm font-medium transition-colors rounded-t-lg whitespace-nowrap ${
                 activeTab === 'integrations'
                   ? 'bg-gray-800 text-white border-b-2 border-purple-500'
                   : 'text-gray-500 hover:text-gray-300'
@@ -492,7 +492,7 @@ const Settings = ({ selectedModel, onModelChange, onClose, visualValidatorEnable
             </button>
             <button
               onClick={() => setActiveTab('mcp')}
-              className={`px-4 py-2 text-sm font-medium transition-colors rounded-t-lg ${
+              className={`px-3 md:px-4 py-2 text-xs md:text-sm font-medium transition-colors rounded-t-lg whitespace-nowrap ${
                 activeTab === 'mcp'
                   ? 'bg-gray-800 text-white border-b-2 border-purple-500'
                   : 'text-gray-500 hover:text-gray-300'
@@ -502,7 +502,7 @@ const Settings = ({ selectedModel, onModelChange, onClose, visualValidatorEnable
             </button>
             <button
               onClick={() => setActiveTab('language')}
-              className={`px-4 py-2 text-sm font-medium transition-colors rounded-t-lg ${
+              className={`px-3 md:px-4 py-2 text-xs md:text-sm font-medium transition-colors rounded-t-lg whitespace-nowrap ${
                 activeTab === 'language'
                   ? 'bg-gray-800 text-white border-b-2 border-purple-500'
                   : 'text-gray-500 hover:text-gray-300'
