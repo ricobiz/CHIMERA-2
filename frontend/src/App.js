@@ -261,6 +261,7 @@ function App() {
     if (chatMode === 'agent') {
       const plan = [
         { name: 'Planning', description: 'Creating project structure', status: 'in-progress' },
+        { name: 'Design Specification', description: 'Generating UI/UX design', status: 'pending' },
         { name: 'UI Components', description: 'Building interface components', status: 'pending' },
         { name: 'Logic & State', description: 'Implementing functionality', status: 'pending' },
         { name: 'Validation', description: 'Testing and validation', status: 'pending' },
@@ -300,7 +301,36 @@ function App() {
     }
     
     try {
-      const response = await generateCode(prompt, messages, selectedModel);
+      // DESIGN-FIRST WORKFLOW: Generate design specification first
+      let designSpec = '';
+      
+      if (chatMode === 'agent') {
+        try {
+          console.log('🎨 Generating design specification...');
+          const designResponse = await import('./services/api').then(m => m.generateDesign(prompt, visualValidatorModel));
+          designSpec = designResponse.design_spec;
+          
+          // Show design to user as AI message
+          const designMessage = {
+            role: 'assistant',
+            content: `## 🎨 Design Specification Generated\n\n${designSpec.substring(0, 800)}...\n\n*Full design will be applied to generated code*`,
+            isDesign: true
+          };
+          setMessages(prev => [...prev, designMessage]);
+          
+          console.log('✅ Design generated:', designSpec.substring(0, 100) + '...');
+        } catch (designError) {
+          console.error('Design generation failed:', designError);
+          // Continue without design if it fails
+        }
+      }
+      
+      // Generate code (with design spec if available)
+      const enhancedPrompt = designSpec 
+        ? `${prompt}\n\n**Design Specification to Follow:**\n${designSpec}`
+        : prompt;
+      
+      const response = await generateCode(enhancedPrompt, messages, selectedModel);
       
       const aiMessage = { 
         role: 'assistant', 
