@@ -523,9 +523,10 @@ function App() {
             apiBalance={apiBalance}
             activeModel={selectedModel}
             validatorEnabled={visualValidatorEnabled}
-            validatorModel={visualValidatorModel}
+            validatorModel={validatorModel}
             generationStatus={generationStatus}
             onOpenSettings={handleOpenSettings}
+            onOpenAutomation={() => setShowAutomation(true)}
             onNewProject={handleNewProject}
             currentSessionId={currentSessionId}
             isGenerating={isGenerating}
