@@ -1481,6 +1481,470 @@ export default App;""",
                 {"error_type": type(e).__name__}
             )
 
+    # ============= BROWSER AUTOMATION TESTS =============
+    
+    def test_browser_automation_create_session(self):
+        """Test POST /api/automation/session/create endpoint"""
+        print("\n🧪 Testing Browser Automation - Create Session...")
+        
+        # Generate unique session ID
+        session_id = f"test_session_{int(time.time())}"
+        
+        payload = {
+            "session_id": session_id
+        }
+        
+        try:
+            response = self.session.post(
+                f"{BACKEND_URL}/automation/session/create",
+                json=payload,
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check required fields
+                required_fields = ['session_id', 'status']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if not missing_fields:
+                    if data['session_id'] == session_id and data['status'] == 'ready':
+                        self.created_automation_session_id = session_id
+                        self.log_test(
+                            "Browser Automation - Create Session",
+                            True,
+                            f"Session created successfully: {session_id}",
+                            {"session_id": session_id, "status": data['status']}
+                        )
+                    else:
+                        self.log_test(
+                            "Browser Automation - Create Session - Invalid Response",
+                            False,
+                            "Session creation response invalid",
+                            {"expected_session": session_id, "actual_session": data.get('session_id')}
+                        )
+                else:
+                    self.log_test(
+                        "Browser Automation - Create Session - Missing Fields",
+                        False,
+                        f"Response missing fields: {missing_fields}",
+                        {"missing_fields": missing_fields, "response_keys": list(data.keys())}
+                    )
+            else:
+                self.log_test(
+                    "Browser Automation - Create Session - HTTP Error",
+                    False,
+                    f"HTTP {response.status_code}: {response.text}",
+                    {"status_code": response.status_code}
+                )
+                
+        except Exception as e:
+            self.log_test(
+                "Browser Automation - Create Session - Exception",
+                False,
+                f"Unexpected error: {str(e)}",
+                {"error_type": type(e).__name__}
+            )
+    
+    def test_browser_automation_navigate(self):
+        """Test POST /api/automation/navigate endpoint"""
+        print("\n🧪 Testing Browser Automation - Navigate...")
+        
+        if not hasattr(self, 'created_automation_session_id'):
+            self.log_test(
+                "Browser Automation - Navigate - No Session",
+                False,
+                "No automation session available for testing",
+                {"session_id": None}
+            )
+            return
+        
+        # Test navigation to justfans.uno as per review request
+        payload = {
+            "session_id": self.created_automation_session_id,
+            "url": "https://justfans.uno"
+        }
+        
+        try:
+            response = self.session.post(
+                f"{BACKEND_URL}/automation/navigate",
+                json=payload,
+                timeout=45  # Longer timeout for page load
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if data.get('success'):
+                    # Check if we got a screenshot and proper URL
+                    if 'screenshot' in data and 'url' in data:
+                        self.log_test(
+                            "Browser Automation - Navigate to justfans.uno",
+                            True,
+                            f"Successfully navigated to {data['url']}",
+                            {"url": data['url'], "title": data.get('title', 'N/A'), "has_screenshot": bool(data['screenshot'])}
+                        )
+                    else:
+                        self.log_test(
+                            "Browser Automation - Navigate - Missing Data",
+                            False,
+                            "Navigation successful but missing screenshot or URL",
+                            {"response_keys": list(data.keys())}
+                        )
+                else:
+                    self.log_test(
+                        "Browser Automation - Navigate - Failed",
+                        False,
+                        f"Navigation failed: {data.get('error', 'Unknown error')}",
+                        {"error": data.get('error')}
+                    )
+            else:
+                self.log_test(
+                    "Browser Automation - Navigate - HTTP Error",
+                    False,
+                    f"HTTP {response.status_code}: {response.text}",
+                    {"status_code": response.status_code}
+                )
+                
+        except Exception as e:
+            self.log_test(
+                "Browser Automation - Navigate - Exception",
+                False,
+                f"Unexpected error: {str(e)}",
+                {"error_type": type(e).__name__}
+            )
+    
+    def test_browser_automation_screenshot(self):
+        """Test GET /api/automation/screenshot/{session_id} endpoint"""
+        print("\n🧪 Testing Browser Automation - Screenshot...")
+        
+        if not hasattr(self, 'created_automation_session_id'):
+            self.log_test(
+                "Browser Automation - Screenshot - No Session",
+                False,
+                "No automation session available for testing",
+                {"session_id": None}
+            )
+            return
+        
+        try:
+            response = self.session.get(
+                f"{BACKEND_URL}/automation/screenshot/{self.created_automation_session_id}",
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'screenshot' in data and data['screenshot']:
+                    # Check if screenshot is base64 encoded
+                    screenshot = data['screenshot']
+                    if screenshot.startswith('data:image/png;base64,'):
+                        self.log_test(
+                            "Browser Automation - Screenshot",
+                            True,
+                            f"Screenshot captured successfully ({len(screenshot)} chars)",
+                            {"screenshot_length": len(screenshot), "format": "base64 PNG"}
+                        )
+                    else:
+                        self.log_test(
+                            "Browser Automation - Screenshot - Invalid Format",
+                            False,
+                            "Screenshot not in expected base64 PNG format",
+                            {"screenshot_preview": screenshot[:100]}
+                        )
+                else:
+                    self.log_test(
+                        "Browser Automation - Screenshot - No Data",
+                        False,
+                        "No screenshot data in response",
+                        {"response_keys": list(data.keys())}
+                    )
+            else:
+                self.log_test(
+                    "Browser Automation - Screenshot - HTTP Error",
+                    False,
+                    f"HTTP {response.status_code}: {response.text}",
+                    {"status_code": response.status_code}
+                )
+                
+        except Exception as e:
+            self.log_test(
+                "Browser Automation - Screenshot - Exception",
+                False,
+                f"Unexpected error: {str(e)}",
+                {"error_type": type(e).__name__}
+            )
+    
+    def test_browser_automation_find_elements(self):
+        """Test POST /api/automation/find-elements endpoint (Vision Model)"""
+        print("\n🧪 Testing Browser Automation - Find Elements with Vision...")
+        
+        if not hasattr(self, 'created_automation_session_id'):
+            self.log_test(
+                "Browser Automation - Find Elements - No Session",
+                False,
+                "No automation session available for testing",
+                {"session_id": None}
+            )
+            return
+        
+        # Test finding sign up button as per review request
+        payload = {
+            "session_id": self.created_automation_session_id,
+            "description": "sign up button"
+        }
+        
+        try:
+            response = self.session.post(
+                f"{BACKEND_URL}/automation/find-elements",
+                json=payload,
+                timeout=45  # Vision model processing can take time
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'elements' in data:
+                    elements = data['elements']
+                    if elements:
+                        # Check element structure
+                        first_element = elements[0]
+                        required_fields = ['selector', 'text', 'box']
+                        missing_fields = [field for field in required_fields if field not in first_element]
+                        
+                        if not missing_fields:
+                            self.log_test(
+                                "Browser Automation - Find Elements Vision",
+                                True,
+                                f"Vision model found {len(elements)} elements matching 'sign up button'",
+                                {"element_count": len(elements), "first_element": first_element}
+                            )
+                        else:
+                            self.log_test(
+                                "Browser Automation - Find Elements - Invalid Structure",
+                                False,
+                                f"Element missing required fields: {missing_fields}",
+                                {"missing_fields": missing_fields, "element_keys": list(first_element.keys())}
+                            )
+                    else:
+                        self.log_test(
+                            "Browser Automation - Find Elements - No Elements",
+                            False,
+                            "Vision model found no elements matching 'sign up button'",
+                            {"elements_found": 0}
+                        )
+                else:
+                    self.log_test(
+                        "Browser Automation - Find Elements - Missing Elements Key",
+                        False,
+                        "Response missing 'elements' key",
+                        {"response_keys": list(data.keys())}
+                    )
+            else:
+                self.log_test(
+                    "Browser Automation - Find Elements - HTTP Error",
+                    False,
+                    f"HTTP {response.status_code}: {response.text}",
+                    {"status_code": response.status_code}
+                )
+                
+        except Exception as e:
+            self.log_test(
+                "Browser Automation - Find Elements - Exception",
+                False,
+                f"Unexpected error: {str(e)}",
+                {"error_type": type(e).__name__}
+            )
+    
+    def test_browser_automation_smart_click(self):
+        """Test POST /api/automation/smart-click endpoint (Vision + Click)"""
+        print("\n🧪 Testing Browser Automation - Smart Click...")
+        
+        if not hasattr(self, 'created_automation_session_id'):
+            self.log_test(
+                "Browser Automation - Smart Click - No Session",
+                False,
+                "No automation session available for testing",
+                {"session_id": None}
+            )
+            return
+        
+        # Test smart clicking on sign up button
+        payload = {
+            "session_id": self.created_automation_session_id,
+            "description": "sign up button"
+        }
+        
+        try:
+            response = self.session.post(
+                f"{BACKEND_URL}/automation/smart-click",
+                json=payload,
+                timeout=45
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if data.get('success'):
+                    # Check if we got click confirmation and screenshot
+                    required_fields = ['clicked_element', 'screenshot']
+                    missing_fields = [field for field in required_fields if field not in data]
+                    
+                    if not missing_fields:
+                        clicked_element = data['clicked_element']
+                        self.log_test(
+                            "Browser Automation - Smart Click",
+                            True,
+                            f"Successfully clicked element: {clicked_element.get('text', 'N/A')}",
+                            {"clicked_element": clicked_element, "has_screenshot": bool(data['screenshot'])}
+                        )
+                    else:
+                        self.log_test(
+                            "Browser Automation - Smart Click - Missing Data",
+                            False,
+                            f"Smart click successful but missing fields: {missing_fields}",
+                            {"missing_fields": missing_fields, "response_keys": list(data.keys())}
+                        )
+                else:
+                    self.log_test(
+                        "Browser Automation - Smart Click - Failed",
+                        False,
+                        "Smart click operation failed",
+                        {"success": data.get('success'), "response": data}
+                    )
+            elif response.status_code == 404:
+                self.log_test(
+                    "Browser Automation - Smart Click - Element Not Found",
+                    False,
+                    "Sign up button not found by vision model",
+                    {"status_code": 404, "detail": response.text}
+                )
+            else:
+                self.log_test(
+                    "Browser Automation - Smart Click - HTTP Error",
+                    False,
+                    f"HTTP {response.status_code}: {response.text}",
+                    {"status_code": response.status_code}
+                )
+                
+        except Exception as e:
+            self.log_test(
+                "Browser Automation - Smart Click - Exception",
+                False,
+                f"Unexpected error: {str(e)}",
+                {"error_type": type(e).__name__}
+            )
+    
+    def test_browser_automation_page_info(self):
+        """Test GET /api/automation/page-info/{session_id} endpoint"""
+        print("\n🧪 Testing Browser Automation - Page Info...")
+        
+        if not hasattr(self, 'created_automation_session_id'):
+            self.log_test(
+                "Browser Automation - Page Info - No Session",
+                False,
+                "No automation session available for testing",
+                {"session_id": None}
+            )
+            return
+        
+        try:
+            response = self.session.get(
+                f"{BACKEND_URL}/automation/page-info/{self.created_automation_session_id}",
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check required fields
+                required_fields = ['url', 'title', 'screenshot']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if not missing_fields:
+                    self.log_test(
+                        "Browser Automation - Page Info",
+                        True,
+                        f"Page info retrieved: {data['title']} at {data['url']}",
+                        {"url": data['url'], "title": data['title'], "has_screenshot": bool(data['screenshot'])}
+                    )
+                else:
+                    self.log_test(
+                        "Browser Automation - Page Info - Missing Fields",
+                        False,
+                        f"Response missing fields: {missing_fields}",
+                        {"missing_fields": missing_fields, "response_keys": list(data.keys())}
+                    )
+            else:
+                self.log_test(
+                    "Browser Automation - Page Info - HTTP Error",
+                    False,
+                    f"HTTP {response.status_code}: {response.text}",
+                    {"status_code": response.status_code}
+                )
+                
+        except Exception as e:
+            self.log_test(
+                "Browser Automation - Page Info - Exception",
+                False,
+                f"Unexpected error: {str(e)}",
+                {"error_type": type(e).__name__}
+            )
+    
+    def test_browser_automation_cleanup(self):
+        """Test DELETE /api/automation/session/{session_id} endpoint"""
+        print("\n🧪 Testing Browser Automation - Session Cleanup...")
+        
+        if not hasattr(self, 'created_automation_session_id'):
+            self.log_test(
+                "Browser Automation - Cleanup - No Session",
+                False,
+                "No automation session available for cleanup",
+                {"session_id": None}
+            )
+            return
+        
+        try:
+            response = self.session.delete(
+                f"{BACKEND_URL}/automation/session/{self.created_automation_session_id}",
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'message' in data and 'closed' in data['message'].lower():
+                    self.log_test(
+                        "Browser Automation - Session Cleanup",
+                        True,
+                        f"Session closed successfully: {self.created_automation_session_id}",
+                        {"session_id": self.created_automation_session_id, "message": data['message']}
+                    )
+                else:
+                    self.log_test(
+                        "Browser Automation - Cleanup - Invalid Response",
+                        False,
+                        "Session cleanup response invalid",
+                        {"response": data}
+                    )
+            else:
+                self.log_test(
+                    "Browser Automation - Cleanup - HTTP Error",
+                    False,
+                    f"HTTP {response.status_code}: {response.text}",
+                    {"status_code": response.status_code}
+                )
+                
+        except Exception as e:
+            self.log_test(
+                "Browser Automation - Cleanup - Exception",
+                False,
+                f"Unexpected error: {str(e)}",
+                {"error_type": type(e).__name__}
+            )
+
     # ============= CONTEXT WINDOW MANAGEMENT TESTS =============
     
     def test_context_status_endpoint(self):
