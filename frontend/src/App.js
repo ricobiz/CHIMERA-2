@@ -8,7 +8,7 @@ import PreviewPanel from './components/PreviewPanel';
 import Settings from './components/Settings';
 import AutomationPage from './components/automation/AutomationPage.tsx';
 import TaskProgress from './components/TaskProgress';
-import { generateCode, saveProject, createSession, updateSession, getSession, getOpenRouterBalance } from './services/api';
+import { generateCode, saveProject, createSession, updateSession, getSession, getOpenRouterBalance, generateDesign } from './services/api';
 import { toast } from './hooks/use-toast';
 import { Toaster } from './components/ui/toaster';
 
