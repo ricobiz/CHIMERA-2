@@ -88,13 +88,29 @@ const Settings = ({ selectedModel, onModelChange, onClose }) => {
             </p>
 
             {/* Search */}
-            <input
-              type="text"
-              placeholder="Search models..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 mb-4"
-            />
+            <div className="flex gap-2 mb-4">
+              <input
+                type="text"
+                placeholder="Search models..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="flex-1 p-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500"
+              />
+              <select
+                value={filterType}
+                onChange={(e) => setFilterType(e.target.value)}
+                className="p-3 bg-gray-800 border border-gray-700 rounded-lg text-white"
+              >
+                <option value="all">All Models</option>
+                <option value="free">Free Only</option>
+                <option value="paid">Paid Only</option>
+              </select>
+            </div>
+
+            {/* Model Count */}
+            <p className="text-sm text-gray-400 mb-4">
+              Showing {filteredModels.length} of {models.length} models
+            </p>
 
             {/* Models List */}
             {loading ? (
