@@ -10,6 +10,7 @@ const Settings = ({ selectedModel, onModelChange, onClose }) => {
   const [models, setModels] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [filterType, setFilterType] = useState('all'); // all, free, paid
 
   useEffect(() => {
     loadModels();
