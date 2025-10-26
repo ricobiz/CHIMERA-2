@@ -31,6 +31,10 @@ function App() {
     localStorage.getItem('visualValidatorModel') || 'anthropic/claude-3-haiku'
   );
 
+  // Session states
+  const [currentSessionId, setCurrentSessionId] = useState(null);
+  const [sessionName, setSessionName] = useState('New Session');
+
   const handleSendPrompt = async (prompt) => {
     const userMessage = { role: 'user', content: prompt };
     setMessages(prev => [...prev, userMessage]);
