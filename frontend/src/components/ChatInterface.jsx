@@ -394,6 +394,26 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
                 </div>
               </button>
               
+              {/* Content Folder Button - NEW! */}
+              <button
+                onClick={() => setShowContent(!showContent)}
+                className="p-2 rounded-lg bg-gradient-to-r from-amber-600/20 to-orange-600/20 hover:from-amber-600/30 hover:to-orange-600/30 border border-amber-500/50 hover:border-amber-400 transition-all group relative"
+                title="Session Content"
+              >
+                <svg className="w-4 h-4 text-amber-400 group-hover:text-amber-300 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                </svg>
+                {sessionContent.length > 0 && (
+                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-amber-500 text-white text-[10px] rounded-full flex items-center justify-center font-bold">
+                    {sessionContent.length}
+                  </span>
+                )}
+                {/* Tooltip */}
+                <div className="absolute bottom-full right-0 mb-2 px-2 py-1 bg-gray-900 border border-gray-700 rounded text-xs text-gray-300 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                  Session Content
+                </div>
+              </button>
+              
               {/* Settings Dropdown Menu */}
               <div className="relative settings-menu-container">
                 <button
