@@ -202,3 +202,30 @@ async def get_openrouter_balance():
     except Exception as e:
         logger.error(f"Error fetching OpenRouter balance: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/research-task")
+async def research_task(request: dict):
+    """
+    Research Planner: Analyze task complexity and conduct research before development.
+    Used for complex tasks to ensure current best practices are followed.
+    """
+    try:
+        user_request = request.get("user_request")
+        model = request.get("model")
+        research_mode = request.get("research_mode", "full")  # 'analyze' or 'full'
+        
+        if not user_request:
+            raise HTTPException(status_code=400, detail="user_request is required")
+        
+        if research_mode == "analyze":
+            # Only analyze complexity, don't perform full research
+            result = await research_planner_service.analyze_task_complexity(user_request, model)
+        else:
+            # Full research pipeline
+            result = await research_planner_service.conduct_full_research(user_request, model)
+        
+        return result
+    except Exception as e:
+        logger.error(f"Error in research-task endpoint: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
