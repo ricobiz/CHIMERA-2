@@ -320,3 +320,33 @@ export const researchTask = async (userRequest, model, researchMode = 'full') =>
     throw error;
   }
 };
+
+// Context Management API
+export const getContextStatus = async (history, model) => {
+  try {
+    const response = await axios.post(`${API}/context/status`, {
+      history,
+      model
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error getting context status:', error);
+    throw error;
+  }
+};
+
+export const switchModelWithContext = async (sessionId, newModel, history, oldModel) => {
+  try {
+    const response = await axios.post(`${API}/context/switch-model`, {
+      session_id: sessionId,
+      new_model: newModel,
+      history,
+      old_model: oldModel
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error switching model:', error);
+    throw error;
+  }
+
+};
