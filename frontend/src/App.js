@@ -258,10 +258,11 @@ function App() {
           onClick={() => setShowPreview(!showPreview)}
           className={`
             fixed right-0 top-1/2 -translate-y-1/2 z-50
-            bg-gradient-to-l from-purple-600 to-purple-700
-            hover:from-purple-500 hover:to-purple-600
-            text-white px-2 py-4 rounded-l-lg
-            shadow-lg shadow-purple-500/50
+            bg-transparent border-l-2 border-t-2 border-b-2 border-gray-700
+            hover:border-gray-500 hover:bg-gray-900/50
+            text-gray-400 hover:text-gray-300
+            px-2 py-4 rounded-l-lg
+            backdrop-blur-sm
             transform transition-all duration-300
             ${showPreview ? 'translate-x-0' : 'translate-x-0'}
             md:hidden
@@ -272,7 +273,7 @@ function App() {
           }}
         >
           <span className="text-xs font-medium tracking-wider">
-            {showPreview ? '✕ CLOSE' : '👁 PREVIEW'}
+            {showPreview ? '✕' : 'PREVIEW'}
           </span>
         </button>
       </div>
