@@ -122,11 +122,14 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
       if (showSessionMenu && !e.target.closest('.session-menu-container')) {
         setShowSessionMenu(false);
       }
+      if (showFunctionsMenu && !e.target.closest('.functions-menu-container')) {
+        setShowFunctionsMenu(false);
+      }
     };
     
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [showSettingsMenu, showSessionMenu]);
+  }, [showSettingsMenu, showSessionMenu, showFunctionsMenu]);
 
   useEffect(() => {
     loadAllSessions();
