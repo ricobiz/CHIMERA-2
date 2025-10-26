@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, RefreshCw, FileText, Activity, AlertCircle, CheckCircle, Pause, Square } from 'lucide-react';
+import { Play, RefreshCw, FileText, Activity, AlertCircle, CheckCircle, Pause, Square, Link, Copy } from 'lucide-react';
 import { sendTask, getLogs, refreshAgent, getCurrentTask, getAgentStatus, getResult, controlAgent } from '../services/agentApi';
 
 const AIEntryPoint = ({ onClose }) => {
