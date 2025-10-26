@@ -426,37 +426,38 @@ const Settings = ({ selectedModel, onModelChange, onClose, visualValidatorEnable
     });
 
   return (
-    <div className="flex-1 flex flex-col bg-[#0f0f10]" style={{ height: '100dvh' }}>
+    <div className="flex-1 flex flex-col bg-[#0f0f10] overflow-x-hidden" style={{ height: '100dvh' }}>
       {/* Header */}
-      <div className="border-b border-gray-800 p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+      <div className="border-b border-gray-800 p-4 w-full">
+        <div className="flex items-center justify-between w-full">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
             <Button
               onClick={onClose}
               variant="ghost"
               size="sm"
-              className="text-gray-500 hover:text-gray-400"
+              className="text-gray-500 hover:text-gray-400 flex-shrink-0"
             >
               <ChevronLeft className="w-5 h-5" />
             </Button>
-            <div className="flex items-center gap-2">
-              <SettingsIcon className="w-5 h-5 text-gray-400" />
-              <h2 className="text-gray-300 font-semibold text-lg">Settings</h2>
+            <div className="flex items-center gap-2 min-w-0">
+              <SettingsIcon className="w-5 h-5 text-gray-400 flex-shrink-0" />
+              <h2 className="text-gray-300 font-semibold text-base md:text-lg truncate">Settings</h2>
             </div>
           </div>
           <Button
             onClick={onClose}
-            className="bg-gray-700 hover:bg-gray-600 text-gray-300"
+            className="bg-gray-700 hover:bg-gray-600 text-gray-300 flex-shrink-0 text-xs md:text-sm"
             size="sm"
           >
-            Save & Close
+            <span className="hidden sm:inline">Save & Close</span>
+            <span className="sm:hidden">Save</span>
           </Button>
         </div>
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-4 md:p-6">
-        <div className="max-w-4xl mx-auto space-y-6">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden p-3 md:p-4 lg:p-6 w-full">
+        <div className="max-w-4xl mx-auto space-y-4 md:space-y-6 w-full">
           
           {/* Tabs - Scrollable on mobile */}
           <div className="flex gap-2 border-b border-gray-800 pb-2 overflow-x-auto scrollbar-hide">
