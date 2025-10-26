@@ -45,9 +45,9 @@ const AgentLog: React.FC<AgentLogProps> = ({ steps, goal, currentSubtask }) => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-gray-900 border border-gray-800 rounded-lg overflow-hidden">
+    <div className="flex flex-col bg-gray-900 border border-gray-800 rounded-lg overflow-hidden" style={{ height: '100%', minHeight: '350px' }}>
       {/* Log Header */}
-      <div className="px-4 py-3 bg-gray-800 border-b border-gray-700">
+      <div className="px-4 py-3 bg-gray-800 border-b border-gray-700 flex-shrink-0">
         <h3 className="text-sm font-semibold text-gray-300 mb-1">Agent Execution Log</h3>
         {goal && (
           <div className="mt-2">
