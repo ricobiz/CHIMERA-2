@@ -265,10 +265,85 @@ const DocumentVerification = ({ onClose }) => {
               </div>
             )}
 
-            {/* Results Section */}
-            {verificationResult && (
+            {/* Results Section - Simple Indicator First */}
+            {verificationResult && !showDetailedReport && (
               <div className="space-y-6">
-                {/* Verdict Card */}
+                {/* Large Status Indicator */}
+                <div 
+                  onClick={() => setShowDetailedReport(true)}
+                  className="bg-gray-900/50 rounded-lg border border-gray-800 p-12 text-center cursor-pointer hover:bg-gray-900/70 transition-all transform hover:scale-105"
+                >
+                  <div className="flex flex-col items-center gap-6">
+                    {/* Traffic Light Indicator */}
+                    <div className="relative w-32 h-32">
+                      {verificationResult.verdict === 'AUTHENTIC' && (
+                        <div className="w-full h-full rounded-full bg-green-500 shadow-2xl shadow-green-500/50 flex items-center justify-center animate-pulse">
+                          <CheckCircle className="w-16 h-16 text-white" />
+                        </div>
+                      )}
+                      {verificationResult.verdict === 'SUSPICIOUS' && (
+                        <div className="w-full h-full rounded-full bg-yellow-500 shadow-2xl shadow-yellow-500/50 flex items-center justify-center animate-pulse">
+                          <AlertTriangle className="w-16 h-16 text-white" />
+                        </div>
+                      )}
+                      {verificationResult.verdict === 'LIKELY_FAKE' && (
+                        <div className="w-full h-full rounded-full bg-red-500 shadow-2xl shadow-red-500/50 flex items-center justify-center animate-pulse">
+                          <XCircle className="w-16 h-16 text-white" />
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Verdict Text */}
+                    <div>
+                      <h2 className={`text-3xl font-bold mb-2 ${getVerdictColor(verificationResult.verdict)}`}>
+                        {verificationResult.verdict.replace('_', ' ')}
+                      </h2>
+                      <p className="text-gray-400 text-lg">
+                        Fraud Probability: <span className="text-white font-semibold">{verificationResult.fraud_probability}%</span>
+                      </p>
+                      <p className="text-gray-400">
+                        Confidence: <span className="text-white font-semibold">{verificationResult.confidence_score}%</span>
+                      </p>
+                    </div>
+                    
+                    {/* Multi-Model Badges */}
+                    {verificationResult.multi_model_analysis && (
+                      <div className="flex gap-3 mt-4">
+                        <span className="px-3 py-1 bg-blue-600/20 text-blue-400 rounded-full text-sm border border-blue-500/30">
+                          {verificationResult.multi_model_analysis.primary_model.name}
+                        </span>
+                        <span className="px-3 py-1 bg-purple-600/20 text-purple-400 rounded-full text-sm border border-purple-500/30">
+                          {verificationResult.multi_model_analysis.secondary_model.name}
+                        </span>
+                        <span className="px-3 py-1 bg-green-600/20 text-green-400 rounded-full text-sm border border-green-500/30">
+                          {verificationResult.multi_model_analysis.tertiary_model.name}
+                        </span>
+                      </div>
+                    )}
+                    
+                    {/* Click to View Details */}
+                    <div className="mt-6 flex items-center gap-2 text-purple-400">
+                      <FileText className="w-5 h-5" />
+                      <span className="text-sm font-medium">Click to view detailed analysis report</span>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Quick Action Buttons */}
+                <div className="flex gap-4">
+                  <button
+                    onClick={() => {
+                      setVerificationResult(null);
+                      setSelectedFile(null);
+                      setShowDetailedReport(false);
+                    }}
+                    className="flex-1 px-6 py-3 bg-gray-800 hover:bg-gray-700 text-white font-medium rounded-lg transition-colors border border-gray-700"
+                  >
+                    Verify Another Document
+                  </button>
+                </div>
+              </div>
+            )}
                 <div className="bg-gray-900/50 rounded-lg border border-gray-800 p-6">
                   <div className="flex items-start gap-4">
                     {getVerdictIcon(verificationResult.verdict)}
