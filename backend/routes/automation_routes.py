@@ -40,6 +40,15 @@ class SmartTypeRequest(BaseModel):
     description: str
     text: str
 
+class SmartClickRequest(BaseModel):
+    session_id: str
+    target_hint: str
+
+class SmartTypeRequestNew(BaseModel):
+    session_id: str
+    target_hint: str
+    text: str
+
 class ValidateNavigationRequest(BaseModel):
     screenshot: str
     expectedUrl: str
