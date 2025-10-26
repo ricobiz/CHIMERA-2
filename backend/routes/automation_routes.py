@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from typing import Optional, Dict, Any
 import logging
 from services.browser_automation_service import browser_service
+from services.visual_validator_service import visual_validator_service
 
 router = APIRouter(prefix="/api/automation", tags=["automation"])
 logger = logging.getLogger(__name__)
