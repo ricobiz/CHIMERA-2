@@ -197,7 +197,38 @@ const AIEntryPoint = () => {
             <div className={`text-2xl font-bold ${getStatusColor()}`}>
               {agentStatus}
             </div>
-            <div className="mt-2 flex items-center gap-2">
+            <div className="mt-1 text-sm text-gray-500">
+              Mode: <span className={runMode === 'ACTIVE' ? 'text-green-400' : 'text-gray-400'}>{runMode}</span>
+            </div>
+            
+            {/* Control Buttons */}
+            <div className="mt-3 flex gap-2">
+              <button
+                onClick={() => handleControlMode('ACTIVE')}
+                disabled={runMode === 'ACTIVE'}
+                className="flex-1 px-3 py-1.5 bg-green-600/20 hover:bg-green-600/30 border border-green-600/50 text-green-400 rounded text-xs font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1"
+              >
+                <Play className="w-3 h-3" />
+                Activate
+              </button>
+              <button
+                onClick={() => handleControlMode('PAUSED')}
+                disabled={runMode === 'PAUSED'}
+                className="flex-1 px-3 py-1.5 bg-yellow-600/20 hover:bg-yellow-600/30 border border-yellow-600/50 text-yellow-400 rounded text-xs font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1"
+              >
+                <Pause className="w-3 h-3" />
+                Pause
+              </button>
+              <button
+                onClick={() => handleControlMode('STOP')}
+                className="flex-1 px-3 py-1.5 bg-red-600/20 hover:bg-red-600/30 border border-red-600/50 text-red-400 rounded text-xs font-medium transition-colors flex items-center justify-center gap-1"
+              >
+                <Square className="w-3 h-3" />
+                Stop
+              </button>
+            </div>
+            
+            <div className="mt-3 flex items-center gap-2">
               <label className="text-xs text-gray-500 flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
