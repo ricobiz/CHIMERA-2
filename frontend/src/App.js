@@ -75,6 +75,19 @@ function App() {
       
       if (sessionId) {
         try {
+          // Try to load from localStorage first (faster)
+          const cachedMessages = localStorage.getItem(`session_${sessionId}_messages`);
+          if (cachedMessages) {
+            try {
+              const parsedMessages = JSON.parse(cachedMessages);
+              setMessages(parsedMessages);
+              console.log(`✅ Loaded ${parsedMessages.length} messages from cache`);
+            } catch (e) {
+              console.error('Failed to parse cached messages:', e);
+            }
+          }
+          
+          // Then try to load from server (will override cache if available)
           const session = await getSession(sessionId);
           setMessages(session.messages || []);
           setGeneratedCode(session.generated_code || '');
