@@ -116,8 +116,12 @@ function App() {
     };
     loadBalance();
     // Refresh balance every 30 seconds
-    const interval = setInterval(loadBalance, 30000);
-    return () => clearInterval(interval);
+    balanceIntervalRef.current = setInterval(loadBalance, 30000);
+    return () => {
+      if (balanceIntervalRef.current) {
+        clearInterval(balanceIntervalRef.current);
+      }
+    };
   }, []);
   
   const [developmentPlan, setDevelopmentPlan] = useState([]);
