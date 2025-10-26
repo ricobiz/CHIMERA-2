@@ -40,6 +40,13 @@ class SmartTypeRequest(BaseModel):
     description: str
     text: str
 
+class ValidateNavigationRequest(BaseModel):
+    screenshot: str
+    expectedUrl: str
+    currentUrl: str
+    pageTitle: str
+    description: str
+
 
 # ============= Endpoints =============
 
