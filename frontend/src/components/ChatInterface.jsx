@@ -51,6 +51,20 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, onOpenS
             )}
           </div>
         </div>
+        
+        {/* Active Models Display */}
+        <div className="mt-2 flex flex-wrap gap-2 text-xs">
+          <div className="px-2 py-1 bg-blue-600/10 border border-blue-600/30 rounded">
+            <span className="text-blue-400">🤖 Code: </span>
+            <span className="text-blue-300">{activeModel?.split('/')[1] || 'claude-3.5-sonnet'}</span>
+          </div>
+          {validatorEnabled && (
+            <div className="px-2 py-1 bg-purple-600/10 border border-purple-600/30 rounded">
+              <span className="text-purple-400">👁️ Validator: </span>
+              <span className="text-purple-300">{validatorModel?.split('/')[1] || 'haiku'}</span>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Messages */}
