@@ -79,6 +79,7 @@ from routes.integrations_routes import router as integrations_router
 from routes.automation_routes import router as automation_router
 from routes.memory_routes import router as memory_router
 from routes.planning_routes import router as planning_router
+from routes.document_verification_routes import router as doc_verify_router
 app.include_router(lovable_router)
 app.include_router(models_router)
 app.include_router(session_router)
@@ -88,6 +89,7 @@ app.include_router(integrations_router)
 app.include_router(automation_router)
 app.include_router(memory_router)
 app.include_router(planning_router)
+app.include_router(doc_verify_router)
 
 app.add_middleware(
     CORSMiddleware,
