@@ -205,6 +205,33 @@ npm start
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/validate-visual")
+
+
+@router.post("/generate-design")
+async def generate_design(request: dict):
+    """Generate design specification before code generation"""
+    from services.design_generator_service import design_generator_service
+    
+    try:
+        user_request = request.get("user_request")
+        model = request.get("model", "google/gemini-2.0-flash-thinking-exp:free")
+        
+        if not user_request:
+            raise HTTPException(status_code=400, detail="Missing user_request")
+        
+        logger.info(f"Design generation requested: {user_request[:50]}...")
+        
+        result = await design_generator_service.generate_design(
+            user_request=user_request,
+            model=model
+        )
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error in design generation endpoint: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 async def validate_visual(request: dict):
     """Validate generated UI visually using screenshot"""
     from services.visual_validator_service import visual_validator_service
