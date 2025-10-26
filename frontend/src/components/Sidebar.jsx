@@ -98,7 +98,7 @@ const Sidebar = ({ onNewProject, onProjectSelect, onOpenSettings, onSessionSelec
       {/* Header */}
       <div className="p-6 border-b border-gray-800">
         <div className="flex items-center gap-3 mb-6">
-          <ChimeraLogo size="sm" />
+          <ChimeraLogo className="h-8" />
         </div>
         
         <h1 className="text-2xl font-bold mb-2 text-gray-300">
