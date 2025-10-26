@@ -27,15 +27,187 @@ class DocumentVerificationRequest(BaseModel):
 @router.post("/document-verification/analyze")
 async def verify_document(request: DocumentVerificationRequest):
     """
-    Deep document verification using multiple AI models for fraud detection
+    Deep document verification using AI vision model for fraud detection
     """
     try:
         logger.info(f"Starting document verification: {request.document_type}")
         
-        # Multi-model verification for higher accuracy (using vision-capable models)
-        primary_model = "openai/gpt-4o"  # Vision-capable OpenAI model
-        secondary_model = "anthropic/claude-3.5-sonnet"  # Vision-capable
-        tertiary_model = "google/gemini-2.5-flash-image"  # Vision model
+        # Use reliable vision-capable model
+        model = "openai/gpt-4o"  # Vision-capable OpenAI model
+        
+        # Create comprehensive analysis prompt
+        analysis_prompt = f"""You are an expert forensic document analyst specializing in fraud detection and authenticity verification.
+
+TASK: Analyze the provided document image for authenticity and detect any signs of forgery, manipulation, or AI generation.
+
+DOCUMENT TYPE: {request.document_type}
+ADDITIONAL CONTEXT: {request.additional_context or "None provided"}
+
+ANALYSIS CRITERIA (examine ALL):
+
+1. **Visual Authenticity**
+   - Image quality and resolution consistency
+   - Compression artifacts or unnatural smoothness (AI generation signs)
+   - Lighting and shadow consistency
+   - Text rendering quality (pixelation, anti-aliasing)
+
+2. **Document Structure**
+   - Layout matches standard templates for this document type
+   - Proper margins, spacing, alignment
+   - Correct logo placement and sizing
+   - Official seals, watermarks, security features present
+
+3. **Typography Analysis**
+   - Font consistency throughout document
+   - Professional typography vs amateur editing
+   - Kerning and spacing irregularities
+   - Text alignment issues
+
+4. **Content Verification**
+   - Logical consistency of information
+   - Date formats and chronology
+   - Mathematical calculations (for financial docs)
+   - Proper terminology and language
+   - Signatures authenticity
+
+5. **Metadata & Technical**
+   - Signs of image editing (clone stamp, content-aware fill)
+   - Color inconsistencies or banding
+   - JPEG artifacts in unusual patterns
+   - Resolution mismatches between elements
+
+6. **Red Flags for Fraud**
+   - Obvious copy-paste editing
+   - Misaligned or overlapping elements
+   - Inconsistent date/number formats
+   - Suspicious amounts or values
+   - Generic or template-like appearance
+   - Signs of AI image generation (over-smoothing, unrealistic textures)
+
+7. **Bank Statement Specific** (if applicable)
+   - Transaction patterns naturalness
+   - Running balance calculations
+   - Bank logo and branding authenticity
+   - Account number format validity
+   - Statement period consistency
+
+RESPOND WITH STRUCTURED JSON ONLY (no markdown, no code blocks):
+{{
+  "verdict": "AUTHENTIC|SUSPICIOUS|LIKELY_FAKE",
+  "confidence_score": 0-100,
+  "fraud_probability": 0-100,
+  "analysis_details": {{
+    "visual_quality": {{"score": 0-100, "findings": ["..."]}},
+    "document_structure": {{"score": 0-100, "findings": ["..."]}},
+    "typography": {{"score": 0-100, "findings": ["..."]}},
+    "content_consistency": {{"score": 0-100, "findings": ["..."]}},
+    "technical_analysis": {{"score": 0-100, "findings": ["..."]}},
+    "ai_generation_signs": {{"likelihood": 0-100, "indicators": ["..."]}}
+  }},
+  "red_flags": ["List of suspicious findings"],
+  "authenticity_indicators": ["List of positive indicators"],
+  "detailed_assessment": "Comprehensive narrative explanation",
+  "recommendations": "Action recommendations"
+}}
+
+Be EXTREMELY thorough and critical. False negatives (missing fraud) are more dangerous than false positives."""
+
+        # Primary analysis with vision model
+        logger.info(f"Running analysis with {model}...")
+        messages = [
+            {
+                "role": "system",
+                "content": "You are a forensic document analyst. Respond ONLY with valid JSON - no markdown formatting, no code blocks."
+            },
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": analysis_prompt},
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/jpeg;base64,{request.document_base64}"
+                        }
+                    }
+                ]
+            }
+        ]
+        
+        response = await openrouter_service.chat_completion(
+            messages=messages,
+            model=model,
+            temperature=0.1  # Low temperature for consistency
+        )
+        
+        response_text = response['choices'][0]['message']['content']
+        logger.info(f"Model response length: {len(response_text)} chars")
+        logger.debug(f"First 200 chars: {response_text[:200]}")
+        
+        # Extract JSON from response - try multiple methods
+        result = None
+        try:
+            # Method 1: Try direct JSON parse
+            result = json.loads(response_text)
+            logger.info("✅ Parsed JSON directly")
+        except json.JSONDecodeError as e:
+            logger.warning(f"Direct JSON parse failed: {e}")
+            # Method 2: Extract from code blocks
+            if '```json' in response_text:
+                response_text = response_text.split('```json')[1].split('```')[0].strip()
+                logger.info("Extracted from ```json block")
+            elif '```' in response_text:
+                response_text = response_text.split('```')[1].split('```')[0].strip()
+                logger.info("Extracted from ``` block")
+            
+            # Try parsing again
+            try:
+                result = json.loads(response_text)
+                logger.info("✅ Parsed JSON after extraction")
+            except json.JSONDecodeError as e2:
+                logger.warning(f"Second parse attempt failed: {e2}")
+                # Method 3: Try to find JSON object in text
+                import re
+                json_match = re.search(r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}', response_text, re.DOTALL)
+                if json_match:
+                    result = json.loads(json_match.group(0))
+                    logger.info("✅ Parsed JSON via regex")
+        
+        if not result:
+            logger.error(f"Failed to parse response. First 500 chars: {response_text[:500]}")
+            raise ValueError("Could not extract valid JSON from model response")
+        
+        # Ensure all required fields exist with defaults
+        final_result = {
+            "verdict": result.get('verdict', 'SUSPICIOUS'),
+            "confidence_score": result.get('confidence_score', 50),
+            "fraud_probability": result.get('fraud_probability', 50),
+            "analysis_details": result.get('analysis_details', {}),
+            "red_flags": result.get('red_flags', []),
+            "authenticity_indicators": result.get('authenticity_indicators', []),
+            "recommendations": result.get('recommendations') or generate_recommendations(
+                result.get('verdict', 'SUSPICIOUS'), 
+                result.get('fraud_probability', 50), 
+                result.get('red_flags', [])
+            )
+        }
+        
+        logger.info(f"Verification complete: {final_result['verdict']} ({final_result['fraud_probability']}% fraud probability)")
+        
+        return final_result
+        
+    except json.JSONDecodeError as e:
+        logger.error(f"JSON parsing error: {str(e)}")
+        logger.error(f"Response text (first 500 chars): {response_text[:500] if 'response_text' in locals() else 'N/A'}")
+        raise HTTPException(
+            status_code=500, 
+            detail="Failed to parse AI analysis. Please try again."
+        )
+    except Exception as e:
+        logger.error(f"Document verification error: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Verification failed: {str(e)}"
+        )
         
         # Create comprehensive analysis prompt
         analysis_prompt = f"""You are an expert forensic document analyst specializing in fraud detection and authenticity verification.
