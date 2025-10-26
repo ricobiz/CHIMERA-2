@@ -6,6 +6,7 @@ import Sidebar from './components/Sidebar';
 import ChatInterface from './components/ChatInterface';
 import PreviewPanel from './components/PreviewPanel';
 import Settings from './components/Settings';
+import TaskProgress from './components/TaskProgress';
 import { generateCode, saveProject, createSession, updateSession, getSession } from './services/api';
 import { toast } from './hooks/use-toast';
 import { Toaster } from './components/ui/toaster';
