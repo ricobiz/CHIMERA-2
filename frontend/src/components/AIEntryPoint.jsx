@@ -54,7 +54,19 @@ const AIEntryPoint = () => {
   // Load current task on mount
   useEffect(() => {
     loadCurrentTask();
+    loadResult();
+    loadStatus();
   }, []);
+
+  const loadStatus = async () => {
+    try {
+      const data = await getAgentStatus();
+      setAgentStatus(data.status || 'IDLE');
+      setRunMode(data.run_mode || 'PAUSED');
+    } catch (error) {
+      console.error('Error loading status:', error);
+    }
+  };
 
   const loadCurrentTask = async () => {
     try {
@@ -62,6 +74,17 @@ const AIEntryPoint = () => {
       setCurrentTask(data.text || '');
     } catch (error) {
       console.error('Error loading current task:', error);
+    }
+  };
+
+  const loadResult = async () => {
+    try {
+      const data = await getResult();
+      if (data.result) {
+        setResult(data.result);
+      }
+    } catch (error) {
+      console.error('Error loading result:', error);
     }
   };
 
