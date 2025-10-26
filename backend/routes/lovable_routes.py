@@ -192,9 +192,9 @@ async def get_openrouter_balance():
             limit_remaining = api_data.get("limit_remaining")
             
             return {
-                "balance": limit if limit is not None else float('inf'),
+                "balance": limit if limit is not None else -1,  # -1 indicates unlimited
                 "used": usage,
-                "remaining": limit_remaining if limit_remaining is not None else float('inf'),
+                "remaining": limit_remaining if limit_remaining is not None else -1,  # -1 indicates unlimited
                 "label": api_data.get("label", ""),
                 "is_free_tier": api_data.get("is_free_tier", False)
             }
