@@ -252,6 +252,29 @@ function App() {
             isGenerating={isGenerating} 
           />
         </div>
+
+        {/* Floating Preview Toggle Button (язычок/закладка) */}
+        <button
+          onClick={() => setShowPreview(!showPreview)}
+          className={`
+            fixed right-0 top-1/2 -translate-y-1/2 z-50
+            bg-gradient-to-l from-purple-600 to-purple-700
+            hover:from-purple-500 hover:to-purple-600
+            text-white px-2 py-4 rounded-l-lg
+            shadow-lg shadow-purple-500/50
+            transform transition-all duration-300
+            ${showPreview ? 'translate-x-0' : 'translate-x-0'}
+            md:hidden
+          `}
+          style={{ 
+            writingMode: 'vertical-rl',
+            textOrientation: 'mixed'
+          }}
+        >
+          <span className="text-xs font-medium tracking-wider">
+            {showPreview ? '✕ CLOSE' : '👁 PREVIEW'}
+          </span>
+        </button>
       </div>
 
       <Toaster />
