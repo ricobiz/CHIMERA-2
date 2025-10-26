@@ -492,36 +492,112 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, activeM
             )}
             </div>
           ) : (
-            <div className="space-y-3 md:space-y-4">
+            <div className="space-y-4 md:space-y-5">
             {messages.map((msg, idx) => (
               <div
                 key={idx}
-                className={`p-3 md:p-4 rounded-lg text-sm md:text-base border ${
-                  msg.role === 'user'
-                    ? 'bg-gray-900 border-blue-500/30 ml-4 md:ml-12 glow-blue'
-                    : msg.role === 'design'
-                    ? 'bg-purple-900/20 border-purple-500/30 mr-4 md:mr-12 glow-purple'
-                    : 'bg-gray-900/50 border-gray-700 mr-4 md:mr-12'
+                className={`group relative ${
+                  msg.role === 'user' ? 'flex justify-end' : 'flex justify-start'
                 }`}
               >
-                <div className="flex items-start gap-2 md:gap-3">
-                  <div className="flex-1">
-                    <p className="text-xs text-gray-500 mb-1">
+                <div
+                  className={`max-w-[85%] md:max-w-[75%] rounded-2xl p-4 shadow-lg transition-all duration-200 ${
+                    msg.role === 'user'
+                      ? 'bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-br-sm'
+                      : msg.role === 'design'
+                      ? 'bg-gradient-to-br from-purple-600 to-purple-700 text-white rounded-bl-sm'
+                      : 'bg-gray-800/80 backdrop-blur text-gray-200 border border-gray-700/50 rounded-bl-sm'
+                  }`}
+                >
+                  {/* Message Header */}
+                  <div className="flex items-center justify-between mb-2">
+                    <p className={`text-xs font-medium ${
+                      msg.role === 'user' ? 'text-blue-200' : 'text-gray-400'
+                    }`}>
                       {msg.role === 'user' ? 'You' : msg.role === 'design' ? 'Design Proposal' : 'Assistant'}
                     </p>
-                    <p className="text-gray-300 whitespace-pre-wrap">{msg.content}</p>
-                    {msg.image && (
-                      <img src={msg.image} alt="Design" className="mt-3 rounded-lg max-w-md" />
-                    )}
-                    {msg.cost && (
-                      <p className="text-[10px] text-gray-600 mt-2 font-mono">
+                    
+                    {/* Action Buttons */}
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={() => handleEditMessage(idx, msg.content)}
+                        className="p-1 hover:bg-white/10 rounded transition-colors"
+                        title="Edit message"
+                      >
+                        <Edit2 className="w-3 h-3" />
+                      </button>
+                      <button
+                        onClick={() => handleRegenerateFromPoint(idx)}
+                        className="p-1 hover:bg-white/10 rounded transition-colors"
+                        title="Regenerate from here"
+                      >
+                        <RotateCcw className="w-3 h-3" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteMessage(idx)}
+                        className="p-1 hover:bg-red-500/20 rounded transition-colors text-red-400"
+                        title="Delete message"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Message Content */}
+                  {editingMessageIndex === idx ? (
+                    <div className="space-y-2">
+                      <textarea
+                        value={editedContent}
+                        onChange={(e) => setEditedContent(e.target.value)}
+                        className="w-full bg-white/10 border border-white/20 rounded p-2 text-sm resize-none focus:outline-none focus:border-white/40"
+                        rows={4}
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          onClick={handleSaveEdit}
+                          className="px-3 py-1 bg-green-600 hover:bg-green-500 rounded text-xs font-medium"
+                        >
+                          Save
+                        </button>
+                        <button
+                          onClick={handleCancelEdit}
+                          className="px-3 py-1 bg-gray-600 hover:bg-gray-500 rounded text-xs font-medium"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <p className="text-sm md:text-base whitespace-pre-wrap leading-relaxed">
+                        {msg.content}
+                      </p>
+                      {msg.image && (
+                        <img src={msg.image} alt="Design" className="mt-3 rounded-lg max-w-full" />
+                      )}
+                    </>
+                  )}
+
+                  {/* Cost Info */}
+                  {msg.cost && (
+                    <div className="mt-2 pt-2 border-t border-white/10">
+                      <p className="text-[10px] opacity-60 font-mono">
                         ${msg.cost.total_cost.toFixed(6)} • {msg.cost.total_tokens} tokens
                       </p>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
+
+            {/* Typing Indicator */}
+            {isGenerating && (
+              <div className="flex justify-start">
+                <div className="bg-gray-800/80 backdrop-blur border border-gray-700/50 rounded-2xl rounded-bl-sm p-4 shadow-lg">
+                  <LoadingIndicator size="sm" />
+                </div>
+              </div>
+            )}
             </div>
           )}
         </div>
