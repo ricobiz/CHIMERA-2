@@ -23,6 +23,7 @@ function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showAutomation, setShowAutomation] = useState(false);
   const [apiBalance, setApiBalance] = useState(null); // OpenRouter balance
   
   const [visualValidatorEnabled, setVisualValidatorEnabled] = useState(
