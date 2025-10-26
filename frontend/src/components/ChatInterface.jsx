@@ -179,6 +179,26 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, activeM
                 tasks={developmentPlan} 
                 currentTaskIndex={currentTaskIndex} 
               />
+              
+              {/* Approval Buttons */}
+              {showApprovalButtons && (
+                <div className="mt-4 flex items-center justify-center gap-4">
+                  <Button
+                    onClick={onApprove}
+                    className="bg-green-600 hover:bg-green-500 text-white px-6 py-2 flex items-center gap-2"
+                  >
+                    <Check className="w-4 h-4" />
+                    Принять
+                  </Button>
+                  <Button
+                    onClick={onRevise}
+                    className="bg-orange-600 hover:bg-orange-500 text-white px-6 py-2 flex items-center gap-2"
+                  >
+                    <Edit className="w-4 h-4" />
+                    Править
+                  </Button>
+                </div>
+              )}
             </div>
           )}
 
