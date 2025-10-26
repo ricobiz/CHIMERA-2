@@ -155,7 +155,15 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, activeM
                 }
               }}
               placeholder="Describe your app..."
-              className="min-h-[80px] md:min-h-[100px] bg-gray-900 border-gray-700 focus:border-purple-500/50 text-sm md:text-base text-gray-300 resize-none pr-12 placeholder-gray-600"
+              className={`min-h-[80px] md:min-h-[100px] bg-gray-900 text-sm md:text-base text-gray-300 resize-none pr-12 placeholder-gray-600 transition-all duration-300 ${
+                generationStatus === 'generating' 
+                  ? 'border-2 border-blue-400 shadow-lg shadow-blue-500/50' 
+                  : generationStatus === 'success'
+                  ? 'border-2 border-green-400 shadow-lg shadow-green-500/50'
+                  : generationStatus === 'error'
+                  ? 'border-2 border-red-400 shadow-lg shadow-red-500/50'
+                  : 'border border-gray-700 focus:border-purple-500/50'
+              }`}
             />
             <Button
               onClick={handleSubmit}
