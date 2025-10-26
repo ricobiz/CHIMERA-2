@@ -275,15 +275,16 @@ Analyze the provided code and identify:
 
 Be specific, actionable, and prioritize by impact."""
 
-        # Call AI for analysis
+        # Call AI for analysis with user-selected model
         messages = [
             {"role": "system", "content": "You are an expert code reviewer. Respond ONLY with valid JSON."},
             {"role": "user", "content": analysis_prompt}
         ]
         
+        logger.info(f"Using model for analysis: {request.model}")
         response = await openrouter_service.chat_completion(
             messages=messages,
-            model="openai/gpt-5",
+            model=request.model,
             temperature=0.2
         )
         
