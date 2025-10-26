@@ -3,7 +3,7 @@ import { Send, ChevronDown, Save, Settings, Square, Paperclip, Mic, Plus, Upload
 import { Button } from './ui/button';
 import ChimeraLogo from './ChimeraLogo';
 import { Textarea } from './ui/textarea';
-import { samplePrompts } from '../mockData';
+import { samplePrompts, platformFeatures } from '../mockData';
 import StatusIndicator from './StatusIndicator';
 import ModelIndicator from './ModelIndicator';
 import TaskProgress from './TaskProgress';
