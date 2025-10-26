@@ -3,6 +3,7 @@ import { Plus, Upload, MoreVertical, Settings, MessageSquare, Trash2, Search } f
 import { Button } from './ui/button';
 import { getSessions, deleteSession, getSession } from '../services/api';
 import { toast } from '../hooks/use-toast';
+import ChimeraLogo from './ChimeraLogo';
 
 const Sidebar = ({ onNewProject, onProjectSelect, onOpenSettings, onSessionSelect, currentSessionId }) => {
   const [projects, setProjects] = useState([]);
