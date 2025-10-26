@@ -218,7 +218,7 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
               onClick={() => setShowSessionMenu(!showSessionMenu)}
               className="flex items-center gap-2 hover:bg-gray-800/50 rounded-lg px-3 py-2 transition-all group border border-transparent hover:border-gray-700"
             >
-              <h2 className="text-white font-semibold text-sm">AI Assistant</h2>
+              <ChimeraLogo className="h-5" />
               {currentSessionId && (
                 <span className="text-xs text-gray-400 group-hover:text-gray-300 font-mono bg-gray-800/50 px-2 py-0.5 rounded border border-gray-700">
                   ID: {currentSessionId.slice(0, 8)}...
