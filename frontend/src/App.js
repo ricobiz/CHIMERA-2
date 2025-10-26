@@ -109,6 +109,14 @@ function App() {
     localStorage.setItem('chatMode', chatMode);
   }, [chatMode]);
   
+  // Auto-save messages to localStorage
+  useEffect(() => {
+    if (messages.length > 0 && currentSessionId) {
+      localStorage.setItem(`session_${currentSessionId}_messages`, JSON.stringify(messages));
+      console.log(`💾 Auto-saved ${messages.length} messages for session ${currentSessionId}`);
+    }
+  }, [messages, currentSessionId]);
+  
   // Load OpenRouter balance
   useEffect(() => {
     const loadBalance = async () => {
