@@ -43,6 +43,16 @@ async def get_models():
                 # Get modality info
                 modality = architecture.get('modality', 'text->text')
                 
+                # Better vision detection
+                has_vision = (
+                    'image' in modality.lower() or
+                    'vision' in model_id.lower() or
+                    'vision' in model.get('name', '').lower() or
+                    'multimodal' in modality.lower() or
+                    'nano-banana' in model_id.lower() or
+                    (model.get('name', '') and any(keyword in model.get('name', '').lower() for keyword in ['vision', 'image', 'multimodal', 'visual']))
+                )
+                
                 all_models.append({
                     'id': model_id,
                     'name': model.get('name', model_id),
@@ -55,9 +65,10 @@ async def get_models():
                     },
                     'top_provider': model.get('top_provider', {}),
                     'architecture': architecture,
+                    'modality': modality,
                     'capabilities': {
                         'tools': 'tool' in modality.lower() or 'function' in str(model).lower(),
-                        'vision': 'image' in modality or 'vision' in model_id.lower() or 'multimodal' in modality.lower(),
+                        'vision': has_vision,
                         'streaming': True
                     }
                 })
