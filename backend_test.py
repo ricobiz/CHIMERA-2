@@ -1481,6 +1481,470 @@ export default App;""",
                 {"error_type": type(e).__name__}
             )
 
+    # ============= RESEARCH PLANNER TESTS =============
+    
+    def test_research_task_simple_analyze(self):
+        """Test POST /api/research-task endpoint - Simple task should NOT require research"""
+        print("\n🧪 Testing Research Task - Simple Task (Analyze Mode)...")
+        
+        # Test data from review request - simple task
+        test_data = {
+            "user_request": "Create a simple calculator with basic operations",
+            "model": "anthropic/claude-3.5-sonnet",
+            "research_mode": "analyze"
+        }
+        
+        try:
+            response = self.session.post(
+                f"{BACKEND_URL}/research-task",
+                json=test_data,
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check required fields for analyze mode
+                required_fields = ['complexity_assessment', 'requires_research', 'reasoning']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if not missing_fields:
+                    complexity = data.get('complexity_assessment')
+                    requires_research = data.get('requires_research')
+                    reasoning = data.get('reasoning', '')
+                    
+                    # Simple calculator should be assessed as simple and NOT require research
+                    if complexity == "simple" and requires_research == False:
+                        self.log_test(
+                            "Research Task - Simple Analyze - Correct Assessment",
+                            True,
+                            f"Simple task correctly identified: complexity={complexity}, requires_research={requires_research}",
+                            {
+                                "complexity": complexity,
+                                "requires_research": requires_research,
+                                "reasoning_length": len(reasoning),
+                                "has_usage": 'usage' in data
+                            }
+                        )
+                    else:
+                        self.log_test(
+                            "Research Task - Simple Analyze - Wrong Assessment",
+                            False,
+                            f"Simple task incorrectly assessed: complexity={complexity}, requires_research={requires_research}",
+                            {
+                                "expected_complexity": "simple",
+                                "actual_complexity": complexity,
+                                "expected_research": False,
+                                "actual_research": requires_research
+                            }
+                        )
+                    
+                    # Check if usage information is included
+                    if 'usage' in data:
+                        self.log_test(
+                            "Research Task - Simple Analyze - Usage Info",
+                            True,
+                            "Usage information included in response",
+                            {"usage": data['usage']}
+                        )
+                else:
+                    self.log_test(
+                        "Research Task - Simple Analyze - Missing Fields",
+                        False,
+                        f"Response missing required fields: {missing_fields}",
+                        {"missing_fields": missing_fields, "response_keys": list(data.keys())}
+                    )
+            else:
+                self.log_test(
+                    "Research Task - Simple Analyze - HTTP Error",
+                    False,
+                    f"HTTP {response.status_code}: {response.text}",
+                    {"status_code": response.status_code}
+                )
+                
+        except requests.exceptions.Timeout:
+            self.log_test(
+                "Research Task - Simple Analyze - Timeout",
+                False,
+                "Request timed out after 30 seconds",
+                {"timeout": 30}
+            )
+        except Exception as e:
+            self.log_test(
+                "Research Task - Simple Analyze - Exception",
+                False,
+                f"Unexpected error: {str(e)}",
+                {"error_type": type(e).__name__}
+            )
+    
+    def test_research_task_complex_analyze(self):
+        """Test POST /api/research-task endpoint - Complex task should require research"""
+        print("\n🧪 Testing Research Task - Complex Task (Analyze Mode)...")
+        
+        # Test data from review request - complex task
+        test_data = {
+            "user_request": "Create a real-time collaborative whiteboard app with video conferencing, like Miro or FigJam",
+            "model": "anthropic/claude-3.5-sonnet",
+            "research_mode": "analyze"
+        }
+        
+        try:
+            response = self.session.post(
+                f"{BACKEND_URL}/research-task",
+                json=test_data,
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check required fields for analyze mode
+                required_fields = ['complexity_assessment', 'requires_research', 'reasoning']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if not missing_fields:
+                    complexity = data.get('complexity_assessment')
+                    requires_research = data.get('requires_research')
+                    reasoning = data.get('reasoning', '')
+                    research_queries = data.get('research_queries', [])
+                    
+                    # Complex whiteboard app should require research
+                    if requires_research == True and complexity in ["complex", "moderate"]:
+                        self.log_test(
+                            "Research Task - Complex Analyze - Correct Assessment",
+                            True,
+                            f"Complex task correctly identified: complexity={complexity}, requires_research={requires_research}",
+                            {
+                                "complexity": complexity,
+                                "requires_research": requires_research,
+                                "reasoning_length": len(reasoning),
+                                "query_count": len(research_queries)
+                            }
+                        )
+                        
+                        # Check if research queries are provided and actionable
+                        if research_queries and len(research_queries) >= 3:
+                            # Check if queries are specific and actionable
+                            query_keywords = ['whiteboard', 'collaborative', 'real-time', 'video', 'conferencing', 'miro', 'figjam', '2025', 'best practices']
+                            relevant_queries = []
+                            for query in research_queries:
+                                if any(keyword.lower() in query.lower() for keyword in query_keywords):
+                                    relevant_queries.append(query)
+                            
+                            if len(relevant_queries) >= 2:
+                                self.log_test(
+                                    "Research Task - Complex Analyze - Quality Queries",
+                                    True,
+                                    f"Generated {len(research_queries)} research queries, {len(relevant_queries)} are relevant",
+                                    {"total_queries": len(research_queries), "relevant_queries": relevant_queries}
+                                )
+                            else:
+                                self.log_test(
+                                    "Research Task - Complex Analyze - Poor Quality Queries",
+                                    False,
+                                    f"Research queries not specific enough: {research_queries}",
+                                    {"queries": research_queries, "relevant_count": len(relevant_queries)}
+                                )
+                        else:
+                            self.log_test(
+                                "Research Task - Complex Analyze - Insufficient Queries",
+                                False,
+                                f"Expected 3-5 research queries, got {len(research_queries)}",
+                                {"query_count": len(research_queries), "queries": research_queries}
+                            )
+                    else:
+                        self.log_test(
+                            "Research Task - Complex Analyze - Wrong Assessment",
+                            False,
+                            f"Complex task incorrectly assessed: complexity={complexity}, requires_research={requires_research}",
+                            {
+                                "expected_research": True,
+                                "actual_research": requires_research,
+                                "complexity": complexity
+                            }
+                        )
+                else:
+                    self.log_test(
+                        "Research Task - Complex Analyze - Missing Fields",
+                        False,
+                        f"Response missing required fields: {missing_fields}",
+                        {"missing_fields": missing_fields, "response_keys": list(data.keys())}
+                    )
+            else:
+                self.log_test(
+                    "Research Task - Complex Analyze - HTTP Error",
+                    False,
+                    f"HTTP {response.status_code}: {response.text}",
+                    {"status_code": response.status_code}
+                )
+                
+        except requests.exceptions.Timeout:
+            self.log_test(
+                "Research Task - Complex Analyze - Timeout",
+                False,
+                "Request timed out after 30 seconds",
+                {"timeout": 30}
+            )
+        except Exception as e:
+            self.log_test(
+                "Research Task - Complex Analyze - Exception",
+                False,
+                f"Unexpected error: {str(e)}",
+                {"error_type": type(e).__name__}
+            )
+    
+    def test_research_task_full_pipeline(self):
+        """Test POST /api/research-task endpoint - Full research pipeline"""
+        print("\n🧪 Testing Research Task - Full Research Pipeline...")
+        
+        # Test data from review request - full research mode
+        test_data = {
+            "user_request": "Build a modern e-commerce platform with AI product recommendations",
+            "model": "anthropic/claude-3.5-sonnet",
+            "research_mode": "full"
+        }
+        
+        try:
+            response = self.session.post(
+                f"{BACKEND_URL}/research-task",
+                json=test_data,
+                timeout=60  # Longer timeout for full research
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check required fields for full mode
+                required_fields = ['requires_research', 'complexity', 'reasoning', 'research_queries']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if not missing_fields:
+                    requires_research = data.get('requires_research')
+                    complexity = data.get('complexity')
+                    reasoning = data.get('reasoning', '')
+                    research_queries = data.get('research_queries', [])
+                    research_report = data.get('research_report', '')
+                    total_usage = data.get('total_usage', {})
+                    
+                    # E-commerce platform should require research
+                    if requires_research == True and complexity == "complex":
+                        self.log_test(
+                            "Research Task - Full Pipeline - Correct Assessment",
+                            True,
+                            f"Complex e-commerce task correctly identified: complexity={complexity}, requires_research={requires_research}",
+                            {
+                                "complexity": complexity,
+                                "requires_research": requires_research,
+                                "reasoning_length": len(reasoning),
+                                "query_count": len(research_queries),
+                                "has_report": bool(research_report),
+                                "report_length": len(research_report)
+                            }
+                        )
+                        
+                        # Check research queries quality
+                        if research_queries and len(research_queries) >= 3:
+                            ecommerce_keywords = ['ecommerce', 'e-commerce', 'ai', 'recommendation', 'platform', 'modern', '2025', 'best practices']
+                            relevant_queries = []
+                            for query in research_queries:
+                                if any(keyword.lower() in query.lower() for keyword in ecommerce_keywords):
+                                    relevant_queries.append(query)
+                            
+                            if len(relevant_queries) >= 2:
+                                self.log_test(
+                                    "Research Task - Full Pipeline - Quality Queries",
+                                    True,
+                                    f"Generated {len(research_queries)} research queries, {len(relevant_queries)} are relevant",
+                                    {"total_queries": len(research_queries), "relevant_queries": relevant_queries}
+                                )
+                            else:
+                                self.log_test(
+                                    "Research Task - Full Pipeline - Poor Quality Queries",
+                                    False,
+                                    f"Research queries not specific enough for e-commerce: {research_queries}",
+                                    {"queries": research_queries, "relevant_count": len(relevant_queries)}
+                                )
+                        
+                        # Check if research report is provided (for full mode)
+                        if research_report and len(research_report) > 500:
+                            # Check if report contains expected sections
+                            report_sections = ['tech stack', 'implementation', 'best practices', 'security', 'performance']
+                            found_sections = [section for section in report_sections if section.lower() in research_report.lower()]
+                            
+                            if len(found_sections) >= 3:
+                                self.log_test(
+                                    "Research Task - Full Pipeline - Detailed Report",
+                                    True,
+                                    f"Research report contains {len(found_sections)} expected sections ({len(research_report)} chars)",
+                                    {"report_length": len(research_report), "sections_found": found_sections}
+                                )
+                            else:
+                                self.log_test(
+                                    "Research Task - Full Pipeline - Incomplete Report",
+                                    False,
+                                    f"Research report missing key sections (found {len(found_sections)}/5)",
+                                    {"sections_found": found_sections, "report_preview": research_report[:200]}
+                                )
+                        else:
+                            self.log_test(
+                                "Research Task - Full Pipeline - No Report",
+                                False,
+                                f"Full research mode should include detailed report (got {len(research_report)} chars)",
+                                {"report_length": len(research_report)}
+                            )
+                        
+                        # Check total usage information
+                        if total_usage and 'total_tokens' in total_usage:
+                            self.log_test(
+                                "Research Task - Full Pipeline - Usage Info",
+                                True,
+                                f"Combined usage information included: {total_usage.get('total_tokens', 0)} tokens",
+                                {"total_usage": total_usage}
+                            )
+                        else:
+                            self.log_test(
+                                "Research Task - Full Pipeline - Missing Usage",
+                                False,
+                                "Full research should include combined usage information",
+                                {"total_usage": total_usage}
+                            )
+                    else:
+                        self.log_test(
+                            "Research Task - Full Pipeline - Wrong Assessment",
+                            False,
+                            f"E-commerce task incorrectly assessed: complexity={complexity}, requires_research={requires_research}",
+                            {
+                                "expected_complexity": "complex",
+                                "actual_complexity": complexity,
+                                "expected_research": True,
+                                "actual_research": requires_research
+                            }
+                        )
+                else:
+                    self.log_test(
+                        "Research Task - Full Pipeline - Missing Fields",
+                        False,
+                        f"Response missing required fields: {missing_fields}",
+                        {"missing_fields": missing_fields, "response_keys": list(data.keys())}
+                    )
+            else:
+                self.log_test(
+                    "Research Task - Full Pipeline - HTTP Error",
+                    False,
+                    f"HTTP {response.status_code}: {response.text}",
+                    {"status_code": response.status_code}
+                )
+                
+        except requests.exceptions.Timeout:
+            self.log_test(
+                "Research Task - Full Pipeline - Timeout",
+                False,
+                "Request timed out after 60 seconds",
+                {"timeout": 60}
+            )
+        except Exception as e:
+            self.log_test(
+                "Research Task - Full Pipeline - Exception",
+                False,
+                f"Unexpected error: {str(e)}",
+                {"error_type": type(e).__name__}
+            )
+    
+    def test_research_task_error_handling(self):
+        """Test POST /api/research-task endpoint - Error handling"""
+        print("\n🧪 Testing Research Task - Error Handling...")
+        
+        # Test missing user_request
+        test_data = {
+            "model": "anthropic/claude-3.5-sonnet",
+            "research_mode": "analyze"
+        }
+        
+        try:
+            response = self.session.post(
+                f"{BACKEND_URL}/research-task",
+                json=test_data,
+                timeout=15
+            )
+            
+            if response.status_code == 400:
+                self.log_test(
+                    "Research Task - Error Handling - Missing Request",
+                    True,
+                    "Correctly returned 400 for missing user_request",
+                    {"status_code": response.status_code}
+                )
+            else:
+                self.log_test(
+                    "Research Task - Error Handling - Wrong Status",
+                    False,
+                    f"Expected 400 for missing user_request, got {response.status_code}",
+                    {"expected": 400, "actual": response.status_code}
+                )
+                
+        except Exception as e:
+            self.log_test(
+                "Research Task - Error Handling - Exception",
+                False,
+                f"Unexpected error: {str(e)}",
+                {"error_type": type(e).__name__}
+            )
+        
+        # Test fallback behavior (if model fails)
+        print("   Testing fallback behavior...")
+        test_data_fallback = {
+            "user_request": "Test fallback with invalid model",
+            "model": "invalid/model-name",
+            "research_mode": "analyze"
+        }
+        
+        try:
+            response = self.session.post(
+                f"{BACKEND_URL}/research-task",
+                json=test_data_fallback,
+                timeout=30
+            )
+            
+            # Should either work with fallback or return proper error
+            if response.status_code == 200:
+                data = response.json()
+                if 'complexity_assessment' in data and 'requires_research' in data:
+                    self.log_test(
+                        "Research Task - Error Handling - Fallback Success",
+                        True,
+                        "Fallback handling working correctly",
+                        {"response_keys": list(data.keys())}
+                    )
+                else:
+                    self.log_test(
+                        "Research Task - Error Handling - Fallback Incomplete",
+                        False,
+                        "Fallback response missing required fields",
+                        {"response_keys": list(data.keys())}
+                    )
+            elif response.status_code == 500:
+                self.log_test(
+                    "Research Task - Error Handling - Model Error",
+                    True,
+                    "Correctly returned 500 for invalid model (no fallback implemented)",
+                    {"status_code": response.status_code}
+                )
+            else:
+                self.log_test(
+                    "Research Task - Error Handling - Unexpected Status",
+                    False,
+                    f"Unexpected status code for invalid model: {response.status_code}",
+                    {"status_code": response.status_code}
+                )
+                
+        except Exception as e:
+            self.log_test(
+                "Research Task - Error Handling - Fallback Exception",
+                False,
+                f"Unexpected error in fallback test: {str(e)}",
+                {"error_type": type(e).__name__}
+            )
+
     # ============= NEW DESIGN-FIRST WORKFLOW TESTS =============
     
     def test_generate_design_endpoint(self):
