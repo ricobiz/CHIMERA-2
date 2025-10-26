@@ -240,12 +240,6 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
       }
     }
   };
-      toast({
-        title: "Regenerating",
-        description: "Generating response from this point...",
-      });
-    }
-  };
 
   return (
     <div className="flex flex-col h-full bg-[#0f0f10] border-2 border-transparent animated-gradient-border relative">
