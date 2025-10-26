@@ -108,54 +108,62 @@ const Settings = ({ selectedModel, onModelChange, onClose, visualValidatorEnable
           <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-6">
             <div className="flex items-start justify-between mb-4">
               <div className="flex-1">
-                <h3 className="text-white font-semibold text-lg mb-2">Visual Validator</h3>
+                <h3 className="text-white font-semibold text-lg mb-2 flex items-center gap-2">
+                  <span className="text-2xl">👁️</span>
+                  Visual Validator
+                </h3>
                 <p className="text-gray-400 text-sm">
                   Enable a second AI model to validate your generated code visually before displaying in preview. 
                   This helps catch UI issues and ensures code quality.
                 </p>
               </div>
-              <label className="relative inline-flex items-center cursor-pointer ml-4">
-                <input
-                  type="checkbox"
-                  checked={localValidatorEnabled}
-                  onChange={(e) => handleValidatorToggle(e.target.checked)}
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
-              </label>
+              <Switch
+                checked={localValidatorEnabled}
+                onCheckedChange={handleValidatorToggle}
+                className="data-[state=checked]:bg-purple-600"
+              />
             </div>
 
             {localValidatorEnabled && (
               <div className="mt-4 pt-4 border-t border-gray-700">
-                <label className="text-sm text-gray-400 mb-3 block">Validator Model</label>
-                <div className="grid gap-2 max-h-60 overflow-y-auto">
-                  {models.slice(0, 10).map((model) => (
+                <label className="text-sm text-gray-400 mb-3 block font-medium">Select Validator Model</label>
+                <div className="grid gap-2 max-h-64 overflow-y-auto pr-2">
+                  {models.filter(m => m.pricing.prompt > 0).slice(0, 15).map((model) => (
                     <div
                       key={model.id}
                       onClick={() => handleValidatorModelSelect(model.id)}
                       className={`p-3 rounded-lg cursor-pointer transition-all border ${
                         localValidatorModel === model.id
-                          ? 'bg-purple-600/20 border-purple-500'
+                          ? 'bg-purple-600/20 border-purple-500 shadow-lg shadow-purple-500/20'
                           : 'bg-gray-800 border-gray-700 hover:border-purple-500'
                       }`}
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex-1">
-                          <p className="text-white text-sm font-medium">{model.name}</p>
+                          <div className="flex items-center gap-2">
+                            <p className="text-white text-sm font-medium">{model.name}</p>
+                            {localValidatorModel === model.id && (
+                              <Check className="w-4 h-4 text-purple-400" />
+                            )}
+                          </div>
                           <p className="text-xs text-gray-400 mt-1">
-                            ${(model.pricing.prompt * 1000000).toFixed(2)}/M in • ${(model.pricing.completion * 1000000).toFixed(2)}/M out
+                            💰 ${(model.pricing.prompt * 1000000).toFixed(2)}/M in • ${(model.pricing.completion * 1000000).toFixed(2)}/M out
                           </p>
+                          {model.capabilities.vision && (
+                            <Badge variant="secondary" className="text-xs mt-2 bg-green-600/20 text-green-400 border-green-600/30">
+                              Vision Capable
+                            </Badge>
+                          )}
                         </div>
-                        {localValidatorModel === model.id && (
-                          <Check className="w-5 h-5 text-purple-400 ml-2" />
-                        )}
                       </div>
                     </div>
                   ))}
                 </div>
-                <p className="text-xs text-gray-500 mt-3">
-                  💡 Tip: Choose a fast model like Claude Haiku or GPT-4o-mini for quick validation
-                </p>
+                <div className="mt-3 p-3 bg-blue-600/10 border border-blue-600/30 rounded-lg">
+                  <p className="text-xs text-blue-400">
+                    💡 <strong>Tip:</strong> Choose a fast model like Claude Haiku or GPT-4o-mini for quick validation without slowing down generation
+                  </p>
+                </div>
               </div>
             )}
           </div>
