@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Upload, MoreVertical, Settings, MessageSquare, Trash2 } from 'lucide-react';
+import { Plus, Upload, MoreVertical, Settings, MessageSquare, Trash2, Search } from 'lucide-react';
 import { Button } from './ui/button';
-import { getSessions, deleteSession } from '../services/api';
+import { getSessions, deleteSession, getSession } from '../services/api';
 import { toast } from '../hooks/use-toast';
 
 const Sidebar = ({ onNewProject, onProjectSelect, onOpenSettings, onSessionSelect, currentSessionId }) => {
@@ -9,6 +9,8 @@ const Sidebar = ({ onNewProject, onProjectSelect, onOpenSettings, onSessionSelec
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('sessions'); // 'sessions' or 'projects'
+  const [showSessionMenu, setShowSessionMenu] = useState(false);
+  const [sessionIdInput, setSessionIdInput] = useState('');
 
   useEffect(() => {
     loadSessions();
