@@ -113,3 +113,38 @@ code {
         border-bottom-color: inherit;
     }
 }
+
+
+/* Chimera Logo Animations */
+@keyframes gradient-shift {
+    0%, 100% { 
+        background-position: 0% 50%; 
+    }
+    50% { 
+        background-position: 100% 50%; 
+    }
+}
+
+@keyframes border-flow {
+    0%, 100% { 
+        background-position: 0% 50%; 
+    }
+    50% { 
+        background-position: 100% 50%; 
+    }
+}
+
+.animate-gradient-shift {
+    background-size: 200% 200%;
+    animation: gradient-shift 3s ease infinite;
+}
+
+.animate-border-flow {
+    background: linear-gradient(90deg, #a855f7, #3b82f6, #06b6d4, #a855f7);
+    background-size: 200% 200%;
+    animation: border-flow 4s linear infinite;
+    padding: 2px;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+}
