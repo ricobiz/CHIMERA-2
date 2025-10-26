@@ -19,7 +19,7 @@ function App() {
   const [generatedCode, setGeneratedCode] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [selectedModel, setSelectedModel] = useState(
-    localStorage.getItem('selectedModel') || 'anthropic/claude-3.5-sonnet'
+    localStorage.getItem('selectedModel') || 'x-ai/grok-beta'  // Grok for code generation
   );
   const [totalCost, setTotalCost] = useState(0);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -31,17 +31,17 @@ function App() {
   const [apiBalance, setApiBalance] = useState(null); // OpenRouter balance
   
   const [visualValidatorEnabled, setVisualValidatorEnabled] = useState(
-    localStorage.getItem('visualValidatorEnabled') === 'true'
+    localStorage.getItem('visualValidatorEnabled') !== 'false'  // Enabled by default
   );
   const [visualValidatorModel, setVisualValidatorModel] = useState(
-    localStorage.getItem('visualValidatorModel') || 'google/gemini-2.5-flash'
+    localStorage.getItem('visualValidatorModel') || 'google/gemini-2.5-nano-banana'  // Nano Banana for design
   );
   
   const [researchPlannerEnabled, setResearchPlannerEnabled] = useState(
-    localStorage.getItem('researchPlannerEnabled') === 'true'
+    localStorage.getItem('researchPlannerEnabled') !== 'false'  // Enabled by default
   );
   const [researchPlannerModel, setResearchPlannerModel] = useState(
-    localStorage.getItem('researchPlannerModel') || 'openai/gpt-5'
+    localStorage.getItem('researchPlannerModel') || 'openai/gpt-5'  // GPT-5 for planning
   );
 
   const [currentSessionId, setCurrentSessionId] = useState(
