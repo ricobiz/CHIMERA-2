@@ -294,3 +294,14 @@ export const getActiveMCPServers = async () => {
     throw error;
   }
 };
+
+// OpenRouter Balance
+export const getOpenRouterBalance = async () => {
+  try {
+    const response = await axios.get(`${API}/openrouter/balance`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching OpenRouter balance:', error);
+    throw error;
+  }
+};
