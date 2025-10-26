@@ -215,9 +215,9 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, activeM
                 ))}
               </div>
             )}
-          </div>
-        ) : (
-          <div className="max-w-3xl mx-auto space-y-3 md:space-y-4">
+            </div>
+          ) : (
+            <div className="space-y-3 md:space-y-4">
             {messages.map((msg, idx) => (
               <div
                 key={idx}
