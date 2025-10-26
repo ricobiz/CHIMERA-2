@@ -29,13 +29,56 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, activeM
     const file = e.target.files[0];
     if (file) {
       console.log('File uploaded:', file.name);
+      toast({
+        title: "File Upload",
+        description: `File ${file.name} selected. Feature coming soon!`,
+      });
       // TODO: Implement file upload logic
     }
   };
 
   const handleVoiceInput = () => {
-    console.log('Voice input clicked');
-    // TODO: Implement voice input logic
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      toast({
+        title: "Not Supported",
+        description: "Voice input is not supported in your browser.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    
+    recognition.lang = 'en-US';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = () => {
+      toast({
+        title: "Listening...",
+        description: "Speak now",
+      });
+    };
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      setPrompt(transcript);
+      toast({
+        title: "Voice Input Captured",
+        description: transcript,
+      });
+    };
+
+    recognition.onerror = (event) => {
+      toast({
+        title: "Voice Input Error",
+        description: event.error,
+        variant: "destructive"
+      });
+    };
+
+    recognition.start();
   };
 
   useEffect(() => {
