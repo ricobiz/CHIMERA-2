@@ -575,16 +575,27 @@ function App() {
   };
 
   const handleRegenerateFromMessage = async (index) => {
+    console.log(`🔄 Regenerating from message index ${index}`);
+    console.log('Current messages:', messages);
+    
     // Keep messages up to and including index
     const contextMessages = messages.slice(0, index + 1);
+    console.log('Context messages after slice:', contextMessages);
+    
     setMessages(contextMessages);
     
     // Get the last user message as the prompt
     const lastUserMessage = contextMessages.filter(m => m.role === 'user').pop();
+    console.log('Last user message:', lastUserMessage);
     
     if (lastUserMessage) {
-      // Regenerate response from this point
-      await handleSendPrompt(lastUserMessage.content);
+      // Small delay to ensure state is updated
+      setTimeout(async () => {
+        console.log('🚀 Starting regeneration with prompt:', lastUserMessage.content);
+        await handleSendPrompt(lastUserMessage.content);
+      }, 100);
+    } else {
+      console.warn('⚠️ No user message found to regenerate from');
     }
   };
 
