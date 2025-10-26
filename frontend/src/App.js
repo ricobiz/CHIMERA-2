@@ -120,7 +120,54 @@ function App() {
     setIsGenerating(true);
     setGenerationStatus('generating');
     
-    // Create development plan (in agent mode)
+    // CHAT MODE - just conversation, no code generation
+    if (chatMode === 'chat') {
+      try {
+        // Simple chat response without code generation
+        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/chat`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: prompt,
+            history: messages,
+            model: selectedModel
+          })
+        });
+        
+        const data = await response.json();
+        
+        const aiMessage = { 
+          role: 'assistant', 
+          content: data.message || data.response,
+          cost: data.cost 
+        };
+        const updatedMessages = [...newMessages, aiMessage];
+        setMessages(updatedMessages);
+        
+        if (data.cost) {
+          setTotalCost(totalCost + data.cost.total_cost);
+        }
+        
+        setGenerationStatus('success');
+        setTimeout(() => setGenerationStatus('idle'), 3000);
+        
+      } catch (error) {
+        console.error('Chat error:', error);
+        
+        // Fallback to simple response
+        const aiMessage = { 
+          role: 'assistant', 
+          content: 'I understand! In Chat mode, I can help you plan and discuss your app idea. When you\'re ready to generate code, switch to Agent mode using the toggle below.'
+        };
+        setMessages([...newMessages, aiMessage]);
+        setGenerationStatus('idle');
+      } finally {
+        setIsGenerating(false);
+      }
+      return;
+    }
+    
+    // AGENT MODE - code generation with development plan
     if (chatMode === 'agent') {
       const plan = [
         { name: 'Planning', description: 'Creating project structure', status: 'in-progress' },
