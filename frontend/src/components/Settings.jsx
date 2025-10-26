@@ -3,6 +3,7 @@ import { Settings as SettingsIcon, ChevronLeft, Check } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
 import { Badge } from './ui/badge';
+import { Switch } from './ui/switch';
 import { getModels } from '../services/api';
 import { toast } from '../hooks/use-toast';
 
