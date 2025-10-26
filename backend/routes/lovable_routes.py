@@ -41,24 +41,24 @@ async def generate_code(request: GenerateCodeRequest):
         # Calculate cost based on usage
         cost = None
         if result.get("usage"):
-            # Get model pricing from the models list
-            from routes.openrouter_models import POPULAR_MODELS
-            model_info = next((m for m in POPULAR_MODELS if m["id"] == request.model), None)
+            # Get model pricing - make a simple calculation
+            # Default pricing if we can't fetch model info
+            input_cost_per_1m = 3.0  # default $3/M
+            output_cost_per_1m = 15.0  # default $15/M
             
-            if model_info:
-                input_cost = (result["usage"]["prompt_tokens"] / 1_000_000) * model_info["input_cost_per_1m"]
-                output_cost = (result["usage"]["completion_tokens"] / 1_000_000) * model_info["output_cost_per_1m"]
-                total_cost = input_cost + output_cost
-                
-                cost = {
-                    "input_tokens": result["usage"]["prompt_tokens"],
-                    "output_tokens": result["usage"]["completion_tokens"],
-                    "total_tokens": result["usage"]["total_tokens"],
-                    "input_cost": round(input_cost, 6),
-                    "output_cost": round(output_cost, 6),
-                    "total_cost": round(total_cost, 6),
-                    "currency": "USD"
-                }
+            input_cost = (result["usage"]["prompt_tokens"] / 1_000_000) * input_cost_per_1m
+            output_cost = (result["usage"]["completion_tokens"] / 1_000_000) * output_cost_per_1m
+            total_cost = input_cost + output_cost
+            
+            cost = {
+                "input_tokens": result["usage"]["prompt_tokens"],
+                "output_tokens": result["usage"]["completion_tokens"],
+                "total_tokens": result["usage"]["total_tokens"],
+                "input_cost": round(input_cost, 6),
+                "output_cost": round(output_cost, 6),
+                "total_cost": round(total_cost, 6),
+                "currency": "USD"
+            }
         
         return GenerateCodeResponse(
             code=result["code"],
