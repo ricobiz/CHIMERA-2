@@ -83,6 +83,23 @@ function App() {
   useEffect(() => {
     localStorage.setItem('chatMode', chatMode);
   }, [chatMode]);
+  
+  // Load OpenRouter balance
+  useEffect(() => {
+    const loadBalance = async () => {
+      try {
+        const balance = await getOpenRouterBalance();
+        setApiBalance(balance);
+      } catch (error) {
+        console.error('Failed to load API balance:', error);
+      }
+    };
+    loadBalance();
+    // Refresh balance every 30 seconds
+    const interval = setInterval(loadBalance, 30000);
+    return () => clearInterval(interval);
+  }, []);
+  
   const [developmentPlan, setDevelopmentPlan] = useState([]);
   const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
   const [showApprovalButtons, setShowApprovalButtons] = useState(false);
