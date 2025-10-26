@@ -213,26 +213,47 @@ class BrowserAutomationService:
             # Capture screenshot
             screenshot = await self.capture_screenshot(session_id)
             
-            # Use local vision model to find elements
-            elements = await vision_service.find_element(
-                screenshot=screenshot,
-                description=description,
-                return_multiple=True
-            )
+            # Vision service disabled for MVP - using basic selector matching
+            # elements = await vision_service.find_element(
+            #     screenshot=screenshot,
+            #     description=description,
+            #     return_multiple=True
+            # )
             
-            # Convert vision model results to selectors
+            # Fallback: Try basic text search instead of vision
             results = []
-            for elem in elements:
-                box = elem.get('box', {})
-                text = elem.get('text', '')
-                confidence = elem.get('confidence', 0)
+            try:
+                # Search for elements by text content
+                selector = f"text={description}"
+                elements = await page.query_selector_all(selector)
                 
-                # Try to match with actual DOM elements
-                # Get element at coordinates
-                center_x = box.get('x', 0) + box.get('width', 0) / 2
-                center_y = box.get('y', 0) + box.get('height', 0) / 2
-                
-                try:
+                for i, element in enumerate(elements[:3]):  # Limit to 3 results
+                    box_model = await element.bounding_box()
+                    if box_model:
+                        results.append({
+                            'selector': selector,
+                            'box': box_model,
+                            'text': description,
+                            'confidence': 0.7,
+                            'index': i
+                        })
+            except Exception as e:
+                logger.warning(f"Basic text search failed: {e}")
+            
+            # Original vision-based code (disabled):
+            # # Convert vision model results to selectors
+            # results = []
+            # for elem in elements:
+            #     box = elem.get('box', {})
+            #     text = elem.get('text', '')
+            #     confidence = elem.get('confidence', 0)
+            #     
+            #     # Try to match with actual DOM elements
+            #     # Get element at coordinates
+            #     center_x = box.get('x', 0) + box.get('width', 0) / 2
+            #     center_y = box.get('y', 0) + box.get('height', 0) / 2
+            #     
+            #     try:
                     # Get element at point
                     element_handle = await page.evaluate(f"""
                         document.elementFromPoint({center_x}, {center_y})
