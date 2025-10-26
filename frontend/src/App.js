@@ -608,7 +608,7 @@ function App() {
 
   if (showSettings) {
     return (
-      <div className="flex h-screen overflow-hidden bg-[#0f0f10]">
+      <div className="flex overflow-hidden bg-[#0f0f10]" style={{ height: '100dvh' }}>
         <Settings 
           selectedModel={selectedModel}
           onModelChange={setSelectedModel}
@@ -628,7 +628,7 @@ function App() {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#0f0f10]">
+    <div className="flex overflow-hidden bg-[#0f0f10]" style={{ height: '100dvh' }}>
       {/* Sidebar - только на мобильных устройствах показываем через кнопку */}
       <div className={`
         fixed md:relative inset-y-0 left-0 z-40
