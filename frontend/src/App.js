@@ -34,6 +34,9 @@ function App() {
   // Session states
   const [currentSessionId, setCurrentSessionId] = useState(null);
   const [sessionName, setSessionName] = useState('New Session');
+  const [isValidating, setIsValidating] = useState(false);
+  const [validationFeedback, setValidationFeedback] = useState(null);
+  const [originalUserRequest, setOriginalUserRequest] = useState('');
 
   const handleSendPrompt = async (prompt) => {
     const userMessage = { role: 'user', content: prompt };
