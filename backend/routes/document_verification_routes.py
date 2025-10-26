@@ -303,7 +303,8 @@ Be EXTREMELY thorough and critical. False negatives (missing fraud) are more dan
             "detailed_assessment": {
                 "primary_analysis": primary_result.get('detailed_assessment', ''),
                 "secondary_analysis": secondary_result.get('detailed_assessment', ''),
-                "consensus": f"Based on dual-model verification, this document shows {avg_fraud_prob:.1f}% probability of being fraudulent."
+                "tertiary_analysis": tertiary_result.get('detailed_assessment', ''),
+                "consensus": f"Based on triple-model verification (GPT-5, Claude 3.5 Sonnet, Gemini Vision), this document shows {avg_fraud_prob:.1f}% probability of being fraudulent. Agreement level between models: {100 - disagreement:.1f}%"
             },
             "recommendations": generate_recommendations(final_verdict, avg_fraud_prob, all_red_flags)
         }
