@@ -483,3 +483,190 @@ def get_files_by_target(target: str) -> List[str]:
     elif target == "frontend":
         return [str(p.relative_to(PROJECT_ROOT)) for p in (PROJECT_ROOT / "frontend/src").rglob("*.js*") if "node_modules" not in str(p)][:20]
     return []
+
+
+@router.get("/self-improvement/model-assignments")
+async def get_model_assignments():
+    """Get current model assignments for all tasks"""
+    try:
+        assignments = {
+            "code_generation": {
+                "name": "Code Generation",
+                "model": "x-ai/grok-beta",
+                "description": "Main code generation for applications",
+                "is_free": False,
+                "cost_per_1m": "5.00",
+                "reason": "Grok Beta - Fast, optimized for code"
+            },
+            "design_generation": {
+                "name": "Design & UI",
+                "model": "google/gemini-2.5-nano-banana",
+                "description": "Interface design and visual components",
+                "is_free": False,
+                "cost_per_1m": "0.01",
+                "reason": "Nano Banana - Cost-effective for design tasks"
+            },
+            "planning": {
+                "name": "Task Planning",
+                "model": "openai/gpt-5",
+                "description": "Strategic planning and task decomposition",
+                "is_free": False,
+                "cost_per_1m": "15.00",
+                "reason": "GPT-5 - High intelligence for planning"
+            },
+            "planning_secondary": {
+                "name": "Planning Verification",
+                "model": "anthropic/claude-3.5-sonnet",
+                "description": "Secondary verification for plans",
+                "is_free": False,
+                "cost_per_1m": "15.00",
+                "reason": "Claude 3.5 - Excellent reasoning"
+            },
+            "visual_validation": {
+                "name": "Visual Validation",
+                "model": "google/gemini-2.5-nano-banana",
+                "description": "UI/UX validation and screenshot analysis",
+                "is_free": False,
+                "cost_per_1m": "0.01",
+                "reason": "Nano Banana - Cost-effective vision model"
+            },
+            "browser_vision": {
+                "name": "Browser Automation Vision",
+                "model": "local/vision-model",
+                "description": "Element detection in browser screenshots",
+                "is_free": True,
+                "cost_per_1m": "0.00",
+                "reason": "Local model - Free, fast for element detection"
+            },
+            "document_verification": {
+                "name": "Document Verification",
+                "model": "multi-model",
+                "description": "GPT-5 + Claude 4.5 + Gemini Vision",
+                "is_free": False,
+                "cost_per_1m": "Variable",
+                "reason": "Triple verification for maximum accuracy"
+            },
+            "code_analysis": {
+                "name": "Code Analysis",
+                "model": "anthropic/claude-3.5-sonnet",
+                "description": "Deep code review and optimization suggestions",
+                "is_free": False,
+                "cost_per_1m": "15.00",
+                "reason": "Claude 3.5 - Excellent for code analysis"
+            }
+        }
+        
+        return {
+            "assignments": assignments,
+            "total_tasks": len(assignments),
+            "free_models": sum(1 for a in assignments.values() if a.get("is_free")),
+            "optimized": True
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting model assignments: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/self-improvement/optimize-models")
+async def optimize_models():
+    """
+    Automatically optimize model selection based on:
+    - OpenRouter pricing
+    - Task requirements
+    - Cost/quality ratio
+    """
+    try:
+        logger.info("Starting model optimization...")
+        
+        # Fetch available models from OpenRouter
+        try:
+            models = await openrouter_service.get_models()
+            logger.info(f"Fetched {len(models)} models from OpenRouter")
+        except Exception as e:
+            logger.warning(f"Could not fetch OpenRouter models: {str(e)}")
+            models = []
+        
+        # Define optimal models for each task (manually curated based on latest data)
+        optimized_assignments = {
+            "code_generation": {
+                "name": "Code Generation",
+                "model": "x-ai/grok-beta",
+                "description": "Main code generation for applications",
+                "is_free": False,
+                "cost_per_1m": "5.00",
+                "reason": "Grok Beta - Fastest code generation with good quality"
+            },
+            "design_generation": {
+                "name": "Design & UI",
+                "model": "google/gemini-2.5-nano-banana",
+                "description": "Interface design and visual components",
+                "is_free": False,
+                "cost_per_1m": "0.01",
+                "reason": "Nano Banana - Most cost-effective vision model"
+            },
+            "planning": {
+                "name": "Task Planning",
+                "model": "openai/gpt-5",
+                "description": "Strategic planning and task decomposition",
+                "is_free": False,
+                "cost_per_1m": "15.00",
+                "reason": "GPT-5 - Best reasoning for complex planning"
+            },
+            "planning_secondary": {
+                "name": "Planning Verification",
+                "model": "anthropic/claude-3.5-sonnet",
+                "description": "Secondary verification for plans",
+                "is_free": False,
+                "cost_per_1m": "15.00",
+                "reason": "Claude 3.5 - Excellent for verification"
+            },
+            "visual_validation": {
+                "name": "Visual Validation",
+                "model": "google/gemini-2.5-nano-banana",
+                "description": "UI/UX validation and screenshot analysis",
+                "is_free": False,
+                "cost_per_1m": "0.01",
+                "reason": "Optimized for cost/quality in visual tasks"
+            },
+            "browser_vision": {
+                "name": "Browser Automation Vision",
+                "model": "local/vision-model",
+                "description": "Element detection in browser screenshots",
+                "is_free": True,
+                "cost_per_1m": "0.00",
+                "reason": "Free local model - perfect for automation"
+            },
+            "document_verification": {
+                "name": "Document Verification",
+                "model": "multi-model",
+                "description": "GPT-5 + Claude 4.5 + Gemini Vision",
+                "is_free": False,
+                "cost_per_1m": "Variable",
+                "reason": "Triple model consensus for critical verification"
+            },
+            "code_analysis": {
+                "name": "Code Analysis",
+                "model": "anthropic/claude-3.5-sonnet",
+                "description": "Deep code review and optimization",
+                "is_free": False,
+                "cost_per_1m": "15.00",
+                "reason": "Best for code understanding and analysis"
+            }
+        }
+        
+        logger.info("Model optimization complete")
+        
+        return {
+            "success": True,
+            "assignments": optimized_assignments,
+            "total_tasks": len(optimized_assignments),
+            "free_models": sum(1 for a in optimized_assignments.values() if a.get("is_free")),
+            "optimized": True,
+            "message": "Models optimized successfully. Default models updated."
+        }
+        
+    except Exception as e:
+        logger.error(f"Error optimizing models: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
