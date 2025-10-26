@@ -243,6 +243,41 @@ async def smart_click(request: FindElementsRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.post("/smart-click")
+async def smart_click_endpoint(request: SmartClickRequest):
+    """
+    Smart click using vision model to find and click element by natural language description
+    """
+    try:
+        result = await browser_service.smart_click(
+            session_id=request.session_id,
+            target_hint=request.target_hint
+        )
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error in smart click: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/smart-type")
+async def smart_type_endpoint(request: SmartTypeRequestNew):
+    """
+    Smart type using vision model to find input field and type text
+    """
+    try:
+        result = await browser_service.smart_type(
+            session_id=request.session_id,
+            target_hint=request.target_hint,
+            text=request.text
+        )
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error in smart type: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.post("/session/close")
 async def close_session_post(request: CreateSessionRequest):
     """Close browser session (POST version for frontend compatibility)"""
