@@ -188,6 +188,25 @@ class ExecutionAgentService {
         }
       }
 
+      console.log('[ExecutionAgent] ✅ Execution loop completed successfully');
+      
+      } catch (loopError) {
+        console.error('[ExecutionAgent] ❌ CRITICAL ERROR in execution loop:', loopError);
+        console.error('[ExecutionAgent] Error stack:', loopError.stack);
+        
+        await this.cleanupSession(sessionId);
+        this.updateState({
+          status: 'failed',
+          result: {
+            success: false,
+            message: `Execution loop error: ${loopError.message}`,
+            completedSteps,
+            totalSteps: plan.steps.length
+          }
+        });
+        return;
+      }
+
       // Phase 3: Final Validation & Result
       this.addLog({
         actionType: 'WAIT',
