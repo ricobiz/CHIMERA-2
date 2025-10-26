@@ -82,32 +82,66 @@ class ValidatorService {
     }
   }
 
-  private validateNavigation(browserState: BrowserState, step: ActionStep): ValidatorResponse {
+  private async validateNavigation(browserState: BrowserState, step: ActionStep): Promise<ValidatorResponse> {
     // Check if URL changed and page loaded
     const urlChanged = browserState.currentUrl && browserState.currentUrl.length > 0;
     const hasScreenshot = browserState.screenshot && browserState.screenshot.length > 0;
     
-    // Success probability (simulated intelligence)
-    const successRate = 0.85; // 85% success rate for navigation
-    const isValid = Math.random() < successRate;
-    
-    if (isValid && urlChanged && hasScreenshot) {
+    // If no screenshot or URL, fail immediately
+    if (!hasScreenshot || !urlChanged) {
       return {
-        isValid: true,
-        confidence: 0.9,
-        issues: [],
-        shouldRetry: false,
-        suggestions: []
+        isValid: false,
+        confidence: 0.2,
+        issues: ['No screenshot available or URL not changed'],
+        shouldRetry: true,
+        suggestions: ['Wait for page to load', 'Check network connection']
       };
     }
     
-    return {
-      isValid: false,
-      confidence: 0.3,
-      issues: ['Page did not load properly', 'URL did not change as expected'],
-      shouldRetry: true,
-      suggestions: ['Retry navigation', 'Check network connection', 'Verify URL is accessible']
-    };
+    try {
+      // Use vision API to validate the navigation by analyzing screenshot
+      // We'll call our backend visual validation endpoint
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/validate-navigation`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          screenshot: browserState.screenshot,
+          expectedUrl: step.targetSelector, // Assuming targetSelector contains URL for NAVIGATE
+          currentUrl: browserState.currentUrl,
+          pageTitle: browserState.pageTitle,
+          description: step.targetDescription
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Vision validation failed');
+      }
+      
+      const validationResult = await response.json();
+      
+      return {
+        isValid: validationResult.success || false,
+        confidence: validationResult.confidence || 0.7,
+        issues: validationResult.issues || [],
+        shouldRetry: !validationResult.success,
+        suggestions: validationResult.suggestions || []
+      };
+      
+    } catch (error) {
+      console.error('[Validator] Vision API error:', error);
+      
+      // Fallback to basic checks if vision API fails
+      // Check if we have screenshot and URL changed
+      const basicSuccess = urlChanged && hasScreenshot;
+      
+      return {
+        isValid: basicSuccess,
+        confidence: basicSuccess ? 0.7 : 0.3,
+        issues: basicSuccess ? [] : ['Page did not load properly', 'URL did not change as expected'],
+        shouldRetry: !basicSuccess,
+        suggestions: basicSuccess ? [] : ['Retry navigation', 'Check network connection', 'Verify URL is accessible']
+      };
+    }
   }
 
   private validateClick(browserState: BrowserState, step: ActionStep): ValidatorResponse {
