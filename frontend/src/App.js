@@ -20,7 +20,7 @@ function App() {
   const [generatedCode, setGeneratedCode] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [selectedModel, setSelectedModel] = useState(
-    localStorage.getItem('selectedModel') || 'x-ai/grok-beta'  // Grok for code generation
+    localStorage.getItem('selectedModel') || 'x-ai/grok-code-fast-1'  // Grok Code Fast 1 for code generation
   );
   const [totalCost, setTotalCost] = useState(0);
   const [sidebarOpen, setSidebarOpen] = useState(false);
