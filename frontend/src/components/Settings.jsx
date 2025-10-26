@@ -6,11 +6,13 @@ import { Badge } from './ui/badge';
 import { getModels } from '../services/api';
 import { toast } from '../hooks/use-toast';
 
-const Settings = ({ selectedModel, onModelChange, onClose }) => {
+const Settings = ({ selectedModel, onModelChange, onClose, visualValidatorEnabled, onVisualValidatorToggle, visualValidatorModel, onVisualValidatorModelChange }) => {
   const [models, setModels] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all'); // all, free, paid
+  const [localValidatorEnabled, setLocalValidatorEnabled] = useState(visualValidatorEnabled);
+  const [localValidatorModel, setLocalValidatorModel] = useState(visualValidatorModel);
 
   useEffect(() => {
     loadModels();
