@@ -554,6 +554,10 @@ function App() {
     return <AutomationPage onClose={() => setShowAutomation(false)} />;
   }
 
+  if (showAIEntry) {
+    return <AIEntryPoint onClose={() => setShowAIEntry(false)} />;
+  }
+
   if (showDocVerification) {
     return <DocumentVerification onClose={() => setShowDocVerification(false)} />;
   }
