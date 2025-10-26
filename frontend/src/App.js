@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import './App.css';
+import { Menu, X } from 'lucide-react';
+import { Button } from './components/ui/button';
 import Sidebar from './components/Sidebar';
 import ChatInterface from './components/ChatInterface';
 import PreviewPanel from './components/PreviewPanel';
@@ -12,24 +14,38 @@ function App() {
   const [generatedCode, setGeneratedCode] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [currentProject, setCurrentProject] = useState(null);
+  const [selectedModel, setSelectedModel] = useState('anthropic/claude-3.5-sonnet');
+  const [totalCost, setTotalCost] = useState(0);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
 
   const handleSendPrompt = async (prompt) => {
-    // Add user message
     const userMessage = { role: 'user', content: prompt };
     setMessages(prev => [...prev, userMessage]);
     
     setIsGenerating(true);
     
     try {
-      // Call the backend API
-      const response = await generateCode(prompt, messages);
+      const response = await generateCode(prompt, messages, selectedModel);
       
-      // Add AI response
-      const aiMessage = { role: 'assistant', content: response.message };
+      const aiMessage = { 
+        role: 'assistant', 
+        content: response.message,
+        cost: response.cost 
+      };
       setMessages(prev => [...prev, aiMessage]);
       
-      // Set generated code
       setGeneratedCode(response.code);
+      
+      // Update total cost
+      if (response.cost) {
+        setTotalCost(prev => prev + response.cost.total_cost);
+      }
+
+      // On mobile, automatically switch to preview
+      if (window.innerWidth < 768) {
+        setShowPreview(true);
+      }
       
       toast({
         title: "Code Generated!",
@@ -58,6 +74,9 @@ function App() {
     setMessages([]);
     setGeneratedCode('');
     setCurrentProject(null);
+    setTotalCost(0);
+    setShowPreview(false);
+    setSidebarOpen(false);
   };
 
   const handleSaveProject = async () => {
@@ -96,27 +115,83 @@ function App() {
   };
 
   const handleProjectSelect = async (project) => {
-    // Load project details
     setMessages(project.conversation_history || []);
     setGeneratedCode(project.code || '');
     setCurrentProject(project);
+    setSidebarOpen(false);
   };
 
   return (
     <div className="flex h-screen overflow-hidden bg-[#0f0f10]">
-      <Sidebar 
-        onNewProject={handleNewProject} 
-        onProjectSelect={handleProjectSelect}
-      />
-      <ChatInterface 
-        onSendPrompt={handleSendPrompt} 
-        messages={messages} 
-        onSave={handleSaveProject}
-      />
-      <PreviewPanel 
-        generatedCode={generatedCode} 
-        isGenerating={isGenerating} 
-      />
+      {/* Mobile Menu Button */}
+      <Button
+        onClick={() => setSidebarOpen(!sidebarOpen)}
+        className="fixed top-4 left-4 z-50 md:hidden bg-gray-800 hover:bg-gray-700"
+        size="sm"
+      >
+        {sidebarOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+      </Button>
+
+      {/* Sidebar - Hidden on mobile unless open */}
+      <div className={`
+        fixed md:relative inset-y-0 left-0 z-40
+        transform transition-transform duration-300 ease-in-out
+        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+        md:translate-x-0
+      `}>
+        <Sidebar 
+          onNewProject={handleNewProject} 
+          onProjectSelect={handleProjectSelect}
+        />
+      </div>
+
+      {/* Overlay for mobile */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Main Content - Mobile: Stack vertically, Desktop: Side by side */}
+      <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
+        {/* Chat Interface - Hidden on mobile when preview is shown */}
+        <div className={`
+          ${showPreview ? 'hidden md:flex' : 'flex'} 
+          flex-1 flex-col
+        `}>
+          <ChatInterface 
+            onSendPrompt={handleSendPrompt} 
+            messages={messages} 
+            onSave={handleSaveProject}
+            selectedModel={selectedModel}
+            onModelChange={setSelectedModel}
+            totalCost={totalCost}
+          />
+        </div>
+
+        {/* Preview Panel - Full screen on mobile when shown */}
+        <div className={`
+          ${showPreview ? 'flex' : 'hidden md:flex'}
+          flex-1 flex-col relative
+        `}>
+          {/* Mobile Back Button */}
+          {showPreview && (
+            <Button
+              onClick={() => setShowPreview(false)}
+              className="md:hidden absolute top-4 left-4 z-10 bg-gray-800 hover:bg-gray-700"
+              size="sm"
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          )}
+          <PreviewPanel 
+            generatedCode={generatedCode} 
+            isGenerating={isGenerating} 
+          />
+        </div>
+      </div>
+
       <Toaster />
     </div>
   );
