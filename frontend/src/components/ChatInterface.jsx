@@ -533,13 +533,26 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
           {messages.length === 0 ? (
             <div>
               <div className="text-center mb-6 md:mb-8">
-                <h1 className="text-2xl md:text-4xl font-bold text-white mb-2 md:mb-4">
-                  Build with AI
+                <h1 className="text-3xl md:text-5xl font-bold mb-2 md:mb-4">
+                  <span className="inline-block animate-gradient-text bg-gradient-to-r from-purple-400 via-blue-400 to-purple-400 bg-clip-text text-transparent bg-[length:200%_100%]">
+                    Chimera AI
+                  </span>
                 </h1>
                 <p className="text-sm md:text-base text-gray-400">
                   Describe your app and watch it come to life
                 </p>
               </div>
+              
+              <style jsx>{`
+                @keyframes gradient-text {
+                  0%, 100% { background-position: 0% 50%; }
+                  50% { background-position: 100% 50%; }
+                }
+                
+                .animate-gradient-text {
+                  animation: gradient-text 3s ease infinite;
+                }
+              `}</style>
 
             {showSamples && (
               <div className="space-y-3 mb-8">
