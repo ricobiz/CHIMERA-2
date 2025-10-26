@@ -52,7 +52,12 @@ const Settings = ({ selectedModel, onModelChange, onClose, visualValidatorEnable
 
   useEffect(() => {
     loadModels();
-  }, []);
+    if (activeTab === 'integrations') {
+      loadIntegrations();
+    } else if (activeTab === 'mcp') {
+      loadMCPServers();
+    }
+  }, [activeTab]);
 
   const loadModels = async () => {
     try {
