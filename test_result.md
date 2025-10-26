@@ -105,6 +105,126 @@
 user_problem_statement: "Test the Lovable.dev clone backend API endpoints including OpenRouter integration"
 
 backend:
+  - task: "POST /api/integrations endpoint"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/routes/integrations_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created new endpoint for service integrations (Hugging Face, GitHub, Gmail, Google Drive). Needs testing."
+
+  - task: "GET /api/integrations endpoint"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/routes/integrations_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created endpoint to retrieve all integrations. Needs testing."
+
+  - task: "PUT /api/integrations/{id} endpoint"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/routes/integrations_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created endpoint to update integrations. Needs testing."
+
+  - task: "DELETE /api/integrations/{id} endpoint"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/routes/integrations_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created endpoint to delete integrations. Needs testing."
+
+  - task: "POST /api/mcp-servers endpoint"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/routes/integrations_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created endpoint for MCP servers with advanced features (priority, fallback order, health checks). Needs testing."
+
+  - task: "GET /api/mcp-servers endpoint"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/routes/integrations_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created endpoint to retrieve all MCP servers sorted by priority. Needs testing."
+
+  - task: "PUT /api/mcp-servers/{id} endpoint"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/routes/integrations_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created endpoint to update MCP server configs. Needs testing."
+
+  - task: "DELETE /api/mcp-servers/{id} endpoint"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/routes/integrations_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created endpoint to delete MCP servers. Needs testing."
+
+  - task: "POST /api/mcp-servers/{id}/health-check endpoint"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/routes/integrations_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created health check endpoint for MCP servers. Needs testing."
+
+  - task: "GET /api/mcp-servers/active/list endpoint"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/routes/integrations_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created endpoint to get active MCP servers with fallback order. Needs testing."
+
   - task: "POST /api/generate-code endpoint"
     implemented: true
     working: true
