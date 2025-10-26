@@ -82,6 +82,7 @@ from routes.planning_routes import router as planning_router
 from routes.document_verification_routes import router as doc_verify_router
 from routes.self_improvement_routes import router as self_improve_router
 from routes.hook_routes import router as hook_router
+from routes.proxy_routes import router as proxy_router
 app.include_router(lovable_router)
 app.include_router(models_router)
 app.include_router(session_router)
