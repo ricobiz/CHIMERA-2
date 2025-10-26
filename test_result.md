@@ -273,6 +273,42 @@ backend:
         agent: "testing"
         comment: "✅ VERIFIED: Chat endpoint working perfectly after fix. Tested 3 scenarios: (1) Basic English chat - responded naturally with 253 chars, (2) Russian language chat - correctly responded in Russian with Cyrillic characters (139 chars), (3) Contextual chat with history - provided relevant response about fitness app colors (800 chars). All responses include proper cost information. OpenRouter integration working correctly. No fallback stub messages detected."
 
+  - task: "POST /api/generate-design endpoint"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/routes/lovable_routes.py, /app/backend/services/design_generator_service.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented design-first workflow endpoint. Uses vision model (default: gemini-2.0-flash-thinking-exp:free) to generate detailed design specifications before code generation. Needs testing."
+
+  - task: "POST /api/validate-visual endpoint"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/routes/lovable_routes.py, /app/backend/services/visual_validator_service.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented visual validation endpoint. Uses vision model to validate generated UI against original request. Scores UI on 5 criteria, provides approval/rejection verdict with detailed feedback. Needs testing."
+
+  - task: "GET /api/openrouter/balance endpoint"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/routes/lovable_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented OpenRouter balance endpoint. Returns account balance, usage, and remaining credits. Frontend displays balance after each message cost. Needs testing."
+
   - task: "POST /api/generate-code endpoint"
     implemented: true
     working: true
