@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Send, ChevronDown, Save, Settings, Square, Paperclip, Mic, Plus, Upload } from 'lucide-react';
+import { Send, ChevronDown, Save, Settings, Square, Paperclip, Mic, Plus, Upload, Check, Edit } from 'lucide-react';
 import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
 import { samplePrompts } from '../mockData';
@@ -7,7 +7,7 @@ import StatusIndicator from './StatusIndicator';
 import ModelIndicator from './ModelIndicator';
 import TaskProgress from './TaskProgress';
 
-const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, activeModel, validatorEnabled, validatorModel, generationStatus = 'idle', onOpenSettings, onNewProject, currentSessionId, isGenerating, onStopGeneration, chatMode = 'chat', onChatModeChange, developmentPlan = [], currentTaskIndex = 0 }) => {
+const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, activeModel, validatorEnabled, validatorModel, generationStatus = 'idle', onOpenSettings, onNewProject, currentSessionId, isGenerating, onStopGeneration, chatMode = 'chat', onChatModeChange, developmentPlan = [], currentTaskIndex = 0, showApprovalButtons = false, onApprove, onRevise }) => {
   const [prompt, setPrompt] = useState('');
   const [showSamples, setShowSamples] = useState(true);
   const [showSettingsMenu, setShowSettingsMenu] = useState(false);
