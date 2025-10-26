@@ -31,6 +31,7 @@ class ImprovementRequest(BaseModel):
     target: str = "full"  # full, backend, frontend, specific_file
     focus_areas: List[str] = []  # performance, security, code_quality, bugs
     specific_files: List[str] = []
+    model: str = "anthropic/claude-3.5-sonnet"  # AI model to use for analysis
 
 class SystemHealthCheck(BaseModel):
     timestamp: str
