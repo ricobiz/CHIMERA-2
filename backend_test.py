@@ -3799,6 +3799,29 @@ export default App;""",
         self.test_browser_automation_page_info()
         self.test_browser_automation_cleanup()
         
+        # COMPREHENSIVE TESTING - Review Request Systems
+        print("\n" + "=" * 60)
+        print("🔍 COMPREHENSIVE TESTING - All Systems (Review Request)")
+        print("=" * 60)
+        
+        # 1. SELF-IMPROVEMENT SYSTEM
+        print("\n🧠 Testing Self-Improvement System...")
+        self.test_self_improvement_health_check()
+        self.test_self_improvement_analyze_code()
+        self.test_self_improvement_project_structure()
+        
+        # 2. DOCUMENT VERIFICATION SYSTEM
+        print("\n📄 Testing Document Verification System...")
+        self.test_document_verification_analyze()
+        
+        # 3. PLANNING SYSTEM
+        print("\n📋 Testing Planning System...")
+        self.test_planning_generate()
+        
+        # 4. BROWSER AUTOMATION (Additional comprehensive tests)
+        print("\n🤖 Testing Browser Automation - Comprehensive Flow...")
+        self.test_browser_automation_comprehensive()
+        
         # Summary
         print("\n" + "=" * 60)
         print("📊 TEST SUMMARY")
