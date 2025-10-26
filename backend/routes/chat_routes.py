@@ -7,6 +7,7 @@ import logging
 from services.ai_memory_service import memory_service
 from services.openrouter_service import openrouter_service
 from services.thinking_service import thinking_service
+from services.context_manager_service import context_manager
 
 logger = logging.getLogger(__name__)
 
@@ -16,11 +17,15 @@ class ChatRequest(BaseModel):
     message: str
     history: List[Dict[str, str]] = []
     model: str = "anthropic/claude-3.5-sonnet"
+    session_id: Optional[str] = None  # Add session_id
 
 class ChatResponse(BaseModel):
     message: str
     response: str
     cost: Optional[Dict] = None
+    context_warning: Optional[str] = None  # Add context warning
+    new_session_id: Optional[str] = None  # For session transitions
+    context_usage: Optional[Dict] = None  # Context window stats
 
 @router.post("/chat")
 async def chat(request: ChatRequest):
