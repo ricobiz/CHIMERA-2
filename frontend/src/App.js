@@ -29,6 +29,7 @@ function App() {
   const [showAutomation, setShowAutomation] = useState(false);
   const [showDocVerification, setShowDocVerification] = useState(false);
   const [showSelfImprovement, setShowSelfImprovement] = useState(false);
+  const [showAIEntry, setShowAIEntry] = useState(false);
   const [apiBalance, setApiBalance] = useState(null); // OpenRouter balance
   
   const [visualValidatorEnabled, setVisualValidatorEnabled] = useState(
