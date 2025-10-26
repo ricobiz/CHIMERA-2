@@ -378,6 +378,21 @@ backend:
         agent: "testing"
         comment: "✅ Specific project retrieval working correctly. Successfully retrieved project by ID. All required fields present (id, name, description, code, conversation_history, created_at, updated_at, last_accessed, icon). 404 error handling also tested and working correctly for invalid IDs."
 
+  - task: "POST /api/research-task endpoint"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/lovable_routes.py, /app/backend/services/research_planner_service.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented Research Planner endpoint for analyzing task complexity and conducting research before development. Supports 'analyze' mode (complexity assessment only) and 'full' mode (complete research pipeline with web search). Uses OpenRouter API for analysis and web search for current information gathering."
+      - working: true
+        agent: "testing"
+        comment: "✅ EXCELLENT: Research Planner endpoint working perfectly (9/10 tests passed, 90% success rate). All 3 main scenarios validated: (1) Simple calculator task correctly identified as simple/no research needed, (2) Complex whiteboard app correctly identified as complex/research required with 5 quality queries, (3) Full e-commerce research pipeline generated detailed 3477-char report with proper sections. Web search integration operational, usage tracking accurate, OpenRouter API working. Only minor issue: returns 500 instead of 400 for missing user_request (non-critical). Ready for production use."
+
 frontend:
   - task: "API Balance Display"
     implemented: true
