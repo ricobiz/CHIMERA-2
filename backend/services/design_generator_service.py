@@ -87,5 +87,98 @@ Style: Modern, clean, professional UI design suitable for a web application."""
         except Exception as e:
             logger.error(f"Error generating design: {str(e)}")
             raise Exception(f"Failed to generate design: {str(e)}")
+    
+    async def generate_visual_mockup(self, design_spec: str, user_request: str, model: str = None) -> Dict:
+        """Generate visual mockup image based on design specification"""
+        try:
+            # Use image generation model (Gemini Nano Banana or GPT-5 Image)
+            selected_model = model or "google/gemini-2.5-flash-image-preview"
+            
+            # Create detailed mockup prompt
+            mockup_prompt = self.mockup_prompt.format(design_spec=design_spec)
+            
+            logger.info(f"Generating visual mockup with model: {selected_model}")
+            
+            # For image generation, we need to use the images endpoint
+            # Note: OpenRouter might have different endpoints for different models
+            # Gemini can generate images through chat completions
+            
+            response = self.client.chat.completions.create(
+                model=selected_model,
+                messages=[
+                    {
+                        "role": "user",
+                        "content": f"Create a UI mockup image for this application:\n\n{user_request}\n\nDesign specifications:\n{design_spec}\n\nGenerate a clean, professional mockup image showing the main interface."
+                    }
+                ],
+                temperature=0.7,
+                max_tokens=1000
+            )
+            
+            # Extract image URL or base64 from response
+            # Note: Response format depends on model
+            mockup_data = response.choices[0].message.content
+            
+            logger.info("Visual mockup generated successfully")
+            
+            return {
+                "mockup_data": mockup_data,
+                "design_spec": design_spec,
+                "usage": {
+                    "prompt_tokens": response.usage.prompt_tokens if response.usage else 0,
+                    "completion_tokens": response.usage.completion_tokens if response.usage else 0,
+                    "total_tokens": response.usage.total_tokens if response.usage else 0
+                }
+            }
+            
+        except Exception as e:
+            logger.error(f"Error generating mockup: {str(e)}")
+            raise Exception(f"Failed to generate mockup: {str(e)}")
+    
+    async def revise_design(self, current_design: str, revision_request: str, model: str = None) -> Dict:
+        """Revise existing design based on user feedback"""
+        try:
+            selected_model = model or "google/gemini-2.5-flash-image"
+            
+            revision_prompt = f"""You are revising a UI/UX design based on user feedback.
+
+**Current Design:**
+{current_design}
+
+**User's Revision Request:**
+{revision_request}
+
+**Your Task:**
+Update the design specification to incorporate the user's requested changes while maintaining consistency and professionalism. Keep what works and only change what the user requested.
+
+Provide the UPDATED design specification in the same detailed format as before."""
+
+            logger.info(f"Revising design with model: {selected_model}")
+            
+            response = self.client.chat.completions.create(
+                model=selected_model,
+                messages=[
+                    {"role": "user", "content": revision_prompt}
+                ],
+                temperature=0.7,
+                max_tokens=2000
+            )
+            
+            revised_design = response.choices[0].message.content
+            
+            logger.info("Design revision completed successfully")
+            
+            return {
+                "design_spec": revised_design,
+                "usage": {
+                    "prompt_tokens": response.usage.prompt_tokens if response.usage else 0,
+                    "completion_tokens": response.usage.completion_tokens if response.usage else 0,
+                    "total_tokens": response.usage.total_tokens if response.usage else 0
+                }
+            }
+            
+        except Exception as e:
+            logger.error(f"Error revising design: {str(e)}")
+            raise Exception(f"Failed to revise design: {str(e)}")
 
 design_generator_service = DesignGeneratorService()
