@@ -27,11 +27,11 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, onOpenS
       {/* Header */}
       <div className="border-b border-gray-800 p-3 md:p-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <h2 className="text-white font-medium text-sm">AI Assistant</h2>
-            
-            {/* Model Indicators - Icon Only */}
-            <div className="flex items-center gap-3">
+          <h2 className="text-white font-medium text-sm">AI Assistant</h2>
+          
+          <div className="flex items-center gap-3">
+            {/* Model Indicators */}
+            <div className="flex items-center gap-2">
               <ModelIndicator 
                 type="code" 
                 modelName={activeModel?.split('/').pop()}
@@ -43,19 +43,13 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, onOpenS
                 isActive={validatorEnabled}
               />
             </div>
-          </div>
-          
-          <div className="flex items-center gap-3">
-            {/* System Status & Balance */}
+            
+            {/* Status & Cost */}
             <div className="flex items-center gap-2">
               <StatusIndicator />
-              {totalCost > 0 && (
-                <span className="text-[9px] text-gray-600 font-mono">
-                  ${totalCost.toFixed(4)}
-                </span>
-              )}
             </div>
             
+            {/* Save Button */}
             {messages.length > 0 && (
               <Button
                 onClick={onSave}
