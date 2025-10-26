@@ -95,6 +95,33 @@ app.include_router(doc_verify_router)
 app.include_router(self_improve_router)
 app.include_router(hook_router)
 
+# Validation endpoint for browser automation
+from pydantic import BaseModel as PydanticBaseModel
+from services.visual_validator_service import visual_validator_service
+
+class ValidationRequest(PydanticBaseModel):
+    screenshot: str
+    expectedUrl: str
+    currentUrl: str
+    pageTitle: str
+    description: str
+
+@app.post("/api/validate-navigation")
+async def validate_navigation_endpoint(request: ValidationRequest):
+    """Validate navigation success using vision API"""
+    try:
+        result = await visual_validator_service.validate_navigation(
+            screenshot_base64=request.screenshot,
+            expected_url=request.expectedUrl,
+            current_url=request.currentUrl,
+            page_title=request.pageTitle,
+            description=request.description
+        )
+        return result
+    except Exception as e:
+        logger.error(f"Error validating navigation: {str(e)}")
+        return {"success": False, "confidence": 0.2, "issues": [str(e)], "suggestions": ["Retry navigation"]}
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
