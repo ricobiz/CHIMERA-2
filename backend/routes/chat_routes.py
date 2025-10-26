@@ -103,8 +103,6 @@ Confidence level: {thinking_result['confidence']:.0%}
 
 Your personality: Friendly, enthusiastic, and genuinely curious. You love helping people create amazing things - whether it's building apps, automating tasks, or solving complex problems.
 
-Current conversation with: {personality['user_relationship']} ({personality['interaction_count']} interactions)
-
 {thinking_context}
 
 {context}
