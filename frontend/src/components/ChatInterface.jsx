@@ -4,6 +4,7 @@ import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
 import { samplePrompts } from '../mockData';
 import { CodeIcon, EyeIcon } from './Icons';
+import StatusIndicator from './StatusIndicator';
 
 const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, onOpenSettings, activeModel, validatorEnabled, validatorModel }) => {
   const [prompt, setPrompt] = useState('');
@@ -26,21 +27,31 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, onOpenS
       {/* Header */}
       <div className="border-b border-gray-800 p-3 md:p-4">
         <div className="flex items-center justify-between flex-wrap gap-2">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             <h2 className="text-white font-semibold text-sm md:text-base">AI Assistant</h2>
             
-            {/* Active Models - Minimal Display */}
-            <div className="flex items-center gap-3 text-[10px] ml-4">
-              <div className="flex items-center gap-1.5">
-                <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></div>
+            {/* System Status */}
+            <StatusIndicator />
+            
+            {/* Active Models - Capsule Design */}
+            <div className="flex items-center gap-2 ml-2">
+              {/* Code Model Capsule */}
+              <div className="flex items-center gap-1.5 px-2.5 py-1 bg-blue-500/10 rounded-full border border-blue-500/20">
+                <div className="w-1 h-1 rounded-full bg-blue-500 animate-pulse"></div>
                 <CodeIcon className="w-3 h-3 text-blue-400" />
-                <span className="text-blue-400">{activeModel?.split('/')[1]?.substring(0, 15) || 'claude-3.5-sonnet'}</span>
+                <span className="text-[10px] text-blue-400 font-medium">
+                  {activeModel?.split('/')[1]?.substring(0, 12) || 'claude-3.5'}
+                </span>
               </div>
+              
+              {/* Validator Model Capsule */}
               {validatorEnabled && (
-                <div className="flex items-center gap-1.5">
-                  <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
+                <div className="flex items-center gap-1.5 px-2.5 py-1 bg-green-500/10 rounded-full border border-green-500/20">
+                  <div className="w-1 h-1 rounded-full bg-green-500 animate-pulse"></div>
                   <EyeIcon className="w-3 h-3 text-green-400" />
-                  <span className="text-green-400">{validatorModel?.split('/')[1]?.substring(0, 15) || 'haiku'}</span>
+                  <span className="text-[10px] text-green-400 font-medium">
+                    {validatorModel?.split('/')[1]?.substring(0, 12) || 'haiku'}
+                  </span>
                 </div>
               )}
             </div>
@@ -49,8 +60,8 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, onOpenS
           <div className="flex items-center gap-2">
             {/* Cost Display */}
             {totalCost > 0 && (
-              <div className="px-2 py-1 bg-gray-800 rounded">
-                <span className="text-[10px] text-gray-400 font-mono">
+              <div className="px-2 py-1 bg-gray-800/50 rounded-full border border-gray-700/50">
+                <span className="text-[10px] text-gray-500 font-mono">
                   ${totalCost.toFixed(4)}
                 </span>
               </div>
