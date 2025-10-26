@@ -347,14 +347,14 @@ Format as a flowing paragraph, not bullet points."""
         #     session_memories = [
         #         m for m in memories 
         #         if m.get('metadata', {}).get('session_id') == session_id
-            ]
-            
-            results.extend(session_memories)
-        
-        # Sort by relevance
-        results.sort(key=lambda x: x.get('distance', 999))
-        
-        return results[:5]  # Top 5 across all sessions
+        #     ]
+        #     
+        #     results.extend(session_memories)
+        # 
+        # # Sort by relevance
+        # results.sort(key=lambda x: x.get('distance', 999))
+        # 
+        # return results[:5]  # Top 5 across all sessions
     
     def format_context_warning(self, usage: Dict) -> str:
         """Форматировать предупреждение о контексте для UI"""
