@@ -35,6 +35,9 @@ function App() {
   const [chatMode, setChatMode] = useState('chat'); // 'chat' or 'agent'
   const [developmentPlan, setDevelopmentPlan] = useState([]);
   const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
+  const [showApprovalButtons, setShowApprovalButtons] = useState(false);
+  const [isValidatingVisually, setIsValidatingVisually] = useState(false);
+  const [revisionPlan, setRevisionPlan] = useState([]);
 
   const handleStopGeneration = () => {
     // TODO: Implement stop generation logic
