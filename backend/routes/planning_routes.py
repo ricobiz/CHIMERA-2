@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import List, Dict, Optional
 import logging
+import time
 from services.openrouter_service import openrouter_service
 
 logger = logging.getLogger(__name__)
