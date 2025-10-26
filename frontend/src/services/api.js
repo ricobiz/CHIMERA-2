@@ -90,3 +90,54 @@ export const exportProject = async (code, projectName) => {
     throw error;
   }
 };
+
+// Session APIs
+export const createSession = async (sessionData) => {
+  try {
+    const response = await axios.post(`${API}/sessions`, sessionData);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating session:', error);
+    throw error;
+  }
+};
+
+export const getSessions = async () => {
+  try {
+    const response = await axios.get(`${API}/sessions`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching sessions:', error);
+    throw error;
+  }
+};
+
+export const getSession = async (sessionId) => {
+  try {
+    const response = await axios.get(`${API}/sessions/${sessionId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching session:', error);
+    throw error;
+  }
+};
+
+export const updateSession = async (sessionId, sessionData) => {
+  try {
+    const response = await axios.put(`${API}/sessions/${sessionId}`, sessionData);
+    return response.data;
+  } catch (error) {
+    console.error('Error updating session:', error);
+    throw error;
+  }
+};
+
+export const deleteSession = async (sessionId) => {
+  try {
+    const response = await axios.delete(`${API}/sessions/${sessionId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting session:', error);
+    throw error;
+  }
+};
