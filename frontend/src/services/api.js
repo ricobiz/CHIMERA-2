@@ -141,3 +141,18 @@ export const deleteSession = async (sessionId) => {
     throw error;
   }
 };
+
+// Visual Validation
+export const validateVisual = async (screenshot, userRequest, validatorModel) => {
+  try {
+    const response = await axios.post(`${API}/validate-visual`, {
+      screenshot,
+      user_request: userRequest,
+      validator_model: validatorModel
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error in visual validation:', error);
+    throw error;
+  }
+};
