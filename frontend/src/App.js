@@ -145,6 +145,10 @@ function App() {
           selectedModel={selectedModel}
           onModelChange={setSelectedModel}
           onClose={() => setShowSettings(false)}
+          visualValidatorEnabled={visualValidatorEnabled}
+          onVisualValidatorToggle={setVisualValidatorEnabled}
+          visualValidatorModel={visualValidatorModel}
+          onVisualValidatorModelChange={setVisualValidatorModel}
         />
         <Toaster />
       </div>
