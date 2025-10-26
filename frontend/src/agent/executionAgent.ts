@@ -128,9 +128,11 @@ class ExecutionAgentService {
       
       console.log('[ExecutionAgent] Entering execution loop for', plan.steps.length, 'steps');
       
-      for (let i = 0; i < plan.steps.length; i++) {
-        console.log(`[ExecutionAgent] 📍 Loop iteration ${i + 1}/${plan.steps.length}`);
-        console.log(`[ExecutionAgent] Current step object:`, plan.steps[i]);
+      // Wrap execution loop in try-catch
+      try {
+        for (let i = 0; i < plan.steps.length; i++) {
+          console.log(`[ExecutionAgent] 📍 Loop iteration ${i + 1}/${plan.steps.length}`);
+          console.log(`[ExecutionAgent] Current step object:`, plan.steps[i]);
         
         if (this.aborted) {
           console.log('[ExecutionAgent] Automation aborted by user');
