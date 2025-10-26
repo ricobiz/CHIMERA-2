@@ -37,6 +37,8 @@ function App() {
   const [isValidating, setIsValidating] = useState(false);
   const [validationFeedback, setValidationFeedback] = useState(null);
   const [originalUserRequest, setOriginalUserRequest] = useState('');
+  const [awaitingDesignApproval, setAwaitingDesignApproval] = useState(false);
+  const [proposedDesign, setProposedDesign] = useState(null);
 
   const handleSendPrompt = async (prompt) => {
     // Store original request for validation
