@@ -394,6 +394,25 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
                 </div>
               </button>
               
+              {/* AI Entry Point Button - NEW! */}
+              <button
+                onClick={() => {
+                  if (onOpenAIEntry) {
+                    onOpenAIEntry();
+                  }
+                }}
+                className="p-2 rounded-lg bg-gradient-to-r from-cyan-600/20 to-teal-600/20 hover:from-cyan-600/30 hover:to-teal-600/30 border border-cyan-500/50 hover:border-cyan-400 transition-all group relative"
+                title="AI Entry Point"
+              >
+                <svg className="w-4 h-4 text-cyan-400 group-hover:text-cyan-300 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                {/* Tooltip */}
+                <div className="absolute bottom-full right-0 mb-2 px-2 py-1 bg-gray-900 border border-gray-700 rounded text-xs text-gray-300 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                  AI Entry Point
+                </div>
+              </button>
+              
               {/* Content Folder Button - NEW! */}
               <button
                 onClick={() => setShowContent(!showContent)}
