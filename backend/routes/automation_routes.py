@@ -315,3 +315,18 @@ async def close_session(session_id: str):
     except Exception as e:
         logger.error(f"Error closing session: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/captcha/solve")
+async def solve_captcha(request: Dict[str, str]):
+    """Manually trigger CAPTCHA detection and solving"""
+    try:
+        session_id = request.get('session_id')
+        if not session_id:
+            raise HTTPException(status_code=400, detail="session_id is required")
+        
+        result = await browser_service.detect_and_solve_captcha(session_id)
+        return result
+    except Exception as e:
+        logger.error(f"Error solving CAPTCHA: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
