@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Send, ChevronDown, Save, Settings, Square, Paperclip, Mic, Plus, Upload, Check, Edit, List } from 'lucide-react';
+import { Send, ChevronDown, Save, Settings, Square, Paperclip, Mic, Plus, Upload, Check, Edit, List, Trash2, RotateCcw, Edit2 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
 import { samplePrompts } from '../mockData';
 import StatusIndicator from './StatusIndicator';
 import ModelIndicator from './ModelIndicator';
 import TaskProgress from './TaskProgress';
+import LoadingIndicator from './LoadingIndicator';
 import { toast } from '../hooks/use-toast';
 import { getSessions, getSession } from '../services/api';
 
