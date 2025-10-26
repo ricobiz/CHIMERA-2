@@ -685,6 +685,9 @@ function App() {
             showApprovalButtons={showApprovalButtons}
             onApprove={handleApprove}
             onRevise={handleRevise}
+            onDeleteMessage={handleDeleteMessage}
+            onEditMessage={handleEditMessage}
+            onRegenerateFromMessage={handleRegenerateFromMessage}
           />
         </div>
 
