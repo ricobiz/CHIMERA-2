@@ -207,11 +207,9 @@ Be EXTREMELY thorough and critical. False negatives (missing fraud) are more dan
                 "content": [
                     {"type": "text", "text": analysis_prompt},
                     {
-                        "type": "image",
-                        "source": {
-                            "type": "base64",
-                            "media_type": "image/jpeg",
-                            "data": request.document_base64
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/jpeg;base64,{request.document_base64}"
                         }
                     }
                 ]
