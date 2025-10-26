@@ -10,6 +10,15 @@ import {
 } from './types.ts';
 import { plannerService } from './planner.ts';
 import { validatorService } from './validator.ts';
+import { 
+  createAutomationSession, 
+  navigateAutomation, 
+  findElements, 
+  smartClick, 
+  typeText, 
+  getAutomationScreenshot, 
+  closeAutomationSession 
+} from '../services/api';
 
 type StateUpdateCallback = (updates: Partial<AutomationState>) => void;
 
@@ -26,6 +35,7 @@ class ExecutionAgentService {
   private aborted: boolean = false;
   private paused: boolean = false;
   private stateCallback: StateUpdateCallback | null = null;
+  private currentSessionId: string | null = null; // Store session ID
 
   /**
    * Set callback for state updates
