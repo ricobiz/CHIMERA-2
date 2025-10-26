@@ -525,6 +525,107 @@ class ExecutionAgentService {
           }
           break;
 
+        case 'SMART_CLICK':
+          // Smart click using vision model with natural language hint
+          console.log(`[ExecutionAgent] SMART_CLICK: ${step.targetDescription}`);
+          const smartClickHint = step.targetHint || step.targetDescription;
+          
+          result = await smartClick(this.currentSessionId, smartClickHint);
+          console.log(`[ExecutionAgent] SMART_CLICK result:`, result);
+          
+          if (result.screenshot_after || result.screenshot) {
+            const newState: BrowserState = {
+              ...browserState,
+              screenshot: result.screenshot_after || result.screenshot,
+              highlightBoxes: result.box ? [{
+                x: result.box.x,
+                y: result.box.y,
+                w: result.box.width,
+                h: result.box.height,
+                label: `Smart Click: ${step.targetDescription}`,
+                color: '#10b981'
+              }] : [],
+              timestamp: Date.now()
+            };
+            this.updateState({ browserState: newState });
+          }
+          
+          // Check if needs human intervention
+          if (result.needs_human || (!result.success && result.confidence < 0.5)) {
+            this.addLog({
+              actionType: 'SMART_CLICK',
+              details: `Needs human: ${result.element_description || result.error}`,
+              status: 'needs_human',
+              confidence: result.confidence
+            });
+            throw new Error(`NEEDS_HUMAN: ${result.element_description || result.error}`);
+          }
+          break;
+
+        case 'SMART_TYPE':
+          // Smart type using vision model
+          console.log(`[ExecutionAgent] SMART_TYPE: ${step.targetDescription} = ${step.inputValue}`);
+          const smartTypeHint = step.targetHint || step.targetDescription;
+          const typeText = step.inputValue || '';
+          
+          result = await smartType(this.currentSessionId, smartTypeHint, typeText);
+          console.log(`[ExecutionAgent] SMART_TYPE result:`, result);
+          
+          if (result.screenshot_after || result.screenshot) {
+            const newState: BrowserState = {
+              ...browserState,
+              screenshot: result.screenshot_after || result.screenshot,
+              highlightBoxes: result.box ? [{
+                x: result.box.x,
+                y: result.box.y,
+                w: result.box.width,
+                h: result.box.height,
+                label: `Smart Type: ${step.targetDescription}`,
+                color: '#8b5cf6'
+              }] : [],
+              timestamp: Date.now()
+            };
+            this.updateState({ browserState: newState });
+          }
+          
+          // Check if needs human intervention
+          if (result.needs_human || (!result.success && result.confidence < 0.5)) {
+            this.addLog({
+              actionType: 'SMART_TYPE',
+              details: `Needs human: ${result.element_description || result.error}`,
+              status: 'needs_human',
+              confidence: result.confidence
+            });
+            throw new Error(`NEEDS_HUMAN: ${result.element_description || result.error}`);
+          }
+          break;
+
+        case 'CAPTCHA_CHALLENGE':
+          // Captcha detected - needs human intervention
+          console.log(`[ExecutionAgent] CAPTCHA_CHALLENGE detected: ${step.targetDescription}`);
+          
+          this.addLog({
+            actionType: 'CAPTCHA_CHALLENGE',
+            details: `Captcha detected: ${step.targetDescription}. Human intervention required.`,
+            status: 'needs_human',
+            needsHuman: true
+          });
+          
+          // Get current screenshot to show user
+          const captchaScreenshot = await getAutomationScreenshot(this.currentSessionId);
+          if (captchaScreenshot.screenshot) {
+            this.updateState({ 
+              browserState: {
+                ...browserState,
+                screenshot: captchaScreenshot.screenshot,
+                timestamp: Date.now()
+              },
+              status: 'needs_human'
+            });
+          }
+          
+          throw new Error('CAPTCHA_CHALLENGE: Human intervention required to complete captcha');
+
         default:
           console.warn(`[ExecutionAgent] Unsupported action type: ${step.actionType}`);
           // Get current screenshot for unsupported actions
