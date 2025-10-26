@@ -12,6 +12,7 @@ const AIEntryPoint = () => {
   const [currentTask, setCurrentTask] = useState('');
   const [result, setResult] = useState(null);
   const [autoRefresh, setAutoRefresh] = useState(true);
+  const [runMode, setRunMode] = useState('PAUSED');
   
   const logsEndRef = useRef(null);
   const pollIntervalRef = useRef(null);
