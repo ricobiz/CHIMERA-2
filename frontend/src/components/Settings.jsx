@@ -435,6 +435,26 @@ const Settings = ({ selectedModel, onModelChange, onClose, visualValidatorEnable
             >
               API Keys & Secrets
             </button>
+            <button
+              onClick={() => setActiveTab('integrations')}
+              className={`px-4 py-2 text-sm font-medium transition-colors rounded-t-lg ${
+                activeTab === 'integrations'
+                  ? 'bg-gray-800 text-white border-b-2 border-purple-500'
+                  : 'text-gray-500 hover:text-gray-300'
+              }`}
+            >
+              Integrations
+            </button>
+            <button
+              onClick={() => setActiveTab('mcp')}
+              className={`px-4 py-2 text-sm font-medium transition-colors rounded-t-lg ${
+                activeTab === 'mcp'
+                  ? 'bg-gray-800 text-white border-b-2 border-purple-500'
+                  : 'text-gray-500 hover:text-gray-300'
+              }`}
+            >
+              MCP Servers
+            </button>
           </div>
 
           {/* Models Tab */}
