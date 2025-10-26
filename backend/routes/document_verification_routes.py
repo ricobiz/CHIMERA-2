@@ -113,7 +113,7 @@ RESPOND WITH STRUCTURED JSON ONLY (no markdown, no code blocks):
 Be EXTREMELY thorough and critical. False negatives (missing fraud) are more dangerous than false positives."""
 
         # Analysis with vision model
-        logger.info(f"Running analysis with {model}...")
+        logger.info(f"Running analysis with {primary_model}...")
         messages = [
             {
                 "role": "system",
