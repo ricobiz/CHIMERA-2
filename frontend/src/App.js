@@ -477,9 +477,9 @@ function App() {
         />
       )}
 
-      <div className="flex-1 flex flex-col md:flex-row overflow-hidden relative">
-        {/* Chat Interface - always visible on desktop, toggle on mobile */}
-        <div className={`${showPreview ? 'hidden md:flex' : 'flex'} flex-1 flex-col overflow-hidden`}>
+      <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
+        {/* Chat Interface - SHOWN BY DEFAULT on mobile */}
+        <div className={`${showPreview ? 'hidden' : 'flex'} md:flex flex-1 flex-col overflow-hidden`}>
           <ChatInterface 
             onSendPrompt={handleSendPrompt} 
             messages={messages} 
@@ -504,8 +504,8 @@ function App() {
           />
         </div>
 
-        {/* Preview Panel - always visible on desktop, toggle on mobile */}
-        <div className={`${showPreview ? 'flex' : 'hidden md:flex'} flex-1 flex-col overflow-hidden relative`}>
+        {/* Preview Panel - HIDDEN BY DEFAULT on mobile */}
+        <div className={`${showPreview ? 'flex' : 'hidden'} md:flex flex-1 flex-col overflow-hidden relative`}>
           {showPreview && (
             <Button
               onClick={() => setShowPreview(false)}
