@@ -216,15 +216,15 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, activeM
           <div className="relative session-menu-container">
             <button
               onClick={() => setShowSessionMenu(!showSessionMenu)}
-              className="flex items-center gap-2 hover:bg-gray-800/50 rounded px-2 py-1 transition-colors group"
+              className="flex items-center gap-2 hover:bg-gray-800/50 rounded-lg px-3 py-2 transition-all group border border-transparent hover:border-gray-700"
             >
-              <h2 className="text-white font-medium text-sm">AI Assistant</h2>
+              <h2 className="text-white font-semibold text-sm">AI Assistant</h2>
               {currentSessionId && (
-                <span className="text-xs text-gray-500 font-mono group-hover:text-gray-400">
+                <span className="text-xs text-gray-400 group-hover:text-gray-300 font-mono bg-gray-800/50 px-2 py-0.5 rounded border border-gray-700">
                   ID: {currentSessionId.slice(0, 8)}...
                 </span>
               )}
-              <List className="w-3 h-3 text-gray-500 group-hover:text-gray-400" />
+              <List className="w-4 h-4 text-gray-400 group-hover:text-white transition-colors" />
             </button>
 
             {/* Session Menu Dropdown */}
