@@ -523,7 +523,7 @@ function App() {
             apiBalance={apiBalance}
             activeModel={selectedModel}
             validatorEnabled={visualValidatorEnabled}
-            validatorModel={validatorModel}
+            validatorModel={visualValidatorModel}
             generationStatus={generationStatus}
             onOpenSettings={handleOpenSettings}
             onOpenAutomation={() => setShowAutomation(true)}
