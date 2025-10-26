@@ -463,6 +463,10 @@ function App() {
     setSidebarOpen(false);
   };
 
+  if (showAutomation) {
+    return <AutomationPage />;
+  }
+
   if (showSettings) {
     return (
       <div className="flex h-screen overflow-hidden bg-[#0f0f10]">
