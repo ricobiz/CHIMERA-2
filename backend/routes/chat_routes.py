@@ -4,7 +4,7 @@ from typing import List, Dict, Optional
 import httpx
 import os
 import logging
-from services.ai_memory_service import memory_service
+# from services.ai_memory_service import memory_service  # Disabled for MVP - will use external embedding API
 from services.openrouter_service import openrouter_service
 from services.thinking_service import thinking_service
 from services.context_manager_service import context_manager
