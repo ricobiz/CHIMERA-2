@@ -696,6 +696,46 @@ test_plan:
 
 agent_communication:
   - agent: "testing"
+    message: "❌ **COMPREHENSIVE FRONTEND TESTING COMPLETED - CRITICAL ISSUES FOUND**
+    
+    **Test Scenario: Calculator with Blue Theme (Russian Prompt)**
+    
+    **CRITICAL ISSUES DISCOVERED:**
+    
+    **❌ JavaScript Runtime Errors in Preview Panel:**
+    - TypeError: Cannot read properties of undefined (reading 'toFixed')
+    - Multiple React errors in bundle.js preventing proper preview functionality
+    - Errors occur in ChatInterface, Object.react_stack_bottom_frame, and other React components
+    - Preview panel loads but calculator functionality is broken due to these errors
+    
+    **❌ Context Usage Display Missing:**
+    - Context percentage not visible in chat interface despite backend integration
+    - Context management APIs working but frontend display component not functioning
+    
+    **✅ WORKING COMPONENTS:**
+    - Russian language processing: WORKING
+    - Settings access: WORKING (4 tabs confirmed: Models, API Keys & Secrets, Integrations, MCP Servers)
+    - Visual Validator: ENABLED and configured
+    - Research Planner: ENABLED and configured  
+    - Cost tracking: WORKING (visible in sidebar with $X.XXXXXX format)
+    - Session management: WORKING
+    - Basic UI navigation: WORKING
+    - Mode switching (Chat/Agent): WORKING
+    - Backend API integration: WORKING
+    
+    **⚠️ PARTIAL FUNCTIONALITY:**
+    - Code generation workflow: Partially working but preview broken
+    - Calculator generation: Generated but not displayable due to JS errors
+    - Blue theme implementation: Not clearly visible due to preview issues
+    
+    **URGENT ACTION REQUIRED:**
+    1. Fix JavaScript runtime errors in preview panel (toFixed undefined error)
+    2. Debug context usage display component integration
+    3. Verify calculator preview functionality after JS fixes
+    4. Test complete design-first workflow after fixes
+    
+    **RECOMMENDATION:** Main agent should prioritize fixing the JavaScript runtime errors in the preview panel as this is blocking the core functionality testing."
+  - agent: "testing"
     message: "✅ **CONTEXT WINDOW MANAGEMENT SYSTEM TESTING COMPLETE - EXCELLENT RESULTS**
     
     **Test Results: 11/13 PASSED (85% Success Rate)**
