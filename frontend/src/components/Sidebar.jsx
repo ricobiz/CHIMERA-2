@@ -16,6 +16,18 @@ const Sidebar = ({ onNewProject, onProjectSelect, onOpenSettings, onSessionSelec
     loadSessions();
   }, []);
 
+  useEffect(() => {
+    // Close session menu when clicking outside
+    const handleClickOutside = (e) => {
+      if (showSessionMenu && !e.target.closest('.session-menu-container')) {
+        setShowSessionMenu(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showSessionMenu]);
+
   const loadSessions = async () => {
     try {
       const data = await getSessions();
