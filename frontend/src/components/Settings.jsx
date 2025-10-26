@@ -23,6 +23,8 @@ const Settings = ({ selectedModel, onModelChange, onClose, visualValidatorEnable
   
   // Secrets management
   const [activeTab, setActiveTab] = useState('models'); // 'models', 'secrets', 'integrations', 'mcp'
+  const [showKnowledgeBase, setShowKnowledgeBase] = useState(false);
+  const [language, setLanguage] = useState(localStorage.getItem('chimera_language') || 'en');
   const [secrets, setSecrets] = useState(() => {
     const saved = localStorage.getItem('user_secrets');
     return saved ? JSON.parse(saved) : [];
