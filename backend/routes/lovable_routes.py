@@ -140,6 +140,59 @@ async def generate_design(request: dict):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.post("/generate-mockup")
+async def generate_mockup(request: dict):
+    """Generate visual mockup image from design specification"""
+    try:
+        design_spec = request.get("design_spec")
+        user_request = request.get("user_request")
+        model = request.get("model")
+        
+        if not design_spec:
+            raise HTTPException(status_code=400, detail="design_spec is required")
+        if not user_request:
+            raise HTTPException(status_code=400, detail="user_request is required")
+        
+        result = await design_generator_service.generate_visual_mockup(
+            design_spec, user_request, model
+        )
+        
+        return {
+            "mockup_data": result["mockup_data"],
+            "design_spec": result["design_spec"],
+            "usage": result.get("usage", {})
+        }
+    except Exception as e:
+        logger.error(f"Error in generate-mockup endpoint: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/revise-design")
+async def revise_design(request: dict):
+    """Revise design based on user feedback"""
+    try:
+        current_design = request.get("current_design")
+        revision_request = request.get("revision_request")
+        model = request.get("model")
+        
+        if not current_design:
+            raise HTTPException(status_code=400, detail="current_design is required")
+        if not revision_request:
+            raise HTTPException(status_code=400, detail="revision_request is required")
+        
+        result = await design_generator_service.revise_design(
+            current_design, revision_request, model
+        )
+        
+        return {
+            "design_spec": result["design_spec"],
+            "usage": result.get("usage", {})
+        }
+    except Exception as e:
+        logger.error(f"Error in revise-design endpoint: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.post("/validate-visual")
 async def validate_visual(request: dict):
     """Validate UI screenshot using vision model"""
