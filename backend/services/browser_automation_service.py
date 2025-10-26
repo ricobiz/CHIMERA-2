@@ -104,36 +104,20 @@ class BrowserAutomationService:
         # Create new context with anti-detection settings
         context = await self.browser.new_context(**context_options)
         
-        # Inject anti-detection scripts
-        await context.add_init_script("""
-            // Overwrite navigator properties
-            Object.defineProperty(navigator, 'webdriver', {
-                get: () => undefined
-            });
-            
-            // Chrome runtime
-            window.chrome = {
-                runtime: {}
-            };
-            
-            // Permissions
-            const originalQuery = window.navigator.permissions.query;
-            window.navigator.permissions.query = (parameters) => (
-                parameters.name === 'notifications' ?
-                    Promise.resolve({ state: Notification.permission }) :
-                    originalQuery(parameters)
-            );
-        """)
+        # Apply advanced fingerprinting evasion
+        await AntiDetectFingerprint.apply_fingerprinting_evasion(context)
+        
         page = await context.new_page()
         
         self.sessions[session_id] = {
             'context': context,
             'page': page,
-            'history': []
+            'history': [],
+            'use_proxy': use_proxy
         }
         
-        logger.info(f"Created session: {session_id}")
-        return {'session_id': session_id, 'status': 'ready'}
+        logger.info(f"✅ Created session: {session_id} (proxy={use_proxy})")
+        return {'session_id': session_id, 'status': 'ready', 'proxy_enabled': use_proxy}
     
     async def navigate(self, session_id: str, url: str) -> Dict[str, Any]:
         """Navigate to URL"""
