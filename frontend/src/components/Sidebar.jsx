@@ -47,6 +47,39 @@ const Sidebar = ({ onNewProject, onProjectSelect, onOpenSettings, onSessionSelec
     }
   };
 
+  const handleLoadSessionById = async () => {
+    if (!sessionIdInput.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter a session ID.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const session = await getSession(sessionIdInput.trim());
+      onSessionSelect(session);
+      setShowSessionMenu(false);
+      setSessionIdInput('');
+      toast({
+        title: "Session Loaded",
+        description: "Session has been loaded successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load session. Check the ID and try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleNewWorkspace = () => {
+    onNewProject();
+    setShowSessionMenu(false);
+  };
+
   return (
     <div className="w-80 bg-[#1a1a1b] border-r border-gray-800 flex flex-col h-screen">
       {/* Header */}
