@@ -1,5 +1,5 @@
 // Validator Module: Validates execution results after each step
-import { BrowserState, ValidatorResponse, ActionStep } from './types';
+import { BrowserState, ValidatorResponse, ActionStep } from './types.ts';
 
 class ValidatorService {
   private validatorModel: string = 'google/gemini-2.5-flash-image';
