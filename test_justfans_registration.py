@@ -13,7 +13,7 @@ import string
 from datetime import datetime
 
 # Backend URL from frontend/.env
-BACKEND_URL = "https://aidev-assist.preview.emergentagent.com/api"
+BACKEND_URL = "https://browser-automator-2.preview.emergentagent.com/api"
 
 class JustFansRegistrationTester:
     def __init__(self):
