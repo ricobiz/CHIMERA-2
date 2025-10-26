@@ -299,6 +299,11 @@ function App() {
     
     // AGENT MODE - code generation with development plan
     if (chatMode === 'agent') {
+      // Clear any existing progress interval
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+      }
+      
       const plan = [
         { name: 'Planning', description: 'Creating project structure', status: 'in-progress' },
         { name: 'Design Specification', description: 'Generating UI/UX design', status: 'pending' },
@@ -312,7 +317,7 @@ function App() {
       
       // Simulate task progression
       let taskIdx = 0;
-      const progressInterval = setInterval(() => {
+      progressIntervalRef.current = setInterval(() => {
         if (taskIdx < plan.length - 1) {
           // Mark current as validating
           setDevelopmentPlan(prev => {
@@ -335,7 +340,10 @@ function App() {
             setCurrentTaskIndex(taskIdx);
           }, 2000);
         } else {
-          clearInterval(progressInterval);
+          if (progressIntervalRef.current) {
+            clearInterval(progressIntervalRef.current);
+            progressIntervalRef.current = null;
+          }
         }
       }, 4000);
     }
