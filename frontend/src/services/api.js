@@ -446,6 +446,8 @@ export const generatePlan = async (goal, model = 'openai/gpt-5') => {
     const response = await axios.post(`${API}/planning/generate`, {
       goal,
       model
+    }, {
+      timeout: 60000  // 60 second timeout for planning
     });
     console.log(`[API] generatePlan response:`, response.data);
     return response.data;
