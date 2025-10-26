@@ -189,8 +189,8 @@ class BrowserAutomationService:
                 'error': str(e)
             }
     
-    async def type_text(self, session_id: str, selector: str, text: str) -> Dict[str, Any]:
-        """Type text into element"""
+    async def type_text(self, session_id: str, selector: str, text: str, human_like: bool = True) -> Dict[str, Any]:
+        """Type text into element with optional human-like behavior"""
         if session_id not in self.sessions:
             raise ValueError(f"Session {session_id} not found")
         
@@ -203,16 +203,21 @@ class BrowserAutomationService:
             element = await page.query_selector(selector)
             box = await element.bounding_box() if element else None
             
-            # Type text
-            await page.fill(selector, text)
-            await page.wait_for_timeout(500)
+            if human_like:
+                # Human-like typing with realistic delays and occasional typos
+                await HumanBehaviorSimulator.human_type(page, selector, text)
+            else:
+                # Fast typing
+                await page.fill(selector, text)
+            
+            await human_like_delay(300, 800)
             
             screenshot = await self.capture_screenshot(session_id)
             
             return {
                 'success': True,
                 'screenshot': screenshot,
-                'highlight': box
+                'highlight': box,
             }
         except Exception as e:
             logger.error(f"Type error: {str(e)}")
