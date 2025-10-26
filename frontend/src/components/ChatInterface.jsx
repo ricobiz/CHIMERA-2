@@ -194,12 +194,14 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
   };
 
   const handleDeleteMessage = (index) => {
-    if (window.confirm('Delete this message?')) {
-      // TODO: Implement message deletion
-      toast({
-        title: "Message Deleted",
-        description: "Message has been removed.",
-      });
+    if (window.confirm('Delete this message and all messages after it? This will reset the conversation to this point.')) {
+      if (onDeleteMessage) {
+        onDeleteMessage(index);
+        toast({
+          title: "Messages Deleted",
+          description: `Message and all following messages removed. Context reset.`,
+        });
+      }
     }
   };
 
@@ -209,12 +211,14 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
   };
 
   const handleSaveEdit = () => {
-    if (editingMessageIndex !== null) {
-      // TODO: Implement message edit save
-      toast({
-        title: "Message Updated",
-        description: "Message has been edited.",
-      });
+    if (editingMessageIndex !== null && editedContent.trim()) {
+      if (onEditMessage) {
+        onEditMessage(editingMessageIndex, editedContent);
+        toast({
+          title: "Message Updated",
+          description: "Message has been edited successfully.",
+        });
+      }
       setEditingMessageIndex(null);
       setEditedContent('');
     }
@@ -226,8 +230,16 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
   };
 
   const handleRegenerateFromPoint = (index) => {
-    if (window.confirm('Regenerate from this point? All messages after this will be replaced.')) {
-      // TODO: Implement regeneration logic
+    if (window.confirm('Regenerate response from this point? This will replace all messages after this one.')) {
+      if (onRegenerateFromMessage) {
+        onRegenerateFromMessage(index);
+        toast({
+          title: "Regenerating",
+          description: "Generating new response from this point...",
+        });
+      }
+    }
+  };
       toast({
         title: "Regenerating",
         description: "Generating response from this point...",
