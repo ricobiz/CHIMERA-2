@@ -384,7 +384,7 @@ Format as a flowing paragraph, not bullet points."""
                 'warning': str
             }
         """
-        usage = self.calculate_usage(messages, model)
+        usage = await self.calculate_usage(messages, model)
         
         result = {
             'action': 'none',
