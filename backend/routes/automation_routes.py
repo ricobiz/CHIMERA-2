@@ -62,9 +62,12 @@ class ValidateNavigationRequest(BaseModel):
 
 @router.post("/session/create")
 async def create_session(request: CreateSessionRequest):
-    """Create new browser automation session"""
+    """Create new browser automation session with optional proxy"""
     try:
-        result = await browser_service.create_session(request.session_id)
+        result = await browser_service.create_session(
+            request.session_id,
+            use_proxy=request.use_proxy
+        )
         return result
     except Exception as e:
         logger.error(f"Error creating session: {str(e)}")
