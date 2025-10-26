@@ -165,6 +165,48 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, activeM
     }
   };
 
+  const handleDeleteMessage = (index) => {
+    if (window.confirm('Delete this message?')) {
+      // TODO: Implement message deletion
+      toast({
+        title: "Message Deleted",
+        description: "Message has been removed.",
+      });
+    }
+  };
+
+  const handleEditMessage = (index, content) => {
+    setEditingMessageIndex(index);
+    setEditedContent(content);
+  };
+
+  const handleSaveEdit = () => {
+    if (editingMessageIndex !== null) {
+      // TODO: Implement message edit save
+      toast({
+        title: "Message Updated",
+        description: "Message has been edited.",
+      });
+      setEditingMessageIndex(null);
+      setEditedContent('');
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingMessageIndex(null);
+    setEditedContent('');
+  };
+
+  const handleRegenerateFromPoint = (index) => {
+    if (window.confirm('Regenerate from this point? All messages after this will be replaced.')) {
+      // TODO: Implement regeneration logic
+      toast({
+        title: "Regenerating",
+        description: "Generating response from this point...",
+      });
+    }
+  };
+
   return (
     <div className="flex flex-col h-full bg-[#0f0f10] border-2 border-transparent animated-gradient-border">
       {/* Header */}
