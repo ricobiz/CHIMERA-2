@@ -107,15 +107,18 @@ user_problem_statement: "Test the Lovable.dev clone backend API endpoints includ
 backend:
   - task: "POST /api/integrations endpoint"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/routes/integrations_routes.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Created new endpoint for service integrations (Hugging Face, GitHub, Gmail, Google Drive). Needs testing."
+      - working: true
+        agent: "testing"
+        comment: "✅ Successfully tested POST /api/integrations endpoint. Created integration with ID d6df7b52-c3ab-4d61-b575-c42b69f61633. All required fields present (id, service_type, name, credentials, enabled, created_at, updated_at). UUID generation and datetime serialization working correctly."
 
   - task: "GET /api/integrations endpoint"
     implemented: true
