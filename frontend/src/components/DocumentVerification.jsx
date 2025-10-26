@@ -428,36 +428,6 @@ const DocumentVerification = ({ onClose }) => {
                     </div>
                   </div>
                 </div>
-                <div className="bg-gray-900/50 rounded-lg border border-gray-800 p-6">
-                  <div className="flex items-start gap-4">
-                    {getVerdictIcon(verificationResult.verdict)}
-                    <div className="flex-1">
-                      <h2 className={`text-2xl font-bold ${getVerdictColor(verificationResult.verdict)}`}>
-                        {verificationResult.verdict.replace('_', ' ')}
-                      </h2>
-                      <p className="text-gray-400 mt-1">
-                        Fraud Probability: <span className="text-white font-semibold">{verificationResult.fraud_probability}%</span>
-                      </p>
-                      <p className="text-gray-400">
-                        Analysis Confidence: <span className="text-white font-semibold">{verificationResult.confidence_score}%</span>
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Fraud Probability Bar */}
-                  <div className="mt-4">
-                    <div className="w-full h-3 bg-gray-800 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full transition-all ${
-                          verificationResult.fraud_probability >= 70 ? 'bg-red-500' :
-                          verificationResult.fraud_probability >= 40 ? 'bg-yellow-500' :
-                          'bg-green-500'
-                        }`}
-                        style={{ width: `${verificationResult.fraud_probability}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                </div>
 
                 {/* Multi-Model Analysis */}
                 {verificationResult.multi_model_analysis && (
