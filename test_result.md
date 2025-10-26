@@ -122,15 +122,18 @@ backend:
 
   - task: "GET /api/integrations endpoint"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/routes/integrations_routes.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Created endpoint to retrieve all integrations. Needs testing."
+      - working: true
+        agent: "testing"
+        comment: "✅ Successfully tested GET /api/integrations endpoint. Retrieved 1 integration correctly. Response structure validated with all required fields (id, service_type, name, credentials, enabled). Returns proper JSON array format."
 
   - task: "PUT /api/integrations/{id} endpoint"
     implemented: true
