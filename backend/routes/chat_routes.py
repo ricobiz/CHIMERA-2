@@ -32,6 +32,30 @@ class ChatResponse(BaseModel):
     new_session_id: Optional[str] = None  # For session transitions
     context_usage: Optional[Dict] = None  # Context window stats
 
+@router.post("/classify-task")
+async def classify_task(request: TaskClassificationRequest):
+    """
+    Classify user message to determine if it's:
+    - browser_automation
+    - code_generation
+    - document_verification
+    - general_chat
+    """
+    try:
+        classification = await task_classifier.classify_task(
+            user_message=request.message,
+            model=request.model
+        )
+        
+        return {
+            "success": True,
+            "classification": classification
+        }
+        
+    except Exception as e:
+        logger.error(f"Error in task classification: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.post("/chat")
 async def chat(request: ChatRequest):
     """
