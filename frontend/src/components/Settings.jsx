@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings as SettingsIcon, ChevronLeft, Check, Plus, Trash2, Eye, EyeOff, Server, Link2, AlertCircle, CheckCircle2, XCircle } from 'lucide-react';
+import { Settings as SettingsIcon, ChevronLeft, Check, Plus, Trash2, Eye, EyeOff, Server, Link2, AlertCircle, CheckCircle2, XCircle, Search } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
 import { Badge } from './ui/badge';
