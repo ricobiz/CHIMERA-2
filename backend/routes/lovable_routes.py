@@ -185,12 +185,18 @@ async def get_openrouter_balance():
             data = response.json()
             
             # OpenRouter returns credit information
+            # Handle null values for unlimited accounts
+            api_data = data.get("data", {})
+            limit = api_data.get("limit")
+            usage = api_data.get("usage", 0)
+            limit_remaining = api_data.get("limit_remaining")
+            
             return {
-                "balance": data.get("data", {}).get("limit", 0),
-                "used": data.get("data", {}).get("usage", 0),
-                "remaining": data.get("data", {}).get("limit_remaining", 0),
-                "label": data.get("data", {}).get("label", ""),
-                "is_free_tier": data.get("data", {}).get("is_free_tier", False)
+                "balance": limit if limit is not None else float('inf'),
+                "used": usage,
+                "remaining": limit_remaining if limit_remaining is not None else float('inf'),
+                "label": api_data.get("label", ""),
+                "is_free_tier": api_data.get("is_free_tier", False)
             }
     except Exception as e:
         logger.error(f"Error fetching OpenRouter balance: {str(e)}")
