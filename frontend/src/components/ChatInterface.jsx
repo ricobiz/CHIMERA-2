@@ -50,8 +50,7 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, activeM
   }, [showSettingsMenu]);
 
   return (
-    <div className="flex-1 flex flex-col bg-[#0f0f10] h-screen border-2 border-transparent animated-gradient-border">
-      {/* Header */}
+    <div className="flex flex-col bg-[#0f0f10] h-full border-2 border-transparent animated-gradient-border relative">{/* Header */}
       <div className="border-b border-gray-800 p-3 md:p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
