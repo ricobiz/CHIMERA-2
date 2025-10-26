@@ -505,11 +505,12 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, activeM
                 <div
                   className={`max-w-[85%] md:max-w-[75%] rounded-2xl p-4 shadow-lg transition-all duration-200 ${
                     msg.role === 'user'
-                      ? 'bg-gray-900/40 backdrop-blur border border-gray-700/60 hover:border-gray-600/80 rounded-br-sm'
+                      ? 'bg-gray-800 backdrop-blur border-2 border-gray-600 hover:border-gray-500 rounded-br-sm'
                       : msg.role === 'design'
-                      ? 'bg-purple-950/20 backdrop-blur border border-purple-700/40 hover:border-purple-600/60 rounded-bl-sm'
-                      : 'bg-gray-900/30 backdrop-blur border border-gray-700/50 hover:border-gray-600/70 rounded-bl-sm'
+                      ? 'bg-purple-950/40 backdrop-blur border-2 border-purple-700/60 hover:border-purple-600 rounded-bl-sm'
+                      : 'bg-gray-850 backdrop-blur border-2 border-gray-700 hover:border-gray-600 rounded-bl-sm'
                   }`}
+                  style={{ backgroundColor: msg.role === 'user' ? 'rgba(31, 41, 55, 0.95)' : 'rgba(17, 24, 39, 0.95)' }}
                 >
                   {/* Message Header */}
                   <div className="flex items-center justify-between mb-2">
@@ -526,21 +527,21 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, activeM
                         className="p-1 hover:bg-gray-700/50 rounded transition-colors"
                         title="Edit message"
                       >
-                        <Edit2 className="w-3 h-3 text-gray-500" />
+                        <Edit2 className="w-3 h-3 text-gray-400" />
                       </button>
                       <button
                         onClick={() => handleRegenerateFromPoint(idx)}
                         className="p-1 hover:bg-gray-700/50 rounded transition-colors"
                         title="Regenerate from here"
                       >
-                        <RotateCcw className="w-3 h-3 text-gray-500" />
+                        <RotateCcw className="w-3 h-3 text-gray-400" />
                       </button>
                       <button
                         onClick={() => handleDeleteMessage(idx)}
                         className="p-1 hover:bg-red-900/30 rounded transition-colors"
                         title="Delete message"
                       >
-                        <Trash2 className="w-3 h-3 text-red-500/70" />
+                        <Trash2 className="w-3 h-3 text-red-400" />
                       </button>
                     </div>
                   </div>
@@ -551,19 +552,19 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, activeM
                       <textarea
                         value={editedContent}
                         onChange={(e) => setEditedContent(e.target.value)}
-                        className="w-full bg-gray-800/50 border border-gray-700/60 rounded p-2 text-sm text-gray-300 resize-none focus:outline-none focus:border-gray-600"
+                        className="w-full bg-gray-900/80 border border-gray-600 rounded p-2 text-sm text-gray-200 resize-none focus:outline-none focus:border-gray-500"
                         rows={4}
                       />
                       <div className="flex gap-2">
                         <button
                           onClick={handleSaveEdit}
-                          className="px-3 py-1 bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded text-xs font-medium text-gray-300"
+                          className="px-3 py-1 bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded text-xs font-medium text-gray-200"
                         >
                           Save
                         </button>
                         <button
                           onClick={handleCancelEdit}
-                          className="px-3 py-1 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded text-xs font-medium text-gray-400"
+                          className="px-3 py-1 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded text-xs font-medium text-gray-300"
                         >
                           Cancel
                         </button>
@@ -571,7 +572,7 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, activeM
                     </div>
                   ) : (
                     <>
-                      <p className="text-sm md:text-base text-gray-300 whitespace-pre-wrap leading-relaxed">
+                      <p className="text-sm md:text-base text-gray-200 whitespace-pre-wrap leading-relaxed">
                         {msg.content}
                       </p>
                       {msg.image && (
@@ -582,8 +583,8 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, activeM
 
                   {/* Cost Info */}
                   {msg.cost && (
-                    <div className="mt-2 pt-2 border-t border-gray-700/30">
-                      <p className="text-[10px] text-gray-600 font-mono">
+                    <div className="mt-2 pt-2 border-t border-gray-700/50">
+                      <p className="text-[10px] text-gray-500 font-mono">
                         ${msg.cost.total_cost.toFixed(6)} • {msg.cost.total_tokens} tokens
                       </p>
                     </div>
@@ -595,7 +596,7 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, activeM
             {/* Typing Indicator */}
             {isGenerating && (
               <div className="flex justify-start">
-                <div className="bg-gray-900/30 backdrop-blur border border-gray-700/50 rounded-2xl rounded-bl-sm p-4 shadow-lg">
+                <div className="bg-gray-850 backdrop-blur border-2 border-gray-700 rounded-2xl rounded-bl-sm p-4 shadow-lg" style={{ backgroundColor: 'rgba(17, 24, 39, 0.95)' }}>
                   <LoadingIndicator size="sm" />
                 </div>
               </div>
