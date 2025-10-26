@@ -426,7 +426,7 @@ const Settings = ({ selectedModel, onModelChange, onClose, visualValidatorEnable
     });
 
   return (
-    <div className="flex-1 flex flex-col bg-[#0f0f10] h-screen">
+    <div className="flex-1 flex flex-col bg-[#0f0f10]" style={{ height: '100dvh' }}>
       {/* Header */}
       <div className="border-b border-gray-800 p-4">
         <div className="flex items-center justify-between">
