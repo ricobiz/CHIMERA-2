@@ -636,14 +636,15 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
                 }`}
               >
                 <div
-                  className={`max-w-[85%] md:max-w-[75%] rounded-2xl p-4 shadow-xl transition-all duration-200 ${
+                  className={`max-w-[85%] md:max-w-[75%] rounded-2xl p-4 shadow-2xl transition-all duration-300 backdrop-blur-lg ${
                     msg.role === 'user'
-                      ? 'bg-gray-700 backdrop-blur border-2 border-gray-500 hover:border-gray-400 rounded-br-sm'
+                      ? 'bg-gradient-to-br from-blue-600/20 to-purple-600/20 border border-blue-500/30 hover:border-blue-400/50 rounded-br-sm hover:shadow-blue-500/20'
                       : msg.role === 'design'
-                      ? 'bg-purple-900/50 backdrop-blur border-2 border-purple-600 hover:border-purple-500 rounded-bl-sm'
-                      : 'bg-gray-750 backdrop-blur border-2 border-gray-600 hover:border-gray-500 rounded-bl-sm'
+                      ? 'bg-gradient-to-br from-purple-600/20 to-pink-600/20 border border-purple-500/30 hover:border-purple-400/50 rounded-bl-sm hover:shadow-purple-500/20'
+                      : msg.role === 'system'
+                      ? 'bg-gradient-to-br from-cyan-600/15 to-blue-600/15 border border-cyan-500/25 rounded-lg'
+                      : 'bg-gradient-to-br from-gray-800/40 to-gray-900/40 border border-gray-700/40 hover:border-gray-600/50 rounded-bl-sm hover:shadow-gray-500/10'
                   }`}
-                  style={{ backgroundColor: msg.role === 'user' ? 'rgba(55, 65, 81, 1)' : 'rgba(41, 50, 65, 1)' }}
                 >
                   {/* Message Header */}
                   <div className="flex items-center justify-between mb-2">
