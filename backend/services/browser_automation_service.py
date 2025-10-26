@@ -37,14 +37,51 @@ class BrowserAutomationService:
             logger.info("Browser launched successfully")
     
     async def create_session(self, session_id: str) -> Dict[str, Any]:
-        """Create a new browser session"""
+        """Create a new browser session with anti-detection"""
         await self.initialize()
         
-        # Create new context and page
+        # Anti-detection: randomize viewport
+        import random
+        viewport_width = random.randint(1280, 1440)
+        viewport_height = random.randint(680, 900)
+        
+        # Anti-detection: realistic user agent
+        user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        
+        # Create new context with anti-detection settings
         context = await self.browser.new_context(
-            viewport={'width': 1280, 'height': 720},
-            user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            viewport={'width': viewport_width, 'height': viewport_height},
+            user_agent=user_agent,
+            locale='en-US',
+            timezone_id='America/New_York',
+            # Anti-detection headers
+            extra_http_headers={
+                'Accept-Language': 'en-US,en;q=0.9',
+                'Accept-Encoding': 'gzip, deflate, br',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
+            }
         )
+        
+        # Inject anti-detection scripts
+        await context.add_init_script("""
+            // Overwrite navigator properties
+            Object.defineProperty(navigator, 'webdriver', {
+                get: () => undefined
+            });
+            
+            // Chrome runtime
+            window.chrome = {
+                runtime: {}
+            };
+            
+            // Permissions
+            const originalQuery = window.navigator.permissions.query;
+            window.navigator.permissions.query = (parameters) => (
+                parameters.name === 'notifications' ?
+                    Promise.resolve({ state: Notification.permission }) :
+                    originalQuery(parameters)
+            );
+        """)
         page = await context.new_page()
         
         self.sessions[session_id] = {
