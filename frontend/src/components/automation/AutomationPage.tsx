@@ -215,10 +215,10 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
       </div>
 
       {/* Main Content Area: Viewport + Log */}
-      <div className="flex-1 px-4 md:px-6 pb-4 md:pb-6 overflow-y-auto" style={{ paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom))' }}>
-        <div className="flex flex-col lg:flex-row gap-3 md:gap-4">
+      <div className="flex-1 px-4 md:px-6 py-4 md:py-6 overflow-y-auto min-h-0">
+        <div className="flex flex-col lg:flex-row gap-3 md:gap-4 h-full">
           {/* Browser Viewport (Full width on mobile, 60% on desktop) */}
-          <div className="flex-1 min-w-0 min-h-[250px] md:min-h-[300px] lg:min-h-[600px]">
+          <div className="flex-1 min-w-0 min-h-[250px] md:min-h-[400px]">
             <BrowserViewport
               browserState={session.browserState}
               status={session.status}
@@ -226,7 +226,7 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
           </div>
 
           {/* Agent Log (Full width on mobile, 40% on desktop) */}
-          <div className="w-full lg:w-2/5 min-w-0 min-h-[300px] md:min-h-[400px] lg:min-h-[600px]">
+          <div className="w-full lg:w-2/5 min-w-0 min-h-[250px] md:min-h-[400px]">
             <AgentLog
               steps={session.logEntries}
               goal={session.goal}
