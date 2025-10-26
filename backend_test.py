@@ -3304,6 +3304,18 @@ export default App;""",
         self.test_get_active_mcp_servers_endpoint()
         self.test_delete_mcp_server_endpoint()
         
+        # Test Browser Automation endpoints (as requested in review)
+        print("\n" + "=" * 60)
+        print("🤖 TESTING BROWSER AUTOMATION ENDPOINTS")
+        print("=" * 60)
+        self.test_browser_automation_create_session()
+        self.test_browser_automation_navigate()
+        self.test_browser_automation_screenshot()
+        self.test_browser_automation_find_elements()
+        self.test_browser_automation_smart_click()
+        self.test_browser_automation_page_info()
+        self.test_browser_automation_cleanup()
+        
         # Summary
         print("\n" + "=" * 60)
         print("📊 TEST SUMMARY")
