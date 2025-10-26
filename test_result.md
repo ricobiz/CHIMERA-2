@@ -286,6 +286,30 @@ backend:
         comment: "✅ Specific project retrieval working correctly. Successfully retrieved project by ID. All required fields present (id, name, description, code, conversation_history, created_at, updated_at, last_accessed, icon). 404 error handling also tested and working correctly for invalid IDs."
 
 frontend:
+  - task: "Settings - Integrations tab"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/Settings.jsx, /app/frontend/src/services/api.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added new Integrations tab in Settings for managing Hugging Face, GitHub, Gmail, Google Drive integrations. Includes add/delete/toggle functionality. Needs testing."
+
+  - task: "Settings - MCP Servers tab"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/Settings.jsx, /app/frontend/src/services/api.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added new MCP Servers tab with advanced features: predefined server types (browser automation, filesystem, sequential thinking, context, git), custom servers, priority settings, fallback order, health checks. Needs testing."
+
   - task: "Settings icon in header (gear icon)"
     implemented: true
     working: true
