@@ -76,6 +76,8 @@ watchfiles==1.1.1
 fake-useragent==2.2.0
 tenacity==8.2.3
 pydantic-settings==2.11.0
+pyautogui==0.9.54
+bezier==2024.6.20
 greenlet==3.2.4
 playwright==1.55.0
 pyee==13.0.0
@@ -181,3 +183,5 @@ watchfiles==1.1.1
 fake-useragent==2.2.0
 tenacity==8.2.3
 pydantic-settings==2.11.0
+pyautogui==0.9.54
+bezier==2024.6.20
