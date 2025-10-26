@@ -188,15 +188,15 @@ Respond naturally as if you're a talented colleague brainstorming and building t
         #     ]
         #     await memory_service.extract_facts_from_conversation(
         #         all_messages,
-                session_id=session_id
-            )
+        #         session_id=session_id
+        #     )
         
         return {
             "message": assistant_message,
             "response": assistant_message,
             "cost": response.get('usage', {}),
-            "ai_name": personality['name'],
-            "relationship_status": personality['user_relationship'],
+            "ai_name": "Chimera AI",  # personality['name']
+            "relationship_status": "collaborative",  # personality['user_relationship']
             "thinking": {
                 "confidence": thinking_result['confidence'],
                 "process_summary": thinking_result['final_reasoning'][:200],
