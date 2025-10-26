@@ -30,7 +30,7 @@ function App() {
     localStorage.getItem('visualValidatorEnabled') === 'true'
   );
   const [visualValidatorModel, setVisualValidatorModel] = useState(
-    localStorage.getItem('visualValidatorModel') || 'google/gemini-2.5-flash-image'
+    localStorage.getItem('visualValidatorModel') || 'google/gemini-2.5-flash'
   );
   
   const [researchPlannerEnabled, setResearchPlannerEnabled] = useState(
