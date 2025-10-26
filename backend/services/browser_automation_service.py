@@ -317,6 +317,272 @@ class BrowserAutomationService:
             del self.sessions[session_id]
             logger.info(f"Closed session: {session_id}")
     
+    async def smart_click(self, session_id: str, target_hint: str) -> Dict[str, Any]:
+        """
+        Smart click using vision model to find element by natural language description
+        
+        Args:
+            session_id: Browser session ID
+            target_hint: Natural language description of element to click (e.g., "Submit button", "Login link")
+        
+        Returns:
+            {
+                success: bool,
+                screenshot_before: str (base64),
+                screenshot_after: str (base64),
+                box: {x, y, width, height},
+                confidence: float,
+                element_description: str
+            }
+        """
+        if session_id not in self.sessions:
+            raise ValueError(f"Session {session_id} not found")
+        
+        page = self.sessions[session_id]['page']
+        
+        try:
+            # Capture screenshot before
+            screenshot_before = await self.capture_screenshot(session_id)
+            
+            # Use vision model to find element
+            from services.visual_validator_service import visual_validator_service
+            
+            vision_prompt = f"""Analyze this webpage screenshot and locate the element: "{target_hint}"
+
+Return JSON with:
+{{
+    "found": true/false,
+    "box": {{"x": number, "y": number, "width": number, "height": number}},
+    "confidence": 0.0-1.0,
+    "description": "what you found"
+}}
+
+If element not found, set found=false and confidence=0."""
+
+            # Call vision API (using existing visual_validator_service with Gemini)
+            import httpx
+            import json
+            import re
+            
+            api_key = os.environ.get('OPENROUTER_API_KEY')
+            
+            response = await httpx.AsyncClient(timeout=30.0).post(
+                "https://openrouter.ai/api/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {api_key}",
+                    "Content-Type": "application/json"
+                },
+                json={
+                    "model": "google/gemini-2.5-flash-image",
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": [
+                                {"type": "text", "text": vision_prompt},
+                                {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{screenshot_before}"}}
+                            ]
+                        }
+                    ],
+                    "temperature": 0.3,
+                    "max_tokens": 500
+                }
+            )
+            
+            result_text = response.json()['choices'][0]['message']['content']
+            
+            # Extract JSON from response
+            json_match = re.search(r'```json\s*(.*?)\s*```', result_text, re.DOTALL)
+            if json_match:
+                result_text = json_match.group(1)
+            
+            vision_result = json.loads(result_text)
+            
+            if not vision_result.get('found', False):
+                return {
+                    "success": False,
+                    "screenshot_before": screenshot_before,
+                    "screenshot_after": screenshot_before,
+                    "box": None,
+                    "confidence": 0.0,
+                    "element_description": f"Element '{target_hint}' not found",
+                    "error": "Element not visible or not found on page"
+                }
+            
+            # Get click coordinates
+            box = vision_result['box']
+            click_x = box['x'] + box['width'] / 2
+            click_y = box['y'] + box['height'] / 2
+            
+            # Perform click
+            await page.mouse.click(click_x, click_y)
+            await page.wait_for_timeout(500)  # Wait for page to respond
+            
+            # Capture screenshot after
+            screenshot_after = await self.capture_screenshot(session_id)
+            
+            logger.info(f"Smart click successful: {target_hint} at ({click_x}, {click_y})")
+            
+            return {
+                "success": True,
+                "screenshot_before": screenshot_before,
+                "screenshot_after": screenshot_after,
+                "box": box,
+                "confidence": vision_result.get('confidence', 0.8),
+                "element_description": vision_result.get('description', target_hint)
+            }
+            
+        except Exception as e:
+            logger.error(f"Smart click error: {str(e)}")
+            screenshot = await self.capture_screenshot(session_id)
+            return {
+                "success": False,
+                "screenshot_before": screenshot,
+                "screenshot_after": screenshot,
+                "box": None,
+                "confidence": 0.0,
+                "element_description": f"Error: {str(e)}",
+                "error": str(e)
+            }
+    
+    async def smart_type(self, session_id: str, target_hint: str, text: str) -> Dict[str, Any]:
+        """
+        Smart type using vision model to find input field by natural language description
+        
+        Args:
+            session_id: Browser session ID
+            target_hint: Natural language description of input field (e.g., "Email input", "Search box")
+            text: Text to type
+        
+        Returns:
+            {
+                success: bool,
+                screenshot_before: str (base64),
+                screenshot_after: str (base64),
+                box: {x, y, width, height},
+                confidence: float,
+                element_description: str,
+                typed_text: str
+            }
+        """
+        if session_id not in self.sessions:
+            raise ValueError(f"Session {session_id} not found")
+        
+        page = self.sessions[session_id]['page']
+        
+        try:
+            # Capture screenshot before
+            screenshot_before = await self.capture_screenshot(session_id)
+            
+            # Use vision model to find element
+            import httpx
+            import json
+            import re
+            
+            vision_prompt = f"""Analyze this webpage screenshot and locate the input field: "{target_hint}"
+
+Return JSON with:
+{{
+    "found": true/false,
+    "box": {{"x": number, "y": number, "width": number, "height": number}},
+    "confidence": 0.0-1.0,
+    "description": "what you found",
+    "field_type": "text|email|password|search|textarea"
+}}
+
+If element not found, set found=false."""
+
+            api_key = os.environ.get('OPENROUTER_API_KEY')
+            
+            response = await httpx.AsyncClient(timeout=30.0).post(
+                "https://openrouter.ai/api/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {api_key}",
+                    "Content-Type": "application/json"
+                },
+                json={
+                    "model": "google/gemini-2.5-flash-image",
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": [
+                                {"type": "text", "text": vision_prompt},
+                                {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{screenshot_before}"}}
+                            ]
+                        }
+                    ],
+                    "temperature": 0.3,
+                    "max_tokens": 500
+                }
+            )
+            
+            result_text = response.json()['choices'][0]['message']['content']
+            
+            # Extract JSON
+            json_match = re.search(r'```json\s*(.*?)\s*```', result_text, re.DOTALL)
+            if json_match:
+                result_text = json_match.group(1)
+            
+            vision_result = json.loads(result_text)
+            
+            if not vision_result.get('found', False):
+                return {
+                    "success": False,
+                    "screenshot_before": screenshot_before,
+                    "screenshot_after": screenshot_before,
+                    "box": None,
+                    "confidence": 0.0,
+                    "element_description": f"Input field '{target_hint}' not found",
+                    "typed_text": "",
+                    "error": "Input field not visible or not found on page"
+                }
+            
+            # Get click coordinates to focus
+            box = vision_result['box']
+            click_x = box['x'] + box['width'] / 2
+            click_y = box['y'] + box['height'] / 2
+            
+            # Click to focus
+            await page.mouse.click(click_x, click_y)
+            await page.wait_for_timeout(200)
+            
+            # Clear existing content
+            await page.keyboard.press('Control+A')
+            await page.keyboard.press('Backspace')
+            
+            # Type new text
+            await page.keyboard.type(text, delay=50)
+            await page.wait_for_timeout(300)
+            
+            # Capture screenshot after
+            screenshot_after = await self.capture_screenshot(session_id)
+            
+            logger.info(f"Smart type successful: '{text}' into {target_hint}")
+            
+            return {
+                "success": True,
+                "screenshot_before": screenshot_before,
+                "screenshot_after": screenshot_after,
+                "box": box,
+                "confidence": vision_result.get('confidence', 0.8),
+                "element_description": vision_result.get('description', target_hint),
+                "typed_text": text,
+                "field_type": vision_result.get('field_type', 'text')
+            }
+            
+        except Exception as e:
+            logger.error(f"Smart type error: {str(e)}")
+            screenshot = await self.capture_screenshot(session_id)
+            return {
+                "success": False,
+                "screenshot_before": screenshot,
+                "screenshot_after": screenshot,
+                "box": None,
+                "confidence": 0.0,
+                "element_description": f"Error: {str(e)}",
+                "typed_text": "",
+                "error": str(e)
+            }
+    
     async def cleanup(self):
         """Cleanup all resources"""
         for session_id in list(self.sessions.keys()):
