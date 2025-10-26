@@ -191,6 +191,48 @@ async def get_result(nocache: int = 1, timestamp: Optional[int] = None):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.get("/result_bundle")
+async def get_result_bundle(job_id: Optional[str] = None):
+    """
+    Get result bundle with credentials and proof
+    Contains sensitive data - separate from logs
+    """
+    try:
+        current_mission = mission_supervisor.get_current_mission()
+        
+        if not current_mission:
+            return {
+                "success": False,
+                "message": "No active mission"
+            }
+        
+        # Check if job_id matches
+        if job_id and current_mission.get('job_id') != job_id:
+            return {
+                "success": False,
+                "message": "Job ID mismatch"
+            }
+        
+        result_bundle = current_mission.get('result_bundle')
+        
+        if not result_bundle:
+            return {
+                "success": False,
+                "message": "Result bundle not ready yet"
+            }
+        
+        return {
+            "success": True,
+            "job_id": current_mission['job_id'],
+            "result_bundle": result_bundle,
+            "timestamp": datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"[HOOK] Error getting result bundle: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 class ControlRequest(BaseModel):
     mode: str  # ACTIVE, PAUSED, STOP
 
