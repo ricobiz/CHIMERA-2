@@ -147,8 +147,8 @@ class BrowserAutomationService:
                 'error': str(e)
             }
     
-    async def click_element(self, session_id: str, selector: str) -> Dict[str, Any]:
-        """Click on element"""
+    async def click_element(self, session_id: str, selector: str, human_like: bool = True) -> Dict[str, Any]:
+        """Click on element with optional human-like behavior"""
         if session_id not in self.sessions:
             raise ValueError(f"Session {session_id} not found")
         
@@ -158,21 +158,29 @@ class BrowserAutomationService:
             # Wait for element
             await page.wait_for_selector(selector, timeout=10000)
             
-            # Get element bounding box for highlight
+            # Get element bounding box
             element = await page.query_selector(selector)
             if element:
                 box = await element.bounding_box()
                 
-                # Click
-                await page.click(selector)
-                await page.wait_for_timeout(1000)  # Wait for action to complete
+                if human_like and box:
+                    # Human-like click with cursor movement
+                    center_x = int(box['x'] + box['width'] / 2)
+                    center_y = int(box['y'] + box['height'] / 2)
+                    await HumanBehaviorSimulator.human_click(page, center_x, center_y)
+                else:
+                    # Standard click
+                    await page.click(selector)
+                
+                await human_like_delay(500, 1500)  # Human pause after click
                 
                 screenshot = await self.capture_screenshot(session_id)
                 
                 return {
                     'success': True,
                     'screenshot': screenshot,
-                    'highlight': box
+                    'highlight': box,
+                    'human_like': human_like
                 }
         except Exception as e:
             logger.error(f"Click error: {str(e)}")
