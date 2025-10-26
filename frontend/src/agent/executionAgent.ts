@@ -118,7 +118,11 @@ class ExecutionAgentService {
 
       let completedSteps = 0;
       
+      console.log('[ExecutionAgent] Entering execution loop for', plan.steps.length, 'steps');
+      
       for (let i = 0; i < plan.steps.length; i++) {
+        console.log(`[ExecutionAgent] 📍 Loop iteration ${i + 1}/${plan.steps.length}`);
+        
         if (this.aborted) {
           console.log('[ExecutionAgent] Automation aborted by user');
           await this.cleanupSession(sessionId);
@@ -139,8 +143,11 @@ class ExecutionAgentService {
           await new Promise(resolve => setTimeout(resolve, 500));
         }
 
+        console.log(`[ExecutionAgent] Updating current step index to ${i}`);
         this.updateState({ currentStepIndex: i });
         const step = plan.steps[i];
+        
+        console.log(`[ExecutionAgent] Executing step: ${step.actionType} - ${step.targetDescription}`);
 
         // Execute step with retry logic
         const stepSuccess = await this.executeStepWithRetry(step, initialState.browserState);
