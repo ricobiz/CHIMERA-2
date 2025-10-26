@@ -1481,6 +1481,308 @@ export default App;""",
                 {"error_type": type(e).__name__}
             )
 
+    # ============= NEW DESIGN-FIRST WORKFLOW TESTS =============
+    
+    def test_generate_design_endpoint(self):
+        """Test POST /api/generate-design endpoint"""
+        print("\n🧪 Testing Generate Design Endpoint...")
+        
+        # Test data as specified in review request
+        test_data = {
+            "user_request": "Create a simple calculator app with basic operations",
+            "model": "google/gemini-2.0-flash-thinking-exp:free"
+        }
+        
+        try:
+            response = self.session.post(
+                f"{BACKEND_URL}/generate-design",
+                json=test_data,
+                timeout=45  # Longer timeout for AI generation
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check required fields
+                required_fields = ['design_spec', 'usage']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if not missing_fields:
+                    design_spec = data['design_spec']
+                    usage = data['usage']
+                    
+                    # Validate design specification content
+                    design_keywords = ['color', 'layout', 'button', 'background', 'font', 'padding', 'margin', 'theme']
+                    found_keywords = [keyword for keyword in design_keywords if keyword.lower() in design_spec.lower()]
+                    
+                    if len(found_keywords) >= 3 and len(design_spec) > 100:
+                        self.log_test(
+                            "Generate Design - Success",
+                            True,
+                            f"Generated detailed design spec ({len(design_spec)} chars) with {len(found_keywords)} design elements",
+                            {
+                                "design_length": len(design_spec),
+                                "design_keywords": found_keywords,
+                                "usage": usage,
+                                "model": test_data["model"]
+                            }
+                        )
+                        
+                        # Validate usage information
+                        if usage and 'total_tokens' in usage and usage['total_tokens'] > 0:
+                            self.log_test(
+                                "Generate Design - Usage Info",
+                                True,
+                                f"Usage information included: {usage['total_tokens']} total tokens",
+                                {"usage_details": usage}
+                            )
+                        else:
+                            self.log_test(
+                                "Generate Design - Usage Info Missing",
+                                False,
+                                "Usage information missing or invalid",
+                                {"usage": usage}
+                            )
+                    else:
+                        self.log_test(
+                            "Generate Design - Poor Quality",
+                            False,
+                            f"Design spec too short or lacks design elements (found {len(found_keywords)}/8 keywords)",
+                            {"design_preview": design_spec[:200], "found_keywords": found_keywords}
+                        )
+                else:
+                    self.log_test(
+                        "Generate Design - Missing Fields",
+                        False,
+                        f"Response missing required fields: {missing_fields}",
+                        {"missing_fields": missing_fields, "response_keys": list(data.keys())}
+                    )
+            else:
+                self.log_test(
+                    "Generate Design - HTTP Error",
+                    False,
+                    f"HTTP {response.status_code}: {response.text}",
+                    {"status_code": response.status_code}
+                )
+                
+        except requests.exceptions.Timeout:
+            self.log_test(
+                "Generate Design - Timeout",
+                False,
+                "Design generation timed out after 45 seconds",
+                {"timeout": 45}
+            )
+        except Exception as e:
+            self.log_test(
+                "Generate Design - Exception",
+                False,
+                f"Unexpected error: {str(e)}",
+                {"error_type": type(e).__name__}
+            )
+    
+    def test_validate_visual_endpoint(self):
+        """Test POST /api/validate-visual endpoint"""
+        print("\n🧪 Testing Validate Visual Endpoint...")
+        
+        # Test data as specified in review request (small base64 image)
+        test_data = {
+            "screenshot": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+            "user_request": "A calculator with blue theme",
+            "validator_model": "anthropic/claude-3-haiku"
+        }
+        
+        try:
+            response = self.session.post(
+                f"{BACKEND_URL}/validate-visual",
+                json=test_data,
+                timeout=45  # Longer timeout for AI analysis
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check required fields for validation response
+                required_fields = ['scores', 'overall_score', 'verdict', 'feedback', 'specific_issues']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if not missing_fields:
+                    scores = data['scores']
+                    overall_score = data['overall_score']
+                    verdict = data['verdict']
+                    
+                    # Validate scores structure
+                    expected_score_fields = ['visual_hierarchy', 'readability', 'layout_alignment', 'completeness', 'professional_quality']
+                    missing_score_fields = [field for field in expected_score_fields if field not in scores]
+                    
+                    if not missing_score_fields:
+                        # Check if scores are numeric and in valid range
+                        valid_scores = all(
+                            isinstance(scores[field], (int, float)) and 0 <= scores[field] <= 10 
+                            for field in expected_score_fields
+                        )
+                        
+                        if valid_scores and isinstance(overall_score, (int, float)) and verdict in ['APPROVED', 'NEEDS_FIXES', 'ERROR']:
+                            self.log_test(
+                                "Validate Visual - Success",
+                                True,
+                                f"Visual validation completed: {verdict} (score: {overall_score})",
+                                {
+                                    "scores": scores,
+                                    "overall_score": overall_score,
+                                    "verdict": verdict,
+                                    "feedback": data['feedback'][:100],
+                                    "model": test_data["validator_model"]
+                                }
+                            )
+                            
+                            # Check usage information
+                            if 'usage' in data and data['usage'].get('total_tokens', 0) > 0:
+                                self.log_test(
+                                    "Validate Visual - Usage Info",
+                                    True,
+                                    f"Usage information included: {data['usage']['total_tokens']} total tokens",
+                                    {"usage_details": data['usage']}
+                                )
+                            else:
+                                self.log_test(
+                                    "Validate Visual - Usage Info Missing",
+                                    False,
+                                    "Usage information missing or invalid",
+                                    {"usage": data.get('usage')}
+                                )
+                        else:
+                            self.log_test(
+                                "Validate Visual - Invalid Values",
+                                False,
+                                "Scores out of range or invalid verdict",
+                                {"scores": scores, "overall_score": overall_score, "verdict": verdict}
+                            )
+                    else:
+                        self.log_test(
+                            "Validate Visual - Missing Score Fields",
+                            False,
+                            f"Scores missing fields: {missing_score_fields}",
+                            {"missing_score_fields": missing_score_fields, "scores": scores}
+                        )
+                else:
+                    self.log_test(
+                        "Validate Visual - Missing Fields",
+                        False,
+                        f"Response missing required fields: {missing_fields}",
+                        {"missing_fields": missing_fields, "response_keys": list(data.keys())}
+                    )
+            else:
+                self.log_test(
+                    "Validate Visual - HTTP Error",
+                    False,
+                    f"HTTP {response.status_code}: {response.text}",
+                    {"status_code": response.status_code}
+                )
+                
+        except requests.exceptions.Timeout:
+            self.log_test(
+                "Validate Visual - Timeout",
+                False,
+                "Visual validation timed out after 45 seconds",
+                {"timeout": 45}
+            )
+        except Exception as e:
+            self.log_test(
+                "Validate Visual - Exception",
+                False,
+                f"Unexpected error: {str(e)}",
+                {"error_type": type(e).__name__}
+            )
+    
+    def test_openrouter_balance_endpoint(self):
+        """Test GET /api/openrouter/balance endpoint"""
+        print("\n🧪 Testing OpenRouter Balance Endpoint...")
+        
+        try:
+            response = self.session.get(
+                f"{BACKEND_URL}/openrouter/balance",
+                timeout=15
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check required fields
+                required_fields = ['balance', 'used', 'remaining', 'label', 'is_free_tier']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if not missing_fields:
+                    balance = data['balance']
+                    used = data['used']
+                    remaining = data['remaining']
+                    is_free_tier = data['is_free_tier']
+                    
+                    # Validate numeric fields
+                    numeric_fields_valid = all(
+                        isinstance(data[field], (int, float)) 
+                        for field in ['balance', 'used', 'remaining']
+                    )
+                    
+                    if numeric_fields_valid and isinstance(is_free_tier, bool):
+                        self.log_test(
+                            "OpenRouter Balance - Success",
+                            True,
+                            f"Balance: ${balance}, Used: ${used}, Remaining: ${remaining}, Free Tier: {is_free_tier}",
+                            {
+                                "balance": balance,
+                                "used": used,
+                                "remaining": remaining,
+                                "label": data['label'],
+                                "is_free_tier": is_free_tier
+                            }
+                        )
+                        
+                        # Additional validation: remaining should equal balance - used (approximately)
+                        calculated_remaining = balance - used
+                        if abs(remaining - calculated_remaining) < 0.01:  # Allow small floating point differences
+                            self.log_test(
+                                "OpenRouter Balance - Math Check",
+                                True,
+                                "Balance calculations are consistent",
+                                {"calculated_remaining": calculated_remaining, "reported_remaining": remaining}
+                            )
+                        else:
+                            self.log_test(
+                                "OpenRouter Balance - Math Check Failed",
+                                False,
+                                f"Balance math inconsistent: {balance} - {used} ≠ {remaining}",
+                                {"balance": balance, "used": used, "remaining": remaining}
+                            )
+                    else:
+                        self.log_test(
+                            "OpenRouter Balance - Invalid Types",
+                            False,
+                            "Balance fields have invalid data types",
+                            {"data_types": {field: type(data[field]).__name__ for field in data.keys()}}
+                        )
+                else:
+                    self.log_test(
+                        "OpenRouter Balance - Missing Fields",
+                        False,
+                        f"Response missing required fields: {missing_fields}",
+                        {"missing_fields": missing_fields, "response_keys": list(data.keys())}
+                    )
+            else:
+                self.log_test(
+                    "OpenRouter Balance - HTTP Error",
+                    False,
+                    f"HTTP {response.status_code}: {response.text}",
+                    {"status_code": response.status_code}
+                )
+                
+        except Exception as e:
+            self.log_test(
+                "OpenRouter Balance - Exception",
+                False,
+                f"Unexpected error: {str(e)}",
+                {"error_type": type(e).__name__}
+            )
+
     def run_all_tests(self):
         """Run all backend tests"""
         print("🚀 Starting Lovable.dev Clone Backend API Tests")
