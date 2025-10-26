@@ -101,7 +101,64 @@ const Settings = ({ selectedModel, onModelChange, onClose, visualValidatorEnable
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-4 md:p-6">
-        <div className="max-w-4xl mx-auto space-y-6">
+        <div className="max-w-4xl mx-auto space-y-8">
+          
+          {/* Visual Validator Section */}
+          <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-6">
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex-1">
+                <h3 className="text-white font-semibold text-lg mb-2">Visual Validator</h3>
+                <p className="text-gray-400 text-sm">
+                  Enable a second AI model to validate your generated code visually before displaying in preview. 
+                  This helps catch UI issues and ensures code quality.
+                </p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer ml-4">
+                <input
+                  type="checkbox"
+                  checked={localValidatorEnabled}
+                  onChange={(e) => handleValidatorToggle(e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+              </label>
+            </div>
+
+            {localValidatorEnabled && (
+              <div className="mt-4 pt-4 border-t border-gray-700">
+                <label className="text-sm text-gray-400 mb-3 block">Validator Model</label>
+                <div className="grid gap-2 max-h-60 overflow-y-auto">
+                  {models.slice(0, 10).map((model) => (
+                    <div
+                      key={model.id}
+                      onClick={() => handleValidatorModelSelect(model.id)}
+                      className={`p-3 rounded-lg cursor-pointer transition-all border ${
+                        localValidatorModel === model.id
+                          ? 'bg-purple-600/20 border-purple-500'
+                          : 'bg-gray-800 border-gray-700 hover:border-purple-500'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <p className="text-white text-sm font-medium">{model.name}</p>
+                          <p className="text-xs text-gray-400 mt-1">
+                            ${(model.pricing.prompt * 1000000).toFixed(2)}/M in • ${(model.pricing.completion * 1000000).toFixed(2)}/M out
+                          </p>
+                        </div>
+                        {localValidatorModel === model.id && (
+                          <Check className="w-5 h-5 text-purple-400 ml-2" />
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-gray-500 mt-3">
+                  💡 Tip: Choose a fast model like Claude Haiku or GPT-4o-mini for quick validation
+                </p>
+              </div>
+            )}
+          </div>
+
           {/* Model Selection Section */}
           <div>
             <h3 className="text-white font-semibold text-xl mb-2">AI Model Selection</h3>
