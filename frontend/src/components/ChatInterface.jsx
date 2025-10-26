@@ -11,7 +11,7 @@ import LoadingIndicator from './LoadingIndicator';
 import { toast } from '../hooks/use-toast';
 import { getSessions, getSession } from '../services/api';
 
-const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBalance, activeModel, validatorEnabled, validatorModel, generationStatus = 'idle', onOpenSettings, onOpenAutomation, onOpenDocVerification, onOpenSelfImprovement, onOpenAIEntry, onNewProject, currentSessionId, isGenerating, onStopGeneration, chatMode = 'chat', onChatModeChange, developmentPlan = [], currentTaskIndex = 0, showApprovalButtons = false, onApprove, onRevise }) => {
+const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBalance, activeModel, validatorEnabled, validatorModel, generationStatus = 'idle', onOpenSettings, onOpenAutomation, onOpenDocVerification, onOpenSelfImprovement, onOpenAIEntry, onNewProject, currentSessionId, isGenerating, onStopGeneration, chatMode = 'chat', onChatModeChange, developmentPlan = [], currentTaskIndex = 0, showApprovalButtons = false, onApprove, onRevise, onDeleteMessage, onEditMessage, onRegenerateFromMessage }) => {
   const [prompt, setPrompt] = useState('');
   const [showSamples, setShowSamples] = useState(true);
   const [expandedFeature, setExpandedFeature] = useState(null);
