@@ -312,9 +312,12 @@ class ExecutionAgentService {
    */
   private async performStep(step: ActionStep, browserState: BrowserState): Promise<void> {
     console.log(`[ExecutionAgent] Performing ${step.actionType}: ${step.targetDescription}`);
+    console.log(`[ExecutionAgent] Current session ID: ${this.currentSessionId}`);
 
     if (!this.currentSessionId) {
-      throw new Error('No active browser session');
+      const error = 'No active browser session - session ID is null';
+      console.error(`[ExecutionAgent] ERROR: ${error}`);
+      throw new Error(error);
     }
 
     try {
@@ -323,25 +326,35 @@ class ExecutionAgentService {
       switch (step.actionType) {
         case 'NAVIGATE':
           // Navigate to URL
-          result = await navigateAutomation(this.currentSessionId, step.targetSelector || 'https://google.com');
+          const navUrl = step.targetSelector || step.inputValue || 'https://google.com';
+          console.log(`[ExecutionAgent] Navigating to: ${navUrl}`);
+          
+          result = await navigateAutomation(this.currentSessionId, navUrl);
+          console.log(`[ExecutionAgent] Navigation result:`, result);
           
           // Update browser state with screenshot
           if (result.screenshot) {
             const newState: BrowserState = {
               ...browserState,
-              currentUrl: result.url || step.targetSelector || '',
+              currentUrl: result.url || navUrl,
               screenshot: result.screenshot,
               pageTitle: result.title || 'Page',
               highlightBoxes: [],
               timestamp: Date.now()
             };
             this.updateState({ browserState: newState });
+            console.log(`[ExecutionAgent] Browser state updated with screenshot`);
+          } else {
+            console.warn(`[ExecutionAgent] No screenshot in navigation result`);
           }
           break;
 
         case 'CLICK':
           // Use smart-click with vision model
+          console.log(`[ExecutionAgent] Smart clicking: ${step.targetDescription}`);
+          
           result = await smartClick(this.currentSessionId, step.targetDescription);
+          console.log(`[ExecutionAgent] Click result:`, result);
           
           // Update with new screenshot after click
           if (result.screenshot) {
@@ -359,16 +372,21 @@ class ExecutionAgentService {
               timestamp: Date.now()
             };
             this.updateState({ browserState: newState });
+            console.log(`[ExecutionAgent] State updated after click`);
           }
           break;
 
         case 'TYPE':
           // Type text into element
+          const textToType = step.inputValue || '';
+          console.log(`[ExecutionAgent] Typing into ${step.targetDescription}: ${textToType}`);
+          
           result = await typeText(
             this.currentSessionId, 
             step.targetDescription, 
-            step.inputValue || ''
+            textToType
           );
+          console.log(`[ExecutionAgent] Type result:`, result);
           
           // Update with screenshot
           if (result.screenshot) {
@@ -380,21 +398,25 @@ class ExecutionAgentService {
                 y: result.box.y,
                 w: result.box.width,
                 h: result.box.height,
-                label: `Typed: "${step.inputValue}"`,
+                label: `Typed: "${textToType}"`,
                 color: '#3b82f6'
               }] : [],
               timestamp: Date.now()
             };
             this.updateState({ browserState: newState });
+            console.log(`[ExecutionAgent] State updated after typing`);
           }
           break;
 
         case 'WAIT':
           // Simple wait (no API call needed)
+          console.log(`[ExecutionAgent] Waiting 2 seconds...`);
           await new Promise(resolve => setTimeout(resolve, 2000));
           
           // Get fresh screenshot
+          console.log(`[ExecutionAgent] Getting fresh screenshot after wait`);
           const screenshot = await getAutomationScreenshot(this.currentSessionId);
+          
           if (screenshot.screenshot) {
             const newState: BrowserState = {
               ...browserState,
@@ -402,6 +424,36 @@ class ExecutionAgentService {
               timestamp: Date.now()
             };
             this.updateState({ browserState: newState });
+            console.log(`[ExecutionAgent] Screenshot updated after wait`);
+          }
+          break;
+
+        case 'CAPTCHA':
+          // Handle captcha with vision model
+          console.log(`[ExecutionAgent] Attempting to solve captcha`);
+          
+          // First, find the captcha element
+          try {
+            const elements = await findElements(this.currentSessionId, 'captcha element or checkbox');
+            console.log(`[ExecutionAgent] Found ${elements.elements?.length || 0} captcha elements`);
+            
+            if (elements.elements && elements.elements.length > 0) {
+              // Click the first captcha element
+              result = await smartClick(this.currentSessionId, 'captcha');
+              
+              if (result.screenshot) {
+                const newState: BrowserState = {
+                  ...browserState,
+                  screenshot: result.screenshot,
+                  timestamp: Date.now()
+                };
+                this.updateState({ browserState: newState });
+                console.log(`[ExecutionAgent] Captcha clicked, state updated`);
+              }
+            }
+          } catch (captchaError) {
+            console.warn(`[ExecutionAgent] Captcha handling warning:`, captchaError);
+            // Continue anyway - captcha might not be present
           }
           break;
 
@@ -419,8 +471,16 @@ class ExecutionAgentService {
           }
       }
 
+      console.log(`[ExecutionAgent] Step completed successfully: ${step.actionType}`);
+
     } catch (error: any) {
       console.error(`[ExecutionAgent] Browser action error:`, error);
+      console.error(`[ExecutionAgent] Error details:`, {
+        step: step.actionType,
+        sessionId: this.currentSessionId,
+        message: error.message,
+        stack: error.stack
+      });
       throw error; // Propagate error for retry logic
     }
   }
