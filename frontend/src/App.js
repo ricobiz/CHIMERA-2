@@ -282,6 +282,8 @@ function App() {
             onStopGeneration={handleStopGeneration}
             chatMode={chatMode}
             onChatModeChange={setChatMode}
+            developmentPlan={developmentPlan}
+            currentTaskIndex={currentTaskIndex}
           />
         </div>
 
