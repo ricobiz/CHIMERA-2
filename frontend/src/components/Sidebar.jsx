@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Upload, MoreVertical, Settings } from 'lucide-react';
+import { Plus, Upload, MoreVertical, Settings, MessageSquare, Trash2 } from 'lucide-react';
 import { Button } from './ui/button';
-import { getProjects } from '../services/api';
+import { getSessions, deleteSession } from '../services/api';
+import { toast } from './hooks/use-toast';
 
-const Sidebar = ({ onNewProject, onProjectSelect, onOpenSettings }) => {
+const Sidebar = ({ onNewProject, onProjectSelect, onOpenSettings, onSessionSelect, currentSessionId }) => {
   const [projects, setProjects] = useState([]);
+  const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('sessions'); // 'sessions' or 'projects'
 
   useEffect(() => {
-    loadProjects();
+    loadSessions();
   }, []);
 
   const loadProjects = async () => {
