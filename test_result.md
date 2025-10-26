@@ -470,6 +470,32 @@ backend:
 frontend:
   - task: "API Balance Display"
     implemented: true
+
+
+  - task: "Context Usage Display in Chat"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/App.js, /app/frontend/src/components/ChatInterface.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added context usage percentage display next to cost info in chat messages. Shows '• Context: X.X%' in blue text. Frontend now handles new_session_id transitions and context_warning notifications from backend."
+
+  - task: "Context Management API Functions"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/services/api.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added getContextStatus() and switchModelWithContext() API functions for frontend context management integration."
+
     working: true
     file: "/app/frontend/src/App.js, /app/frontend/src/components/ChatInterface.jsx, /app/frontend/src/services/api.js"
     stuck_count: 0
