@@ -360,82 +360,86 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
                 isActive={validatorEnabled}
               />
               
-              {/* Browser Automation Button */}
-              <button
-                onClick={() => {
-                  if (onOpenAutomation) {
-                    onOpenAutomation();
-                  }
-                }}
-                className="p-2 rounded-lg bg-gradient-to-r from-purple-600/20 to-blue-600/20 hover:from-purple-600/30 hover:to-blue-600/30 border border-purple-500/50 hover:border-purple-400 transition-all group relative"
-                title="Browser Automation"
-              >
-                <svg className="w-4 h-4 text-purple-400 group-hover:text-purple-300 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
-                {/* Tooltip */}
-                <div className="absolute bottom-full right-0 mb-2 px-2 py-1 bg-gray-900 border border-gray-700 rounded text-xs text-gray-300 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                  Browser Automation
-                </div>
-              </button>
-              
-              {/* Document Verification Button - NEW! */}
-              <button
-                onClick={() => {
-                  if (onOpenDocVerification) {
-                    onOpenDocVerification();
-                  }
-                }}
-                className="p-2 rounded-lg bg-gradient-to-r from-green-600/20 to-emerald-600/20 hover:from-green-600/30 hover:to-emerald-600/30 border border-green-500/50 hover:border-green-400 transition-all group relative"
-                title="Document Verification"
-              >
-                <svg className="w-4 h-4 text-green-400 group-hover:text-green-300 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                </svg>
-                {/* Tooltip */}
-                <div className="absolute bottom-full right-0 mb-2 px-2 py-1 bg-gray-900 border border-gray-700 rounded text-xs text-gray-300 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                  Document Verification
-                </div>
-              </button>
-              
-              {/* AI Entry Point Button - NEW! */}
-              <button
-                onClick={() => {
-                  if (onOpenAIEntry) {
-                    onOpenAIEntry();
-                  }
-                }}
-                className="p-2 rounded-lg bg-gradient-to-r from-cyan-600/20 to-teal-600/20 hover:from-cyan-600/30 hover:to-teal-600/30 border border-cyan-500/50 hover:border-cyan-400 transition-all group relative"
-                title="AI Entry Point"
-              >
-                <svg className="w-4 h-4 text-cyan-400 group-hover:text-cyan-300 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-                {/* Tooltip */}
-                <div className="absolute bottom-full right-0 mb-2 px-2 py-1 bg-gray-900 border border-gray-700 rounded text-xs text-gray-300 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                  AI Entry Point
-                </div>
-              </button>
-              
-              {/* Content Folder Button - NEW! */}
-              <button
-                onClick={() => setShowContent(!showContent)}
-                className="p-2 rounded-lg bg-gradient-to-r from-amber-600/20 to-orange-600/20 hover:from-amber-600/30 hover:to-orange-600/30 border border-amber-500/50 hover:border-amber-400 transition-all group relative"
-                title="Session Content"
-              >
-                <svg className="w-4 h-4 text-amber-400 group-hover:text-amber-300 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-                </svg>
-                {sessionContent.length > 0 && (
-                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-amber-500 text-white text-[10px] rounded-full flex items-center justify-center font-bold">
-                    {sessionContent.length}
-                  </span>
+              {/* Functions Dropdown Menu */}
+              <div className="relative functions-menu-container">
+                <button
+                  onClick={() => setShowFunctionsMenu(!showFunctionsMenu)}
+                  className="p-2 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 border border-gray-700 transition-all"
+                  title="Functions"
+                >
+                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                </button>
+
+                {/* Dropdown Menu */}
+                {showFunctionsMenu && (
+                  <div className="absolute top-full right-0 mt-2 w-56 bg-gray-900 border border-gray-700 rounded-lg shadow-2xl z-50">
+                    <div className="p-2">
+                      <div className="text-xs text-gray-500 px-2 py-1 mb-1">Quick Functions</div>
+                      
+                      <button
+                        onClick={() => {
+                          setShowFunctionsMenu(false);
+                          if (onOpenAutomation) onOpenAutomation();
+                        }}
+                        className="w-full px-3 py-2 text-left text-sm text-gray-300 hover:bg-gray-800 rounded flex items-center gap-3 transition-colors"
+                      >
+                        <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                        Browser Automation
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          setShowFunctionsMenu(false);
+                          if (onOpenDocVerification) onOpenDocVerification();
+                        }}
+                        className="w-full px-3 py-2 text-left text-sm text-gray-300 hover:bg-gray-800 rounded flex items-center gap-3 transition-colors"
+                      >
+                        <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Document Verification
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          setShowFunctionsMenu(false);
+                          if (onOpenAIEntry) onOpenAIEntry();
+                        }}
+                        className="w-full px-3 py-2 text-left text-sm text-gray-300 hover:bg-gray-800 rounded flex items-center gap-3 transition-colors"
+                      >
+                        <svg className="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                        AI Entry Point
+                      </button>
+
+                      <div className="border-t border-gray-800 my-2"></div>
+
+                      <button
+                        onClick={() => {
+                          setShowFunctionsMenu(false);
+                          setShowContent(!showContent);
+                        }}
+                        className="w-full px-3 py-2 text-left text-sm text-gray-300 hover:bg-gray-800 rounded flex items-center gap-3 transition-colors"
+                      >
+                        <svg className="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                        </svg>
+                        Session Content
+                        {sessionContent.length > 0 && (
+                          <span className="ml-auto text-xs bg-amber-600/30 text-amber-400 px-1.5 py-0.5 rounded-full">
+                            {sessionContent.length}
+                          </span>
+                        )}
+                      </button>
+                    </div>
+                  </div>
                 )}
-                {/* Tooltip */}
-                <div className="absolute bottom-full right-0 mb-2 px-2 py-1 bg-gray-900 border border-gray-700 rounded text-xs text-gray-300 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                  Session Content
-                </div>
-              </button>
+              </div>
               
               {/* Settings Dropdown Menu */}
               <div className="relative settings-menu-container">
