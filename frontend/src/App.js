@@ -38,6 +38,7 @@ function App() {
     setMessages(newMessages);
     
     setIsGenerating(true);
+    setGenerationStatus('generating');
     
     try {
       const response = await generateCode(prompt, messages, selectedModel);
@@ -78,18 +79,28 @@ function App() {
         setShowPreview(true);
       }
       
+      setGenerationStatus('success');
+      
       toast({
         title: "Code Generated",
         description: "Your app is ready.",
       });
       
+      // Reset to idle after 3 seconds
+      setTimeout(() => setGenerationStatus('idle'), 3000);
+      
     } catch (error) {
       console.error('Error:', error);
+      setGenerationStatus('error');
+      
       toast({
         title: "Error",
         description: "Failed to generate code.",
         variant: "destructive"
       });
+      
+      // Reset to idle after 5 seconds
+      setTimeout(() => setGenerationStatus('idle'), 5000);
     } finally {
       setIsGenerating(false);
     }
