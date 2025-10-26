@@ -226,6 +226,8 @@ function App() {
             activeModel={selectedModel}
             validatorEnabled={visualValidatorEnabled}
             validatorModel={visualValidatorModel}
+            generationStatus={generationStatus}
+            onOpenSettings={handleOpenSettings}
           />
         </div>
 
