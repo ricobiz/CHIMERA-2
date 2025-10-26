@@ -160,12 +160,9 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
   const sessionActive = ['planning', 'executing', 'paused'].includes(session.status);
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#0f0f10] relative">
-      {/* Mobile safe area top padding */}
-      <div className="h-safe-top bg-[#0f0f10]" style={{ paddingTop: 'env(safe-area-inset-top)' }} />
-      
+    <div className="flex flex-col h-screen bg-[#0f0f10] overflow-hidden">
       {/* Page Header */}
-      <div className="px-4 md:px-6 py-3 md:py-4 border-b border-gray-800 flex-shrink-0 sticky top-0 bg-[#0f0f10] z-10">
+      <div className="px-4 md:px-6 py-3 md:py-4 border-b border-gray-800 flex-shrink-0 bg-[#0f0f10]">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 md:gap-4">
             {onClose && (
