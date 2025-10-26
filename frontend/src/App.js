@@ -6,7 +6,7 @@ import Sidebar from './components/Sidebar';
 import ChatInterface from './components/ChatInterface';
 import PreviewPanel from './components/PreviewPanel';
 import Settings from './components/Settings';
-import AutomationPage from './components/automation/AutomationPage';
+import AutomationPage from './components/automation/AutomationPage.tsx';
 import TaskProgress from './components/TaskProgress';
 import { generateCode, saveProject, createSession, updateSession, getSession, getOpenRouterBalance } from './services/api';
 import { toast } from './hooks/use-toast';
