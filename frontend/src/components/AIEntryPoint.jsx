@@ -142,6 +142,21 @@ const AIEntryPoint = () => {
     }
   };
 
+  const handleControlMode = async (mode) => {
+    try {
+      const response = await controlAgent(mode);
+      setRunMode(response.run_mode);
+      setAgentStatus(response.agent_status);
+      
+      // Reload result if completed
+      if (mode === 'STOP') {
+        loadResult();
+      }
+    } catch (error) {
+      alert(`Error: ${error.message}`);
+    }
+  };
+
   const getStatusColor = () => {
     switch (agentStatus) {
       case 'ACTIVE': return 'text-green-400';
