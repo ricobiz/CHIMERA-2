@@ -149,14 +149,26 @@ const PreviewPanel = ({ generatedCode, isGenerating }) => {
                 sandbox="allow-scripts allow-same-origin"
               />
             ) : (
-              <div className="flex items-center justify-center h-full bg-gray-900">
+              <div className="flex items-center justify-center h-full bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
                 <div className="text-center max-w-md px-4">
-                  <Eye className="w-12 h-12 md:w-16 md:h-16 text-gray-600 mx-auto mb-4" />
+                  {/* Animated Icon */}
+                  <div className="relative mb-6">
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-20 h-20 md:w-24 md:h-24 rounded-full border-4 border-purple-500/20 animate-ping"></div>
+                    </div>
+                    <div className="relative flex items-center justify-center">
+                      <Eye className="w-12 h-12 md:w-16 md:h-16 text-purple-500 animate-pulse" />
+                    </div>
+                  </div>
+                  
                   <h3 className="text-lg md:text-xl font-semibold text-white mb-2">
                     No Preview Yet
                   </h3>
-                  <p className="text-sm md:text-base text-gray-400">
+                  <p className="text-sm md:text-base text-gray-400 mb-4">
                     Start by describing your app idea in the chat.
+                  </p>
+                  <p className="text-xs text-gray-600">
+                    Your app will come to life here ✨
                   </p>
                 </div>
               </div>
