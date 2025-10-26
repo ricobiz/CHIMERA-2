@@ -95,6 +95,7 @@ app.include_router(planning_router)
 app.include_router(doc_verify_router)
 app.include_router(self_improve_router)
 app.include_router(hook_router)
+app.include_router(proxy_router)
 
 # Validation endpoint for browser automation
 from pydantic import BaseModel as PydanticBaseModel
