@@ -670,10 +670,30 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
                 >
                   {/* Message Header */}
                   <div className="flex items-center justify-between mb-2">
-                    <p className={`text-xs font-semibold ${
-                      msg.role === 'user' ? 'text-gray-300' : 'text-gray-400'
+                    <p className={`text-xs font-semibold flex items-center gap-2 ${
+                      msg.role === 'user' ? 'text-blue-300' : msg.role === 'system' ? 'text-cyan-300' : 'text-purple-300'
                     }`}>
-                      {msg.role === 'user' ? 'You' : msg.role === 'design' ? 'Design Proposal' : 'Assistant'}
+                      {msg.role === 'user' ? (
+                        <>
+                          <span className="w-2 h-2 rounded-full bg-blue-400"></span>
+                          {userName || 'You'}
+                        </>
+                      ) : msg.role === 'design' ? (
+                        <>
+                          <span className="w-2 h-2 rounded-full bg-purple-400"></span>
+                          {aiName} • Design
+                        </>
+                      ) : msg.role === 'system' ? (
+                        <>
+                          <span className="w-2 h-2 rounded-full bg-cyan-400"></span>
+                          System
+                        </>
+                      ) : (
+                        <>
+                          <span className="w-2 h-2 rounded-full bg-purple-400"></span>
+                          {aiName}
+                        </>
+                      )}
                     </p>
                     
                     {/* Action Buttons */}
