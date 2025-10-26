@@ -11,8 +11,11 @@ from models import (
     ProjectListItem
 )
 from services.openrouter_service import openrouter_service
+from services.design_generator_service import design_generator_service
+from services.visual_validator_service import visual_validator_service
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
+import httpx
 
 logger = logging.getLogger(__name__)
 
