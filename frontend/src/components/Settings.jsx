@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings as SettingsIcon, ChevronLeft, Check } from 'lucide-react';
+import { Settings as SettingsIcon, ChevronLeft, Check, Plus, Trash2, Eye, EyeOff } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
 import { Badge } from './ui/badge';
@@ -16,6 +16,16 @@ const Settings = ({ selectedModel, onModelChange, onClose, visualValidatorEnable
   const [localValidatorEnabled, setLocalValidatorEnabled] = useState(visualValidatorEnabled);
   const [localValidatorModel, setLocalValidatorModel] = useState(visualValidatorModel);
   const [validatorSearchTerm, setValidatorSearchTerm] = useState('');
+  
+  // Secrets management
+  const [activeTab, setActiveTab] = useState('models'); // 'models' or 'secrets'
+  const [secrets, setSecrets] = useState(() => {
+    const saved = localStorage.getItem('user_secrets');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [newSecretName, setNewSecretName] = useState('');
+  const [newSecretValue, setNewSecretValue] = useState('');
+  const [showValues, setShowValues] = useState({});
 
   useEffect(() => {
     loadModels();
