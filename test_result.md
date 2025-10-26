@@ -507,6 +507,7 @@ metadata:
 
 test_plan:
   current_focus:
+    - "POST /api/research-task endpoint - COMPLETED"
     - "END-TO-END: Calculator app generation with design-first workflow - COMPLETED"
   stuck_tasks: []
   test_all: false
