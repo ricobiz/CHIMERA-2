@@ -130,6 +130,16 @@ const Settings = ({ selectedModel, onModelChange, onClose, visualValidatorEnable
       <div className="flex-1 overflow-y-auto p-4 md:p-6">
         <div className="max-w-4xl mx-auto space-y-8">
           
+          {/* Save Button */}
+          <div className="flex justify-end">
+            <Button
+              onClick={onClose}
+              className="bg-purple-600 hover:bg-purple-700 text-white"
+            >
+              Save & Close Settings
+            </Button>
+          </div>
+          
           {/* Visual Validator Section */}
           <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-6">
             <div className="flex items-start justify-between mb-4">
