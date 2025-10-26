@@ -606,6 +606,11 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
                             • Balance: ${apiBalance.remaining.toFixed(2)}
                           </span>
                         )}
+                        {msg.context_info && msg.context_info.percentage_display && (
+                          <span className="ml-2 text-[10px] text-blue-400">
+                            • Context: {msg.context_info.percentage_display}
+                          </span>
+                        )}
                       </p>
                     </div>
                   )}
