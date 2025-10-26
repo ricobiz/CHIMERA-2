@@ -22,6 +22,14 @@ function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  
+  // Visual Validator states
+  const [visualValidatorEnabled, setVisualValidatorEnabled] = useState(
+    localStorage.getItem('visualValidatorEnabled') === 'true'
+  );
+  const [visualValidatorModel, setVisualValidatorModel] = useState(
+    localStorage.getItem('visualValidatorModel') || 'anthropic/claude-3-haiku'
+  );
 
   const handleSendPrompt = async (prompt) => {
     const userMessage = { role: 'user', content: prompt };
