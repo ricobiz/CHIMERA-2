@@ -32,9 +32,9 @@ async def verify_document(request: DocumentVerificationRequest):
     try:
         logger.info(f"Starting document verification: {request.document_type}")
         
-        # Multi-model verification for higher accuracy (3 models as requested)
-        primary_model = "openai/gpt-5"
-        secondary_model = "anthropic/claude-3.5-sonnet"
+        # Multi-model verification for higher accuracy (using vision-capable models)
+        primary_model = "openai/gpt-4o"  # Vision-capable OpenAI model
+        secondary_model = "anthropic/claude-3.5-sonnet"  # Vision-capable
         tertiary_model = "google/gemini-2.5-flash-image"  # Vision model
         
         # Create comprehensive analysis prompt
