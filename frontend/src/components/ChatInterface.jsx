@@ -332,6 +332,25 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
                 isActive={validatorEnabled}
               />
               
+              {/* Browser Automation Button - NEW! */}
+              <button
+                onClick={() => {
+                  if (onOpenAutomation) {
+                    onOpenAutomation();
+                  }
+                }}
+                className="p-2 rounded-lg bg-gradient-to-r from-purple-600/20 to-blue-600/20 hover:from-purple-600/30 hover:to-blue-600/30 border border-purple-500/50 hover:border-purple-400 transition-all group relative"
+                title="Browser Automation"
+              >
+                <svg className="w-4 h-4 text-purple-400 group-hover:text-purple-300 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                {/* Tooltip */}
+                <div className="absolute bottom-full right-0 mb-2 px-2 py-1 bg-gray-900 border border-gray-700 rounded text-xs text-gray-300 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                  Browser Automation
+                </div>
+              </button>
+              
               {/* Settings Dropdown Menu */}
               <div className="relative settings-menu-container">
                 <button
@@ -355,6 +374,7 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
                       Settings
                     </button>
                     
+                    {/* Browser Automation также оставим в меню для совместимости */}
                     <button
                       onClick={() => {
                         if (onOpenAutomation) {
