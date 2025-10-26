@@ -1789,7 +1789,15 @@ export default App;""",
         print(f"🔗 Backend URL: {BACKEND_URL}")
         print("=" * 60)
         
-        # Test chat endpoint first (as requested in review)
+        # Test NEW DESIGN-FIRST WORKFLOW ENDPOINTS (as requested in review)
+        print("\n" + "=" * 60)
+        print("🎨 TESTING NEW DESIGN-FIRST WORKFLOW ENDPOINTS")
+        print("=" * 60)
+        self.test_generate_design_endpoint()
+        self.test_validate_visual_endpoint()
+        self.test_openrouter_balance_endpoint()
+        
+        # Test chat endpoint (previously tested)
         self.test_chat_endpoint()
         
         # Test original endpoints
