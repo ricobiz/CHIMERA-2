@@ -42,8 +42,8 @@ Be creative but practical. Ensure the design matches the app's purpose."""
     async def generate_design(self, user_request: str, model: str = None) -> Dict:
         """Generate design specification using vision-capable model"""
         try:
-            # Use Gemini 2.5 Nano Banana for design generation
-            selected_model = model or "google/gemini-2.5-flash"
+            # Use Gemini 2.5 Nano Banana for design generation (optimized for cost/quality)
+            selected_model = model or "google/gemini-2.5-nano-banana"
             
             prompt = self.design_prompt.format(user_request=user_request)
             
