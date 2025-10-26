@@ -2265,6 +2265,15 @@ export default App;""",
         print(f"🔗 Backend URL: {BACKEND_URL}")
         print("=" * 60)
         
+        # Test NEW RESEARCH PLANNER ENDPOINT (as requested in review)
+        print("\n" + "=" * 60)
+        print("🔬 TESTING NEW RESEARCH PLANNER ENDPOINT")
+        print("=" * 60)
+        self.test_research_task_simple_analyze()
+        self.test_research_task_complex_analyze()
+        self.test_research_task_full_pipeline()
+        self.test_research_task_error_handling()
+        
         # Test NEW DESIGN-FIRST WORKFLOW ENDPOINTS (as requested in review)
         print("\n" + "=" * 60)
         print("🎨 TESTING NEW DESIGN-FIRST WORKFLOW ENDPOINTS")
