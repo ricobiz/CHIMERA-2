@@ -49,10 +49,15 @@ const DocumentVerification = ({ onClose }) => {
     if (!selectedFile) return;
 
     setIsAnalyzing(true);
+    setError(null);
+    setVerificationResult(null);
     
     try {
+      console.log('Starting document verification...');
+      
       // Convert file to base64
       const base64 = await fileToBase64(selectedFile);
+      console.log('File converted to base64, length:', base64.length);
       
       // Call backend API
       const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/document-verification/analyze`, {
@@ -65,12 +70,25 @@ const DocumentVerification = ({ onClose }) => {
         })
       });
 
+      console.log('Response status:', response.status);
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ detail: 'Unknown error' }));
+        throw new Error(errorData.detail || `Server error: ${response.status}`);
+      }
+
       const result = await response.json();
-      setVerificationResult(result);
+      console.log('Verification result received:', result);
+      
+      if (result && result.verdict) {
+        setVerificationResult(result);
+      } else {
+        throw new Error('Invalid response format from server');
+      }
       
     } catch (error) {
       console.error('Verification error:', error);
-      alert('Verification failed. Please try again.');
+      setError(error.message || 'Verification failed. Please try again.');
     } finally {
       setIsAnalyzing(false);
     }
