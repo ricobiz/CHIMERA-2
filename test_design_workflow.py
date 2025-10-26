@@ -23,10 +23,10 @@ def test_generate_design():
     """Test POST /api/generate-design endpoint"""
     print("\n🧪 Testing Generate Design Endpoint...")
     
-    # Test data as specified in review request
+    # Test data as specified in review request (using alternative free model)
     test_data = {
         "user_request": "Create a simple calculator app with basic operations",
-        "model": "google/gemini-2.0-flash-exp:free"
+        "model": "openai/gpt-oss-20b:free"
     }
     
     try:
