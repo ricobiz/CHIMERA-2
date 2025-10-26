@@ -789,7 +789,7 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
         </div>
       </div>
       
-      {/* Add CSS for animated gradient border */}
+      {/* Add CSS for animated gradient border and mobile fixes */}
       <style jsx>{`
         .animated-gradient-border {
           position: relative;
@@ -817,6 +817,17 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
         
         .glow-purple {
           box-shadow: 0 0 10px rgba(139, 92, 246, 0.2);
+        }
+        
+        /* Mobile viewport fixes */
+        @media (max-width: 768px) {
+          .animated-gradient-border {
+            height: 100vh;
+            height: 100dvh; /* Dynamic viewport height for mobile browsers */
+            max-height: 100vh;
+            max-height: 100dvh;
+            overflow: hidden;
+          }
         }
       `}</style>
     </div>
