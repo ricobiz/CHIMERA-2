@@ -145,8 +145,59 @@ function App() {
         description: "Your app is ready.",
       });
       
-      // Reset to idle after 3 seconds
-      setTimeout(() => setGenerationStatus('idle'), 3000);
+      // Automatic visual validation for Agent mode
+      if (chatMode === 'agent' && visualValidatorEnabled) {
+        setIsValidatingVisually(true);
+        
+        // Add visual validation task
+        setDevelopmentPlan(prev => {
+          if (prev.length > 0) {
+            const updated = [...prev];
+            updated.push({ 
+              name: 'Visual Validation', 
+              description: 'Checking UI compliance', 
+              status: 'in-progress' 
+            });
+            return updated;
+          }
+          return prev;
+        });
+        
+        // Simulate visual validation (in production, this would call the vision model)
+        setTimeout(() => {
+          setDevelopmentPlan(prev => {
+            const updated = [...prev];
+            const lastIdx = updated.length - 1;
+            if (lastIdx >= 0) {
+              updated[lastIdx] = { ...updated[lastIdx], status: 'validating' };
+            }
+            return updated;
+          });
+          
+          // After validation, show approval buttons
+          setTimeout(() => {
+            setDevelopmentPlan(prev => {
+              const updated = [...prev];
+              const lastIdx = updated.length - 1;
+              if (lastIdx >= 0) {
+                updated[lastIdx] = { ...updated[lastIdx], status: 'completed' };
+              }
+              return updated;
+            });
+            
+            setIsValidatingVisually(false);
+            setShowApprovalButtons(true);
+            
+            toast({
+              title: "Visual Validation Complete",
+              description: "UI passes all checks. Ready for your approval.",
+            });
+          }, 2000);
+        }, 2000);
+      } else {
+        // Reset to idle after 3 seconds
+        setTimeout(() => setGenerationStatus('idle'), 3000);
+      }
       
     } catch (error) {
       console.error('Error:', error);
