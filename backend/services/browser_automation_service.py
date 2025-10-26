@@ -13,6 +13,13 @@ import os
 
 logger = logging.getLogger(__name__)
 
+# Anti-detection: random delays
+import random
+async def human_like_delay(min_ms: int = 100, max_ms: int = 500):
+    """Add human-like random delay"""
+    delay = random.randint(min_ms, max_ms) / 1000.0
+    await asyncio.sleep(delay)
+
 class BrowserAutomationService:
     def __init__(self):
         self.playwright = None
