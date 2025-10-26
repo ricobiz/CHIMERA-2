@@ -137,15 +137,18 @@ backend:
 
   - task: "PUT /api/integrations/{id} endpoint"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/routes/integrations_routes.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Created endpoint to update integrations. Needs testing."
+      - working: true
+        agent: "testing"
+        comment: "✅ Successfully tested PUT /api/integrations/{id} endpoint. Updated integration enabled status from true to false and name successfully. Updated_at timestamp correctly updated. All fields properly validated and returned."
 
   - task: "DELETE /api/integrations/{id} endpoint"
     implemented: true
