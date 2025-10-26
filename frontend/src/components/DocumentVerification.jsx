@@ -600,9 +600,16 @@ const DocumentVerification = ({ onClose }) => {
                 {/* Action Buttons */}
                 <div className="flex gap-4">
                   <button
+                    onClick={() => setShowDetailedReport(false)}
+                    className="px-6 py-3 bg-gray-800 hover:bg-gray-700 text-white font-medium rounded-lg transition-colors border border-gray-700"
+                  >
+                    ← Back to Summary
+                  </button>
+                  <button
                     onClick={() => {
                       setVerificationResult(null);
                       setSelectedFile(null);
+                      setShowDetailedReport(false);
                     }}
                     className="flex-1 px-6 py-3 bg-purple-600 hover:bg-purple-500 text-white font-medium rounded-lg transition-colors"
                   >
@@ -610,18 +617,26 @@ const DocumentVerification = ({ onClose }) => {
                   </button>
                   <button
                     onClick={() => {
-                      // Download report as JSON
-                      const dataStr = JSON.stringify(verificationResult, null, 2);
+                      // Download official report as JSON
+                      const report = {
+                        ...verificationResult,
+                        report_id: Date.now().toString(36).toUpperCase(),
+                        generated_at: new Date().toISOString(),
+                        document_type: documentType,
+                        service: "Chimera AIOS Document Verification"
+                      };
+                      const dataStr = JSON.stringify(report, null, 2);
                       const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-                      const exportFileDefaultName = `verification-report-${Date.now()}.json`;
+                      const filename = `chimera-verification-${Date.now()}.json`;
                       const linkElement = document.createElement('a');
                       linkElement.setAttribute('href', dataUri);
-                      linkElement.setAttribute('download', exportFileDefaultName);
+                      linkElement.setAttribute('download', filename);
                       linkElement.click();
                     }}
-                    className="px-6 py-3 bg-gray-800 hover:bg-gray-700 text-white font-medium rounded-lg transition-colors border border-gray-700"
+                    className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-medium rounded-lg transition-colors flex items-center gap-2"
                   >
-                    Download Report
+                    <FileText className="w-4 h-4" />
+                    Download Official Report
                   </button>
                 </div>
               </div>
