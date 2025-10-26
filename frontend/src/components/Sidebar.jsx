@@ -14,14 +14,34 @@ const Sidebar = ({ onNewProject, onProjectSelect, onOpenSettings, onSessionSelec
     loadSessions();
   }, []);
 
-  const loadProjects = async () => {
+  const loadSessions = async () => {
     try {
-      const data = await getProjects();
-      setProjects(data);
+      const data = await getSessions();
+      setSessions(data);
     } catch (error) {
-      console.error('Failed to load projects:', error);
+      console.error('Failed to load sessions:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteSession = async (sessionId, e) => {
+    e.stopPropagation();
+    if (window.confirm('Delete this session?')) {
+      try {
+        await deleteSession(sessionId);
+        setSessions(prev => prev.filter(s => s.id !== sessionId));
+        toast({
+          title: "Session Deleted",
+          description: "Session has been removed.",
+        });
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to delete session.",
+          variant: "destructive"
+        });
+      }
     }
   };
 
