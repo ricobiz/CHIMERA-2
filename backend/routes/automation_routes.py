@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 
 class CreateSessionRequest(BaseModel):
     session_id: str
+    use_proxy: bool = False
 
 class NavigateRequest(BaseModel):
     session_id: str
