@@ -193,6 +193,23 @@ function App() {
   };
 
   const handleSendPrompt = async (prompt) => {
+    // STEP 1: Classify task type using AI
+    console.log('[CHIMERA] 🔍 Classifying task type...');
+    const classificationResult = await classifyTask(prompt, selectedModel);
+    const taskType = classificationResult?.classification?.task_type || 'code_generation';
+    const confidence = classificationResult?.classification?.confidence || 0.5;
+    
+    console.log(`[CHIMERA] ✅ Task classified as: ${taskType} (confidence: ${confidence})`);
+    
+    // STEP 2: Route to appropriate handler based on task type
+    if (taskType === 'browser_automation' && confidence > 0.6) {
+      // Handle browser automation in chat
+      console.log('[CHIMERA] 🤖 Routing to browser automation...');
+      await handleBrowserAutomationTask(prompt);
+      return;
+    }
+    
+    // For code_generation, document_verification, or general_chat, continue with normal flow
     const userMessage = { role: 'user', content: prompt };
     const newMessages = [...messages, userMessage];
     setMessages(newMessages);
