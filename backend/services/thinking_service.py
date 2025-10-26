@@ -7,7 +7,7 @@ import logging
 from typing import Dict, List, Any, Optional, Tuple
 import httpx
 from services.openrouter_service import openrouter_service
-from services.ai_memory_service import memory_service
+# from services.ai_memory_service import memory_service  # Disabled for MVP
 
 logger = logging.getLogger(__name__)
 
