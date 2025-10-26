@@ -235,6 +235,8 @@ function App() {
             currentSessionId={currentSessionId}
             isGenerating={isGenerating}
             onStopGeneration={handleStopGeneration}
+            chatMode={chatMode}
+            onChatModeChange={setChatMode}
           />
         </div>
 
