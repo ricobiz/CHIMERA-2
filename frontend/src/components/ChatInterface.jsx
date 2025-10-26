@@ -915,6 +915,68 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
           </div>
         </div>
       </div>
+
+      {/* Content Panel - Slide-in from right */}
+      {showContent && (
+        <div className="fixed inset-y-0 right-0 w-80 bg-gray-900/95 backdrop-blur-lg border-l border-gray-700 shadow-2xl z-50 flex flex-col">
+          {/* Content Header */}
+          <div className="p-4 border-b border-gray-700 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <svg className="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+              </svg>
+              <h3 className="text-white font-semibold">Session Content</h3>
+            </div>
+            <button
+              onClick={() => setShowContent(false)}
+              className="p-1 hover:bg-gray-800 rounded transition-colors"
+            >
+              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Content List */}
+          <div className="flex-1 overflow-y-auto p-4">
+            {sessionContent.length === 0 ? (
+              <div className="text-center py-12">
+                <svg className="w-16 h-16 text-gray-600 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                </svg>
+                <p className="text-gray-400 text-sm">No content yet</p>
+                <p className="text-gray-500 text-xs mt-1">Generated images, code, and files will appear here</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {sessionContent.map((item, idx) => (
+                  <div key={idx} className="bg-gray-800/50 rounded-lg p-3 border border-gray-700 hover:border-amber-500/50 transition-colors">
+                    <div className="flex items-start gap-3">
+                      {item.type === 'image' ? (
+                        <svg className="w-5 h-5 text-purple-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      ) : item.type === 'code' ? (
+                        <svg className="w-5 h-5 text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                        </svg>
+                      ) : (
+                        <svg className="w-5 h-5 text-green-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                        </svg>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-white text-sm font-medium truncate">{item.name}</p>
+                        <p className="text-gray-500 text-xs mt-0.5">{item.timestamp}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
       
       {/* Add CSS for animated gradient border and mobile fixes */}
       <style jsx>{`
