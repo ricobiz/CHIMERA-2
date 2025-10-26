@@ -76,12 +76,14 @@ from routes.session_routes import router as session_router
 from routes.system_status import router as system_router
 from routes.chat_routes import router as chat_router
 from routes.integrations_routes import router as integrations_router
+from routes.automation_routes import router as automation_router
 app.include_router(lovable_router)
 app.include_router(models_router)
 app.include_router(session_router)
 app.include_router(system_router)
 app.include_router(chat_router)
 app.include_router(integrations_router)
+app.include_router(automation_router)
 
 app.add_middleware(
     CORSMiddleware,
