@@ -10,6 +10,7 @@ class ValidatorService {
 
   /**
    * Validates if a step was executed successfully
+   * Returns unified format with confidence, concerns, needs_human
    */
   async check(
     browserState: BrowserState,
@@ -19,12 +20,16 @@ class ValidatorService {
     console.log(`[Validator] Checking step "${step.actionType}" - Attempt ${attempt}`);
 
     try {
-      // Simulate validation logic
-      // In production, this would use the visual validator model to check the screenshot
-      
+      // Perform validation logic
       const validation = await this.performValidation(browserState, step);
       
       console.log(`[Validator] Result: ${validation.isValid ? 'PASS' : 'FAIL'} (confidence: ${validation.confidence})`);
+      if (validation.concerns && validation.concerns.length > 0) {
+        console.log(`[Validator] Concerns:`, validation.concerns);
+      }
+      if (validation.needsHuman) {
+        console.log(`[Validator] ⚠️ Needs human intervention`);
+      }
       
       return validation;
 
@@ -36,7 +41,9 @@ class ValidatorService {
         confidence: 0,
         issues: ['Validation service error'],
         shouldRetry: attempt < (step.maxRetries || 3),
-        suggestions: ['Check network connection', 'Verify page load']
+        suggestions: ['Check network connection', 'Verify page load'],
+        concerns: ['Validation service unavailable'],
+        needsHuman: false
       };
     }
   }
