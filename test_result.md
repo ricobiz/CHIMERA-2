@@ -600,15 +600,17 @@ frontend:
         comment: "✅ COMPREHENSIVE END-TO-END TEST PASSED: Complete calculator generation workflow tested successfully. Russian prompt ('Создай калькулятор с базовыми операциями (+, -, *, /). Используй синюю цветовую схему') processed correctly. All workflow stages verified: initial state → Agent mode switch → generation request → process monitoring (blue border, stop button, development plan) → completion (green border) → cost display → preview functionality → settings access. All 10 test scenarios passed. Design-first workflow fully functional."
 
 metadata:
-  created_by: "testing_agent"
-  version: "1.0"
-  test_sequence: 1
+  created_by: "main_agent"
+  version: "1.1"
+  test_sequence: 2
   run_ui: false
 
 test_plan:
   current_focus:
-    - "POST /api/research-task endpoint - COMPLETED"
-    - "END-TO-END: Calculator app generation with design-first workflow - COMPLETED"
+    - "Context Window Management - All backend endpoints"
+    - "Context Window Management - Frontend integration"
+    - "POST /api/context/status endpoint"
+    - "POST /api/context/switch-model endpoint"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
