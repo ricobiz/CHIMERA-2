@@ -814,4 +814,76 @@ agent_communication:
     - Fixed OpenRouter balance endpoint to handle null values for unlimited accounts
     - Updated backend service to restart and apply changes
     
+
+  - agent: "main"
+    message: "✅ **CONTEXT WINDOW MANAGEMENT SYSTEM IMPLEMENTED**
+    
+    **Implementation Complete - Ready for Testing:**
+    
+    **Backend Services:**
+    1. **context_manager_service.py**: Complete context management system
+       - Dynamic context limits from OpenRouter API (fallback to hardcoded)
+       - Token counting with tiktoken
+       - Auto-compression at 75% threshold (keeps last 4 messages + AI summary)
+       - Auto new-session at 90% threshold
+       - Session chain tracking with parent_session_id
+       - Context usage calculation and warnings
+    
+    2. **openrouter_service.py**: Added get_models() method
+       - Fetches model data including context_length from OpenRouter API
+       - Enables dynamic context limit discovery
+    
+    **Backend API Endpoints:**
+    1. **POST /api/chat** - Enhanced with context management
+       - Accepts session_id in request
+       - Auto-manages context before LLM calls
+       - Returns context_usage, context_warning, new_session_id
+       - Handles session transitions transparently
+    
+    2. **POST /api/context/status** - NEW
+       - Query current context usage
+       - Returns tokens used, limit, percentage, warning
+    
+    3. **POST /api/context/switch-model** - NEW
+       - Switch models with context preservation
+       - Compresses context, creates new session
+       - Returns new_session_id and compressed_messages
+    
+    **Frontend Integration:**
+    1. **App.js**: Updated chat flow
+       - Passes session_id to chat API
+       - Handles new_session_id transitions
+       - Stores context_info in messages
+    
+    2. **ChatInterface.jsx**: Visual indicators
+       - Displays context usage percentage (blue text)
+       - Shows next to cost/balance info
+    
+    3. **api.js**: New API functions
+       - getContextStatus()
+       - switchModelWithContext()
+    
+    **Key Features Implemented:**
+    - ✅ Dynamic context limits from OpenRouter API
+    - ✅ 75% threshold compression (researched as optimal)
+    - ✅ 90% threshold new session creation
+    - ✅ Model switching creates new session with preserved context
+    - ✅ Session chain tracking (parent_session_id)
+    - ✅ AI memory integration for session continuity
+    - ✅ Context usage display in frontend
+    
+    **Testing Required:**
+    - All 6 new backend tasks need comprehensive testing
+    - 2 frontend tasks need validation
+    - Test compression logic with long conversations
+    - Test model switching scenario
+    - Verify context limits from OpenRouter API
+    
+    **Note:** According to user requirements:
+    - Automation and code generation contexts should be isolated (not polluting chat)
+    - Chat can query these isolated contexts when needed
+    - This isolation is already partially implemented via separate routes
+    
+    Ready for backend testing agent."
+
     **CONCLUSION:** All design-first workflow endpoints are fully functional and ready for production use. The new workflow supports: design generation → code generation → visual validation → balance tracking."
