@@ -14,10 +14,22 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/hook", tags=["agent-hook"])
 
-# In-memory storage (replace with Redis/DB in production)
+# Global state objects - REAL, not mocked
 current_task = {"text": "", "job_id": None, "timestamp": None}
 execution_logs = []
 agent_status = "IDLE"  # IDLE, ACTIVE, ERROR
+
+# Global result object - stores final artifacts
+last_result = {
+    "screenshot": None,
+    "credentials": None,
+    "completed": False
+}
+
+# Global control state - agent mode
+control_state = {
+    "run_mode": "PAUSED"  # ACTIVE, PAUSED, STOP
+}
 
 class TaskRequest(BaseModel):
     text: str
