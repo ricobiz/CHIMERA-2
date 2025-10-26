@@ -305,3 +305,18 @@ export const getOpenRouterBalance = async () => {
     throw error;
   }
 };
+
+// Research Planner
+export const researchTask = async (userRequest, model, researchMode = 'full') => {
+  try {
+    const response = await axios.post(`${API}/research-task`, {
+      user_request: userRequest,
+      model,
+      research_mode: researchMode
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error in research task:', error);
+    throw error;
+  }
+};
