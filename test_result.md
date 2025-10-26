@@ -255,6 +255,21 @@ backend:
         agent: "testing"
         comment: "✅ Successfully tested GET /api/mcp-servers/active/list endpoint. Retrieved 1 active MCP server correctly. All returned servers are enabled (enabled=true). Fallback order sorting functionality implemented correctly for load balancing."
 
+  - task: "POST /api/chat endpoint"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/chat_routes.py"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "user"
+        comment: "User reported chat mode always returns same message - appears to be a stub/fallback response."
+      - working: true
+        agent: "main"
+        comment: "✅ Fixed! Problem was missing '/api' prefix in chat_routes.py router definition. Added prefix='/api' to router. Chat endpoint now accessible at /api/chat. Backend restarted successfully."
+
   - task: "POST /api/generate-code endpoint"
     implemented: true
     working: true
