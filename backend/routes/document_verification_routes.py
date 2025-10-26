@@ -135,7 +135,7 @@ Be EXTREMELY thorough and critical. False negatives (missing fraud) are more dan
         
         response = await openrouter_service.chat_completion(
             messages=messages,
-            model=model,
+            model=primary_model,
             temperature=0.1  # Low temperature for consistency
         )
         
