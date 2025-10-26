@@ -174,7 +174,7 @@ function App() {
 
   return (
     <div className="flex h-screen overflow-hidden bg-[#0f0f10]">
-      {/* Mobile menu button - MOVED TO LEFT */}
+      {/* Mobile menu button for sidebar */}
       <Button
         onClick={() => setSidebarOpen(!sidebarOpen)}
         className="fixed top-4 left-4 z-50 md:hidden bg-gray-800 hover:bg-gray-700"
