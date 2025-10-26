@@ -116,7 +116,7 @@ const DocumentVerification = ({ onClose }) => {
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 border border-gray-700 text-gray-300 transition-colors"
+            className="px-2 md:px-3 py-1.5 md:py-2 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 border border-gray-700 text-gray-300 transition-colors text-sm md:text-base"
           >
             ← Back
           </button>
