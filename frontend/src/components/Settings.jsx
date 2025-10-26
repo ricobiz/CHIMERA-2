@@ -42,10 +42,18 @@ const Settings = ({ selectedModel, onModelChange, onClose }) => {
     });
   };
 
-  const filteredModels = models.filter(model => 
-    model.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    model.id.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredModels = models.filter(model => {
+    const matchesSearch = model.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      model.id.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesFilter = 
+      filterType === 'all' ? true :
+      filterType === 'free' ? (model.pricing.prompt === 0 && model.pricing.completion === 0) :
+      filterType === 'paid' ? (model.pricing.prompt > 0 || model.pricing.completion > 0) :
+      true;
+    
+    return matchesSearch && matchesFilter;
+  });
 
   return (
     <div className="flex-1 flex flex-col bg-[#0f0f10] h-screen">
