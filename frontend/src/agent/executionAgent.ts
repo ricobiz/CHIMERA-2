@@ -81,6 +81,30 @@ class ExecutionAgentService {
 
       const planResponse = await plannerService.getPlan(goal);
       const plan = planResponse.plan;
+      
+      console.log('[ExecutionAgent] ✅ Plan received:', plan);
+      console.log('[ExecutionAgent] Plan has', plan.steps?.length || 0, 'steps');
+      console.log('[ExecutionAgent] Steps:', plan.steps);
+
+      if (!plan || !plan.steps || plan.steps.length === 0) {
+        console.error('[ExecutionAgent] ❌ ERROR: Plan has no steps!');
+        this.addLog({
+          actionType: 'WAIT',
+          details: 'ERROR: Failed to generate plan - no steps created',
+          status: 'error'
+        });
+        await this.cleanupSession(sessionId);
+        this.updateState({
+          status: 'failed',
+          result: {
+            success: false,
+            message: 'Generated plan has no steps',
+            completedSteps: 0,
+            totalSteps: 0
+          }
+        });
+        return;
+      }
 
       this.addLog({
         actionType: 'WAIT',
@@ -89,6 +113,7 @@ class ExecutionAgentService {
       });
 
       // Phase 2: Execution
+      console.log('[ExecutionAgent] 🚀 Starting execution phase...');
       this.updateState({ status: 'executing' });
 
       let completedSteps = 0;
