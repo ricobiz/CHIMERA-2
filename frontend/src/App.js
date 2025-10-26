@@ -234,6 +234,8 @@ function App() {
           onNewProject={handleNewProject} 
           onProjectSelect={handleProjectSelect}
           onOpenSettings={handleOpenSettings}
+          onSessionSelect={handleSessionSelect}
+          currentSessionId={currentSessionId}
         />
       </div>
 
