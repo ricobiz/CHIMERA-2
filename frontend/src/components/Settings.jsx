@@ -79,6 +79,31 @@ const Settings = ({ selectedModel, onModelChange, onClose, visualValidatorEnable
     return matchesSearch && matchesFilter;
   });
 
+  // Get all vision-capable models for validator
+  const visionModels = models
+    .filter(model => {
+      // Check if model has vision capabilities or is multimodal
+      const hasVision = model.capabilities?.vision || 
+                       model.id.toLowerCase().includes('vision') ||
+                       model.id.toLowerCase().includes('nano-banana') ||
+                       model.id.toLowerCase().includes('gemini') && model.id.toLowerCase().includes('pro-vision') ||
+                       model.architecture?.modality?.includes('image') ||
+                       model.name.toLowerCase().includes('vision');
+      
+      // Filter by search term
+      const matchesSearch = validatorSearchTerm === '' || 
+                          model.name.toLowerCase().includes(validatorSearchTerm.toLowerCase()) ||
+                          model.id.toLowerCase().includes(validatorSearchTerm.toLowerCase());
+      
+      return hasVision && matchesSearch;
+    })
+    .sort((a, b) => {
+      // Sort by price: free first, then by prompt price
+      const priceA = a.pricing.prompt + a.pricing.completion;
+      const priceB = b.pricing.prompt + b.pricing.completion;
+      return priceA - priceB;
+    });
+
   return (
     <div className="flex-1 flex flex-col bg-[#0f0f10] h-screen">
       {/* Header */}
