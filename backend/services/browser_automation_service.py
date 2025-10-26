@@ -129,6 +129,13 @@ class BrowserAutomationService:
         try:
             await page.goto(url, wait_until='networkidle', timeout=30000)
             
+            # Auto-detect and solve CAPTCHA if present
+            if self.captcha_solver:
+                await asyncio.sleep(2)  # Wait for CAPTCHA to load
+                captcha_solved = await self.captcha_solver.auto_solve(page)
+                if captcha_solved:
+                    logger.info("✅ CAPTCHA handled automatically")
+            
             # Capture screenshot
             screenshot = await self.capture_screenshot(session_id)
             current_url = page.url
@@ -142,6 +149,35 @@ class BrowserAutomationService:
             }
         except Exception as e:
             logger.error(f"Navigation error: {str(e)}")
+            return {
+                'success': False,
+                'error': str(e)
+            }
+    
+    async def detect_and_solve_captcha(self, session_id: str) -> Dict[str, Any]:
+        """Manually trigger CAPTCHA detection and solving"""
+        if session_id not in self.sessions:
+            raise ValueError(f"Session {session_id} not found")
+        
+        page = self.sessions[session_id]['page']
+        
+        if not self.captcha_solver:
+            return {
+                'success': False,
+                'error': 'CAPTCHA solver not initialized'
+            }
+        
+        try:
+            solved = await self.captcha_solver.auto_solve(page)
+            screenshot = await self.capture_screenshot(session_id)
+            
+            return {
+                'success': solved,
+                'screenshot': screenshot,
+                'message': 'CAPTCHA solved' if solved else 'No CAPTCHA found or solving failed'
+            }
+        except Exception as e:
+            logger.error(f"CAPTCHA solving error: {str(e)}")
             return {
                 'success': False,
                 'error': str(e)
