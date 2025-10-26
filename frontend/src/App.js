@@ -32,6 +32,16 @@ function App() {
   const [currentSessionId, setCurrentSessionId] = useState(null);
   const [generationStatus, setGenerationStatus] = useState('idle'); // 'idle', 'generating', 'success', 'error'
 
+  const handleStopGeneration = () => {
+    // TODO: Implement stop generation logic
+    setIsGenerating(false);
+    setGenerationStatus('idle');
+    toast({
+      title: "Generation Stopped",
+      description: "Code generation has been stopped.",
+    });
+  };
+
   const handleSendPrompt = async (prompt) => {
     const userMessage = { role: 'user', content: prompt };
     const newMessages = [...messages, userMessage];
