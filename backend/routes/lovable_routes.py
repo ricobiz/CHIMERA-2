@@ -116,3 +116,82 @@ async def get_projects():
     except Exception as e:
         logger.error(f"Error fetching projects: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/generate-design")
+async def generate_design(request: dict):
+    """Generate design specification using vision model"""
+    try:
+        user_request = request.get("user_request")
+        model = request.get("model")
+        
+        if not user_request:
+            raise HTTPException(status_code=400, detail="user_request is required")
+        
+        result = await design_generator_service.generate_design(user_request, model)
+        
+        return {
+            "design_spec": result["design_spec"],
+            "usage": result.get("usage", {})
+        }
+    except Exception as e:
+        logger.error(f"Error in generate-design endpoint: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/validate-visual")
+async def validate_visual(request: dict):
+    """Validate UI screenshot using vision model"""
+    try:
+        screenshot = request.get("screenshot")
+        user_request = request.get("user_request")
+        validator_model = request.get("validator_model", "anthropic/claude-3-haiku")
+        
+        if not screenshot:
+            raise HTTPException(status_code=400, detail="screenshot is required")
+        if not user_request:
+            raise HTTPException(status_code=400, detail="user_request is required")
+        
+        # Remove data URL prefix if present
+        if screenshot.startswith("data:image"):
+            screenshot = screenshot.split(",")[1]
+        
+        result = await visual_validator_service.validate_screenshot(
+            screenshot, 
+            user_request,
+            validator_model
+        )
+        
+        return result
+    except Exception as e:
+        logger.error(f"Error in validate-visual endpoint: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/openrouter/balance")
+async def get_openrouter_balance():
+    """Get OpenRouter account balance"""
+    try:
+        api_key = os.environ.get('OPENROUTER_API_KEY')
+        if not api_key:
+            raise HTTPException(status_code=500, detail="OpenRouter API key not configured")
+        
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                "https://openrouter.ai/api/v1/auth/key",
+                headers={"Authorization": f"Bearer {api_key}"}
+            )
+            response.raise_for_status()
+            data = response.json()
+            
+            # OpenRouter returns credit information
+            return {
+                "balance": data.get("data", {}).get("limit", 0),
+                "used": data.get("data", {}).get("usage", 0),
+                "remaining": data.get("data", {}).get("limit_remaining", 0),
+                "label": data.get("data", {}).get("label", ""),
+                "is_free_tier": data.get("data", {}).get("is_free_tier", False)
+            }
+    except Exception as e:
+        logger.error(f"Error fetching OpenRouter balance: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
