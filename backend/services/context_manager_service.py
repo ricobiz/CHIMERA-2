@@ -331,18 +331,22 @@ Format as a flowing paragraph, not bullet points."""
         """
         results = []
         
-        for session_id in session_chain:
-            # Search in memory for this session
-            memories = await memory_service.recall(
-                query=query,
-                memory_type="conversation",
-                n_results=3
-            )
-            
-            # Filter by session_id
-            session_memories = [
-                m for m in memories 
-                if m.get('metadata', {}).get('session_id') == session_id
+        # Search in memory disabled - will return empty results
+        return results
+        
+        # Original code (disabled):
+        # for session_id in session_chain:
+        #     # Search in memory for this session
+        #     memories = await memory_service.recall(
+        #         query=query,
+        #         memory_type="conversation",
+        #         n_results=3
+        #     )
+        #     
+        #     # Filter by session_id
+        #     session_memories = [
+        #         m for m in memories 
+        #         if m.get('metadata', {}).get('session_id') == session_id
             ]
             
             results.extend(session_memories)
