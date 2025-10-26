@@ -1,29 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Send, Sparkles, ChevronDown, Save, Settings } from 'lucide-react';
+import { Send, Sparkles, ChevronDown, Save } from 'lucide-react';
 import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { samplePrompts } from '../mockData';
-import { getModels } from '../services/api';
 
-const ChatInterface = ({ onSendPrompt, messages = [], onSave, selectedModel, onModelChange, totalCost }) => {
+const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, onOpenSettings }) => {
   const [prompt, setPrompt] = useState('');
   const [showSamples, setShowSamples] = useState(true);
-  const [models, setModels] = useState([]);
-  const [showSettings, setShowSettings] = useState(false);
-
-  useEffect(() => {
-    loadModels();
-  }, []);
-
-  const loadModels = async () => {
-    try {
-      const data = await getModels();
-      setModels(data.models || []);
-    } catch (error) {
-      console.error('Failed to load models:', error);
-    }
-  };
 
   const handleSubmit = () => {
     if (prompt.trim()) {
