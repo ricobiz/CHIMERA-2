@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import BrowserViewport from './BrowserViewport';
-import AgentLog from './AgentLog';
-import Controls from './Controls';
-import { AutomationSession, BrowserState, AgentLogEntry } from '../../agent/types';
-import { executionAgent } from '../../agent/executionAgent';
+import BrowserViewport from './BrowserViewport.tsx';
+import AgentLog from './AgentLog.tsx';
+import Controls from './Controls.tsx';
+import { AutomationSession, BrowserState, AgentLogEntry } from '../../agent/types.ts';
+import { executionAgent } from '../../agent/executionAgent.ts';
 import { toast } from '../../hooks/use-toast';
 
 const AutomationPage: React.FC = () => {
