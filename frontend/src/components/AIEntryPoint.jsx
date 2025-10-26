@@ -198,13 +198,30 @@ const AIEntryPoint = ({ onClose }) => {
   return (
     <div className="flex flex-col h-screen bg-[#0f0f10] text-gray-100">
       {/* Header */}
-      <div className="px-6 py-4 border-b border-gray-800 flex-shrink-0">
-        <h1 className="text-2xl font-bold text-white mb-1">AI Entry Point</h1>
-        <p className="text-sm text-gray-400">Universal gateway between orchestrator AI and execution agent</p>
+      <div className="px-4 md:px-6 py-4 border-b border-gray-800 flex-shrink-0">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-3">
+            {onClose && (
+              <button
+                onClick={onClose}
+                className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors flex items-center gap-2 text-sm"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Back
+              </button>
+            )}
+            <div>
+              <h1 className="text-xl md:text-2xl font-bold text-white">AI Entry Point</h1>
+              <p className="text-xs md:text-sm text-gray-400">Universal gateway between orchestrator AI and execution agent</p>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 overflow-hidden flex flex-col lg:flex-row gap-4 p-6">
+      {/* Main Content - with scrolling */}
+      <div className="flex-1 overflow-y-auto flex flex-col lg:flex-row gap-4 p-4 md:p-6">
         
         {/* Left Column: Task Input + Quick Actions */}
         <div className="lg:w-1/3 space-y-4">
