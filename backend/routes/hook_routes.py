@@ -106,19 +106,26 @@ async def execute_task(request: TaskRequest):
 @router.get("/log")
 async def get_logs(nocache: int = 1, ts: Optional[int] = None, read: bool = False):
     """
-    Get execution logs in real-time
-    Returns array of log entries and current agent status
+    Get execution logs in real-time with mission status
+    Returns array of log entries, agent status, and mission status
     """
-    global execution_logs, agent_status
+    global execution_logs, agent_status, current_task
     
     try:
+        # Get mission report from supervisor
+        mission_report = mission_supervisor.get_mission_report()
+        
         # If read=true, just return logs without updates
         if read:
             logger.info(f"[HOOK] Read logs requested - {len(execution_logs)} entries")
         
         return {
             "logs": execution_logs,
-            "status": agent_status,
+            "status": agent_status,  # IDLE, ACTIVE, ERROR
+            "mission_status": mission_report.get('mission_status', 'idle') if mission_report.get('active') else 'idle',
+            "human_help_reason": mission_report.get('human_help_reason'),
+            "job_id": current_task.get('job_id'),
+            "result_ready": mission_report.get('result_ready', False),
             "total_steps": len(execution_logs),
             "timestamp": datetime.now().isoformat()
         }
