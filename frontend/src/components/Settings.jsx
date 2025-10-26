@@ -555,6 +555,85 @@ const Settings = ({ selectedModel, onModelChange, onClose, visualValidatorEnable
             )}
           </div>
 
+          {/* Research Planner Section */}
+          <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-5">
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-2">
+                  <Search className="w-4 h-4 text-gray-400" />
+                  <h3 className="text-gray-300 font-semibold text-base">Research Planner</h3>
+                </div>
+                <p className="text-gray-500 text-sm">
+                  Enable AI-powered research to investigate current best practices before complex tasks. 
+                  Ensures modern approaches and up-to-date technology stacks.
+                </p>
+              </div>
+              <Switch
+                checked={localResearchEnabled}
+                onCheckedChange={handleResearchToggle}
+                className="data-[state=checked]:bg-gray-600"
+              />
+            </div>
+
+            {localResearchEnabled && (
+              <div className="mt-4 pt-4 border-t border-gray-800">
+                <label className="text-xs text-gray-500 mb-3 block font-medium">Research Model ({models.length} available)</label>
+                
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  value={researchSearchTerm}
+                  onChange={(e) => setResearchSearchTerm(e.target.value)}
+                  className="w-full p-2 mb-3 bg-gray-900 border border-gray-800 rounded text-gray-300 text-xs placeholder-gray-600"
+                />
+
+                <div className="grid gap-2 max-h-72 overflow-y-auto pr-2">
+                  {models
+                    .filter(model => {
+                      const matchesSearch = researchSearchTerm === '' || 
+                                          model.name.toLowerCase().includes(researchSearchTerm.toLowerCase()) ||
+                                          model.id.toLowerCase().includes(researchSearchTerm.toLowerCase());
+                      return matchesSearch;
+                    })
+                    .map((model) => {
+                      const isFree = model.pricing.prompt === 0 && model.pricing.completion === 0;
+                      return (
+                        <div
+                          key={model.id}
+                          onClick={() => handleResearchModelSelect(model.id)}
+                          className={`p-2.5 rounded cursor-pointer transition-all border text-xs ${
+                            localResearchModel === model.id
+                              ? 'bg-gray-800 border-gray-700'
+                              : 'bg-gray-900/50 border-gray-800/50 hover:border-gray-700'
+                          }`}
+                        >
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <p className="text-gray-300 font-medium">{model.name}</p>
+                                {localResearchModel === model.id && (
+                                  <Check className="w-3 h-3 text-gray-500" />
+                                )}
+                                {isFree && (
+                                  <span className="text-[10px] text-gray-500">FREE</span>
+                                )}
+                              </div>
+                              <p className="text-[10px] text-gray-600 mb-1.5">{model.id}</p>
+                              <div className="flex items-center gap-2">
+                                <span className="text-[10px] text-gray-600 font-mono">
+                                  {isFree ? 'No cost' : `$${(model.pricing.prompt * 1000000).toFixed(2)}/M`}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Model Selection Section */}
           <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-5">
             <div className="flex items-center gap-2 mb-3">
