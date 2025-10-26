@@ -62,22 +62,13 @@ class ExecutionAgentService {
     this.aborted = false;
     this.paused = false;
 
-    // Create browser session
+    // Create browser session with unique ID
     const sessionId = `browser-${Date.now()}`;
-    const API_BASE = process.env.REACT_APP_BACKEND_URL || '';
+    this.currentSessionId = sessionId;
 
     try {
-      // Initialize browser session
-      const sessionResponse = await fetch(`${API_BASE}/api/automation/session/create`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ session_id: sessionId })
-      });
-
-      if (!sessionResponse.ok) {
-        throw new Error('Failed to create browser session');
-      }
-
+      // Initialize browser session via API
+      await createAutomationSession(sessionId);
       console.log('[ExecutionAgent] Browser session created:', sessionId);
 
       // Phase 1: Planning
