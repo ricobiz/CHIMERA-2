@@ -164,30 +164,30 @@ Respond naturally as if you're a talented colleague brainstorming and building t
         
         assistant_message = response['choices'][0]['message']['content']
         
-        # Remember this conversation with thinking metadata
-        await memory_service.remember_conversation(
-            user_message=request.message,
-            assistant_response=assistant_message,
-            session_id=session_id,
-            important=True
-        )
+        # Remember this conversation with thinking metadata (disabled)
+        # await memory_service.remember_conversation(
+        #     user_message=request.message,
+        #     assistant_response=assistant_message,
+        #     session_id=session_id,
+        #     important=True
+        # )
         
-        # Store thinking process in memory (for learning)
-        if thinking_result['confidence'] < 0.7:
-            await memory_service.remember_user_fact(
-                f"Low confidence topic: {request.message[:100]}. Reasoning: {thinking_result['final_reasoning'][:200]}",
-                category="learning",
-                importance=0.6
-            )
+        # Store thinking process in memory (for learning) (disabled)
+        # if thinking_result['confidence'] < 0.7:
+        #     await memory_service.remember_user_fact(
+        #         f"Low confidence topic: {request.message[:100]}. Reasoning: {thinking_result['final_reasoning'][:200]}",
+        #         category="learning",
+        #         importance=0.6
+        #     )
         
-        # Extract facts periodically
-        if personality['interaction_count'] % 5 == 0:
-            all_messages = request.history + [
-                {"role": "user", "content": request.message},
-                {"role": "assistant", "content": assistant_message}
-            ]
-            await memory_service.extract_facts_from_conversation(
-                all_messages,
+        # Extract facts periodically (disabled)
+        # if personality['interaction_count'] % 5 == 0:
+        #     all_messages = request.history + [
+        #         {"role": "user", "content": request.message},
+        #         {"role": "assistant", "content": assistant_message}
+        #     ]
+        #     await memory_service.extract_facts_from_conversation(
+        #         all_messages,
                 session_id=session_id
             )
         
