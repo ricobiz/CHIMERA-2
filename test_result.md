@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Test the Lovable.dev clone backend API endpoints including OpenRouter integration"
+user_problem_statement: "Complete context window management system for AI code generation app. Implement dynamic context tracking from OpenRouter API, auto-compression at optimal threshold, model switching with preserved context, and isolated execution contexts for automation and code generation."
 
 backend:
   - task: "POST /api/integrations endpoint"
