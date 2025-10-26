@@ -170,3 +170,127 @@ export const generateDesign = async (userRequest, model) => {
     throw error;
   }
 };
+
+// ========== Service Integrations ==========
+
+export const createIntegration = async (integrationData) => {
+  try {
+    const response = await axios.post(`${API}/integrations`, integrationData);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating integration:', error);
+    throw error;
+  }
+};
+
+export const getIntegrations = async () => {
+  try {
+    const response = await axios.get(`${API}/integrations`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching integrations:', error);
+    throw error;
+  }
+};
+
+export const getIntegration = async (integrationId) => {
+  try {
+    const response = await axios.get(`${API}/integrations/${integrationId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching integration:', error);
+    throw error;
+  }
+};
+
+export const updateIntegration = async (integrationId, updateData) => {
+  try {
+    const response = await axios.put(`${API}/integrations/${integrationId}`, updateData);
+    return response.data;
+  } catch (error) {
+    console.error('Error updating integration:', error);
+    throw error;
+  }
+};
+
+export const deleteIntegration = async (integrationId) => {
+  try {
+    const response = await axios.delete(`${API}/integrations/${integrationId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting integration:', error);
+    throw error;
+  }
+};
+
+// ========== MCP Servers ==========
+
+export const createMCPServer = async (serverData) => {
+  try {
+    const response = await axios.post(`${API}/mcp-servers`, serverData);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating MCP server:', error);
+    throw error;
+  }
+};
+
+export const getMCPServers = async () => {
+  try {
+    const response = await axios.get(`${API}/mcp-servers`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching MCP servers:', error);
+    throw error;
+  }
+};
+
+export const getMCPServer = async (serverId) => {
+  try {
+    const response = await axios.get(`${API}/mcp-servers/${serverId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching MCP server:', error);
+    throw error;
+  }
+};
+
+export const updateMCPServer = async (serverId, updateData) => {
+  try {
+    const response = await axios.put(`${API}/mcp-servers/${serverId}`, updateData);
+    return response.data;
+  } catch (error) {
+    console.error('Error updating MCP server:', error);
+    throw error;
+  }
+};
+
+export const deleteMCPServer = async (serverId) => {
+  try {
+    const response = await axios.delete(`${API}/mcp-servers/${serverId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting MCP server:', error);
+    throw error;
+  }
+};
+
+export const healthCheckMCPServer = async (serverId) => {
+  try {
+    const response = await axios.post(`${API}/mcp-servers/${serverId}/health-check`);
+    return response.data;
+  } catch (error) {
+    console.error('Error performing health check:', error);
+    throw error;
+  }
+};
+
+export const getActiveMCPServers = async () => {
+  try {
+    const response = await axios.get(`${API}/mcp-servers/active/list`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching active MCP servers:', error);
+    throw error;
+  }
+};
