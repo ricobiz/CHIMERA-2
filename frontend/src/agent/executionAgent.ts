@@ -7,9 +7,9 @@ import {
   ExecutionResult,
   UserInputRequest,
   HighlightBox
-} from './types';
-import { plannerService } from './planner';
-import { validatorService } from './validator';
+} from './types.ts';
+import { plannerService } from './planner.ts';
+import { validatorService } from './validator.ts';
 
 type StateUpdateCallback = (updates: Partial<AutomationState>) => void;
 
