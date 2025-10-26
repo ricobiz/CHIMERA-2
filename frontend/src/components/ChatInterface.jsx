@@ -14,6 +14,7 @@ import { getSessions, getSession } from '../services/api';
 const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBalance, activeModel, validatorEnabled, validatorModel, generationStatus = 'idle', onOpenSettings, onOpenAutomation, onOpenDocVerification, onOpenSelfImprovement, onNewProject, currentSessionId, isGenerating, onStopGeneration, chatMode = 'chat', onChatModeChange, developmentPlan = [], currentTaskIndex = 0, showApprovalButtons = false, onApprove, onRevise }) => {
   const [prompt, setPrompt] = useState('');
   const [showSamples, setShowSamples] = useState(true);
+  const [expandedFeature, setExpandedFeature] = useState(null);
   const [showSettingsMenu, setShowSettingsMenu] = useState(false);
   const [sessionIdInput, setSessionIdInput] = useState('');
   const [showSessionMenu, setShowSessionMenu] = useState(false);
