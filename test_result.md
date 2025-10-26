@@ -393,6 +393,80 @@ backend:
         agent: "testing"
         comment: "✅ EXCELLENT: Research Planner endpoint working perfectly (9/10 tests passed, 90% success rate). All 3 main scenarios validated: (1) Simple calculator task correctly identified as simple/no research needed, (2) Complex whiteboard app correctly identified as complex/research required with 5 quality queries, (3) Full e-commerce research pipeline generated detailed 3477-char report with proper sections. Web search integration operational, usage tracking accurate, OpenRouter API working. Only minor issue: returns 500 instead of 400 for missing user_request (non-critical). Ready for production use."
 
+
+  - task: "Context Window Management - Dynamic Limits from OpenRouter"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/services/context_manager_service.py, /app/backend/services/openrouter_service.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented dynamic context window limit fetching from OpenRouter API. Service queries model context_length from /api/v1/models endpoint. Falls back to hardcoded limits if API fails. Supports all major models (Claude, GPT-4, Gemini)."
+
+  - task: "Context Window Management - Auto-Compression"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/services/context_manager_service.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented auto-compression at 75% context usage threshold. System preserves system message, last 4 messages (2 exchanges), and creates AI-powered summary of older messages. Compression reduces context by ~50-70% while preserving important information."
+
+  - task: "Context Window Management - Session Transitions"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/services/context_manager_service.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented automatic new session creation at 90% context usage. New session inherits compressed context from parent session. Session chain tracking with parent_session_id linkage. AI memory integration for session continuity."
+
+  - task: "POST /api/chat - Context Management Integration"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/routes/chat_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Integrated context management into chat endpoint. Automatically manages context before each LLM call. Returns context_usage, context_warning, and new_session_id in response. Handles session transitions transparently."
+
+  - task: "POST /api/context/status endpoint"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/routes/chat_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "New endpoint to query current context window usage. Returns current_tokens, max_tokens, percentage, remaining, and warning messages."
+
+  - task: "POST /api/context/switch-model endpoint"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/routes/chat_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "New endpoint for model switching with context preservation. Creates new session with compressed context from old model. Returns new_session_id and compressed_messages for smooth transition."
+
+
 frontend:
   - task: "API Balance Display"
     implemented: true
