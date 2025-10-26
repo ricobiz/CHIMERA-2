@@ -9,6 +9,62 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api", tags=["document-verification"])
 
+def extract_json(response_text: str, model_name: str) -> Dict:
+    """Extract JSON from model response with multiple fallback methods"""
+    import re
+    
+    result = None
+    try:
+        # Method 1: Try direct JSON parse
+        result = json.loads(response_text)
+        logger.info(f"✅ {model_name}: Parsed JSON directly")
+    except json.JSONDecodeError as e:
+        logger.warning(f"{model_name}: Direct parse failed: {e}")
+        # Method 2: Extract from code blocks
+        if '```json' in response_text:
+            response_text = response_text.split('```json')[1].split('```')[0].strip()
+            logger.info(f"{model_name}: Extracted from ```json block")
+        elif '```' in response_text:
+            response_text = response_text.split('```')[1].split('```')[0].strip()
+            logger.info(f"{model_name}: Extracted from ``` block")
+        
+        # Try parsing again
+        try:
+            result = json.loads(response_text)
+            logger.info(f"✅ {model_name}: Parsed after extraction")
+        except json.JSONDecodeError as e2:
+            logger.warning(f"{model_name}: Second parse failed: {e2}")
+            # Method 3: Regex to find JSON object
+            json_match = re.search(r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}', response_text, re.DOTALL)
+            if json_match:
+                try:
+                    result = json.loads(json_match.group(0))
+                    logger.info(f"✅ {model_name}: Parsed via regex")
+                except:
+                    pass
+    
+    if not result:
+        logger.error(f"{model_name}: Failed to parse. First 300 chars: {response_text[:300]}")
+        # Return minimal valid structure
+        return {
+            "verdict": "SUSPICIOUS",
+            "fraud_probability": 50,
+            "confidence_score": 30,
+            "analysis_details": {},
+            "red_flags": [f"{model_name} failed to provide proper analysis"],
+            "authenticity_indicators": []
+        }
+    
+    # Ensure required fields
+    return {
+        "verdict": result.get('verdict', 'SUSPICIOUS'),
+        "fraud_probability": result.get('fraud_probability', 50),
+        "confidence_score": result.get('confidence_score', 50),
+        "analysis_details": result.get('analysis_details', {}),
+        "red_flags": result.get('red_flags', []),
+        "authenticity_indicators": result.get('authenticity_indicators', [])
+    }
+
 class VerificationResult(BaseModel):
     verdict: str  # "AUTHENTIC", "SUSPICIOUS", "LIKELY_FAKE"
     confidence_score: float  # 0-100
