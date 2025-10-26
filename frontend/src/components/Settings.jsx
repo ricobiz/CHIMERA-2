@@ -18,7 +18,7 @@ const Settings = ({ selectedModel, onModelChange, onClose, visualValidatorEnable
   const [validatorSearchTerm, setValidatorSearchTerm] = useState('');
   
   // Secrets management
-  const [activeTab, setActiveTab] = useState('models'); // 'models' or 'secrets'
+  const [activeTab, setActiveTab] = useState('models'); // 'models', 'secrets', 'integrations', 'mcp'
   const [secrets, setSecrets] = useState(() => {
     const saved = localStorage.getItem('user_secrets');
     return saved ? JSON.parse(saved) : [];
@@ -26,6 +26,29 @@ const Settings = ({ selectedModel, onModelChange, onClose, visualValidatorEnable
   const [newSecretName, setNewSecretName] = useState('');
   const [newSecretValue, setNewSecretValue] = useState('');
   const [showValues, setShowValues] = useState({});
+
+  // Integrations state
+  const [integrations, setIntegrations] = useState([]);
+  const [integrationsLoading, setIntegrationsLoading] = useState(false);
+  const [newIntegration, setNewIntegration] = useState({
+    service_type: 'huggingface',
+    name: '',
+    credentials: {},
+    enabled: true
+  });
+
+  // MCP Servers state
+  const [mcpServers, setMcpServers] = useState([]);
+  const [mcpLoading, setMcpLoading] = useState(false);
+  const [newMCPServer, setNewMCPServer] = useState({
+    name: '',
+    server_type: 'custom',
+    endpoint_url: '',
+    authentication: {},
+    enabled: true,
+    priority: 0,
+    fallback_order: null
+  });
 
   useEffect(() => {
     loadModels();
