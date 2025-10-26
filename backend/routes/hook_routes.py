@@ -262,13 +262,15 @@ def _simulate_task_execution(task_text: str):
 @router.get("/status")
 async def get_agent_status():
     """
-    Get current agent status
+    Get current agent status with control mode and completion state
     """
-    global agent_status, current_task
+    global agent_status, current_task, control_state, last_result
     
     return {
         "status": agent_status,
         "current_task": current_task.get("text", ""),
         "job_id": current_task.get("job_id"),
-        "active": agent_status == "ACTIVE"
+        "active": agent_status == "ACTIVE",
+        "run_mode": control_state["run_mode"],
+        "completed": last_result["completed"]
     }
