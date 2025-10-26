@@ -370,6 +370,18 @@ backend:
         comment: "✅ Specific project retrieval working correctly. Successfully retrieved project by ID. All required fields present (id, name, description, code, conversation_history, created_at, updated_at, last_accessed, icon). 404 error handling also tested and working correctly for invalid IDs."
 
 frontend:
+  - task: "API Balance Display"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/App.js, /app/frontend/src/components/ChatInterface.jsx, /app/frontend/src/services/api.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented OpenRouter balance display. Shows remaining balance in green text next to message cost (e.g., '• Balance: $X.XX'). Auto-refreshes every 30 seconds. Needs testing."
+
   - task: "Settings - Integrations tab"
     implemented: true
     working: "NA"
