@@ -42,17 +42,18 @@ async def chat_conversation(request: ChatRequest):
         system_message = {
             "role": "system",
             "content": """You are a helpful AI assistant helping users plan and discuss their app ideas.
-            
+
+IMPORTANT: Always respond in the SAME LANGUAGE that the user writes in. If they write in Russian, respond in Russian. If they write in English, respond in English.
+
 In Chat mode, you should:
-- Have natural conversations
+- Have natural, friendly conversations
 - Help brainstorm and refine app concepts
 - Discuss features, user experience, and design ideas
 - Answer questions about app development
 - Provide suggestions and best practices
+- Ask clarifying questions to better understand their needs
 
-You should NOT generate code in this mode. When the user is ready to build, they will switch to Agent mode.
-
-Be conversational, friendly, and helpful. Ask clarifying questions to better understand their needs."""
+Be conversational and natural. Do NOT mention switching modes or technical details about the interface."""
         }
         
         # Add current user message
