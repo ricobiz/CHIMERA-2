@@ -149,6 +149,19 @@ const DocumentVerification = ({ onClose }) => {
               <div className="bg-gray-900/50 rounded-lg border border-gray-800 p-6">
                 <h2 className="text-lg font-semibold text-white mb-4">Upload Document for Verification</h2>
                 
+                {/* Error Display */}
+                {error && (
+                  <div className="mb-4 p-4 bg-red-900/20 border border-red-800 rounded-lg">
+                    <div className="flex items-start gap-2">
+                      <XCircle className="w-5 h-5 text-red-400 mt-0.5" />
+                      <div>
+                        <p className="text-red-400 font-semibold">Verification Failed</p>
+                        <p className="text-gray-300 text-sm mt-1">{error}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
                 {/* Drag & Drop Zone */}
                 <div
                   className={`border-2 border-dashed rounded-lg p-12 text-center transition-all ${
