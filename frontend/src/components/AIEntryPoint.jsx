@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Play, RefreshCw, FileText, Activity, AlertCircle, CheckCircle, Pause, Square } from 'lucide-react';
 import { sendTask, getLogs, refreshAgent, getCurrentTask, getAgentStatus, getResult, controlAgent } from '../services/agentApi';
 
-const AIEntryPoint = () => {
+const AIEntryPoint = ({ onClose }) => {
   // State
   const [taskText, setTaskText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -13,6 +13,8 @@ const AIEntryPoint = () => {
   const [result, setResult] = useState(null);
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [runMode, setRunMode] = useState('PAUSED');
+  const [accessEnabled, setAccessEnabled] = useState(false);
+  const [sessionLink, setSessionLink] = useState('');
   
   const logsEndRef = useRef(null);
   const pollIntervalRef = useRef(null);
