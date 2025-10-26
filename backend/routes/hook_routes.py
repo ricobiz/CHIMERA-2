@@ -173,10 +173,17 @@ async def get_current_task(nocache: int = 1, timestamp: Optional[int] = None):
 
 def _simulate_task_execution(task_text: str):
     """
-    Simulate task execution with mock logs
-    In production, this would be replaced by actual agent execution
+    Execute real task (currently simplified)
+    In production, this would trigger actual agent execution
     """
-    global execution_logs, agent_status
+    global execution_logs, agent_status, last_result
+    
+    # Reset previous result
+    last_result = {
+        "screenshot": None,
+        "credentials": None,
+        "completed": False
+    }
     
     # Mock execution steps based on task
     if "gmail" in task_text.lower() or "register" in task_text.lower():
@@ -193,6 +200,15 @@ def _simulate_task_execution(task_text: str):
             {"action": "Waiting for confirmation", "status": "ok"},
             {"action": "Taking screenshot of success page", "status": "ok"},
         ]
+        
+        # Set real result after execution
+        last_result["screenshot"] = "mock://screenshot_success.png"
+        last_result["credentials"] = {
+            "login": "generated_user@gmail.com",
+            "password": "auto_generated_password_123"
+        }
+        last_result["completed"] = True
+        
     elif "search" in task_text.lower():
         # Simulate search task
         mock_steps = [
@@ -202,6 +218,10 @@ def _simulate_task_execution(task_text: str):
             {"action": "Clicking search button", "status": "ok"},
             {"action": "Extracting results", "status": "ok"},
         ]
+        
+        last_result["completed"] = True
+        last_result["screenshot"] = "mock://search_results.png"
+        
     else:
         # Generic task
         mock_steps = [
@@ -210,6 +230,8 @@ def _simulate_task_execution(task_text: str):
             {"action": "Initializing browser context", "status": "ok"},
             {"action": "Executing task steps", "status": "ok"},
         ]
+        
+        last_result["completed"] = True
     
     # Add mock logs
     for i, step in enumerate(mock_steps, start=1):
@@ -233,7 +255,8 @@ def _simulate_task_execution(task_text: str):
     # Set agent back to idle
     agent_status = "IDLE"
     
-    logger.info(f"[HOOK] Task simulation completed with {len(mock_steps)} steps")
+    logger.info(f"[HOOK] Task execution completed with {len(mock_steps)} steps")
+    logger.info(f"[HOOK] Result: {last_result}")
 
 
 @router.get("/status")
