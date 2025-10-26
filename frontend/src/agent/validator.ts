@@ -126,19 +126,24 @@ class ValidatorService {
       
       const validationResult = await response.json();
       
+      // Check for needs_human indicators
+      const needsHuman = validationResult.page_status === 'error' || 
+                         validationResult.confidence < 0.4;
+      
       return {
         isValid: validationResult.success || false,
         confidence: validationResult.confidence || 0.7,
         issues: validationResult.issues || [],
-        shouldRetry: !validationResult.success,
-        suggestions: validationResult.suggestions || []
+        shouldRetry: !validationResult.success && !needsHuman,
+        suggestions: validationResult.suggestions || [],
+        concerns: validationResult.content_match === 'uncertain' ? ['Content match uncertain'] : [],
+        needsHuman: needsHuman
       };
       
     } catch (error) {
       console.error('[Validator] Vision API error:', error);
       
       // Fallback to basic checks if vision API fails
-      // Check if we have screenshot and URL changed
       const basicSuccess = urlChanged && hasScreenshot;
       
       return {
@@ -146,7 +151,9 @@ class ValidatorService {
         confidence: basicSuccess ? 0.7 : 0.3,
         issues: basicSuccess ? [] : ['Page did not load properly', 'URL did not change as expected'],
         shouldRetry: !basicSuccess,
-        suggestions: basicSuccess ? [] : ['Retry navigation', 'Check network connection', 'Verify URL is accessible']
+        suggestions: basicSuccess ? [] : ['Retry navigation', 'Check network connection', 'Verify URL is accessible'],
+        concerns: ['Vision API unavailable, using basic validation'],
+        needsHuman: false
       };
     }
   }
@@ -163,7 +170,9 @@ class ValidatorService {
         isValid: true,
         confidence: 0.85,
         issues: [],
-        shouldRetry: false
+        shouldRetry: false,
+        concerns: [],
+        needsHuman: false
       };
     }
     
