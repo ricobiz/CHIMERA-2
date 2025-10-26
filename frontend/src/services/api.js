@@ -156,3 +156,17 @@ export const validateVisual = async (screenshot, userRequest, validatorModel) =>
     throw error;
   }
 };
+
+// Design Generation
+export const generateDesign = async (userRequest, model) => {
+  try {
+    const response = await axios.post(`${API}/generate-design`, {
+      user_request: userRequest,
+      model
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error generating design:', error);
+    throw error;
+  }
+};
