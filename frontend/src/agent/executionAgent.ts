@@ -310,105 +310,120 @@ class ExecutionAgentService {
   }
 
   /**
-   * Perform a single automation step (REAL BROWSER)
+   * Perform a single automation step (REAL BROWSER via API)
    */
   private async performStep(step: ActionStep, browserState: BrowserState): Promise<void> {
     console.log(`[ExecutionAgent] Performing ${step.actionType}: ${step.targetDescription}`);
 
-    // Make API call to real browser service
-    const API_BASE = process.env.REACT_APP_BACKEND_URL || '';
-    const sessionId = `browser-${Date.now()}`;
+    if (!this.currentSessionId) {
+      throw new Error('No active browser session');
+    }
 
     try {
-      let response;
+      let result;
 
       switch (step.actionType) {
         case 'NAVIGATE':
-          response = await fetch(`${API_BASE}/api/automation/navigate`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              session_id: sessionId,
-              url: step.targetSelector || 'https://google.com'
-            })
-          });
+          // Navigate to URL
+          result = await navigateAutomation(this.currentSessionId, step.targetSelector || 'https://google.com');
+          
+          // Update browser state with screenshot
+          if (result.screenshot) {
+            const newState: BrowserState = {
+              ...browserState,
+              currentUrl: result.url || step.targetSelector || '',
+              screenshot: result.screenshot,
+              pageTitle: result.title || 'Page',
+              highlightBoxes: [],
+              timestamp: Date.now()
+            };
+            this.updateState({ browserState: newState });
+          }
           break;
 
         case 'CLICK':
-          response = await fetch(`${API_BASE}/api/automation/click`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              session_id: sessionId,
-              selector: step.targetSelector
-            })
-          });
+          // Use smart-click with vision model
+          result = await smartClick(this.currentSessionId, step.targetDescription);
+          
+          // Update with new screenshot after click
+          if (result.screenshot) {
+            const newState: BrowserState = {
+              ...browserState,
+              screenshot: result.screenshot,
+              highlightBoxes: result.box ? [{
+                x: result.box.x,
+                y: result.box.y,
+                w: result.box.width,
+                h: result.box.height,
+                label: `Clicked: ${step.targetDescription}`,
+                color: '#22c55e'
+              }] : [],
+              timestamp: Date.now()
+            };
+            this.updateState({ browserState: newState });
+          }
           break;
 
         case 'TYPE':
-          response = await fetch(`${API_BASE}/api/automation/type`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              session_id: sessionId,
-              selector: step.targetSelector,
-              text: step.inputValue || ''
-            })
-          });
+          // Type text into element
+          result = await typeText(
+            this.currentSessionId, 
+            step.targetDescription, 
+            step.inputValue || ''
+          );
+          
+          // Update with screenshot
+          if (result.screenshot) {
+            const newState: BrowserState = {
+              ...browserState,
+              screenshot: result.screenshot,
+              highlightBoxes: result.box ? [{
+                x: result.box.x,
+                y: result.box.y,
+                w: result.box.width,
+                h: result.box.height,
+                label: `Typed: "${step.inputValue}"`,
+                color: '#3b82f6'
+              }] : [],
+              timestamp: Date.now()
+            };
+            this.updateState({ browserState: newState });
+          }
           break;
 
         case 'WAIT':
-          response = await fetch(`${API_BASE}/api/automation/wait`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              session_id: sessionId,
-              selector: step.targetSelector || 'body',
-              timeout: 5000
-            })
-          });
+          // Simple wait (no API call needed)
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          
+          // Get fresh screenshot
+          const screenshot = await getAutomationScreenshot(this.currentSessionId);
+          if (screenshot.screenshot) {
+            const newState: BrowserState = {
+              ...browserState,
+              screenshot: screenshot.screenshot,
+              timestamp: Date.now()
+            };
+            this.updateState({ browserState: newState });
+          }
           break;
 
         default:
-          // Fallback to simulation for unsupported actions
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          const updates = this.simulateStepExecution(step, browserState);
-          this.updateState({ browserState: updates });
-          return;
-      }
-
-      if (response) {
-        const data = await response.json();
-        
-        if (data.success || data.screenshot) {
-          // Update browser state with real data
-          const newState: BrowserState = {
-            ...browserState,
-            currentUrl: data.url || browserState.currentUrl,
-            screenshot: data.screenshot || browserState.screenshot,
-            pageTitle: data.title || browserState.pageTitle,
-            highlightBoxes: data.highlight ? [{
-              x: data.highlight.x,
-              y: data.highlight.y,
-              w: data.highlight.width,
-              h: data.highlight.height,
-              label: `${step.actionType}: ${step.targetDescription}`,
-              color: '#3b82f6'
-            }] : [],
-            timestamp: Date.now()
-          };
-
-          this.updateState({ browserState: newState });
-        } else {
-          throw new Error(data.error || 'Browser action failed');
-        }
+          console.warn(`[ExecutionAgent] Unsupported action type: ${step.actionType}`);
+          // Get current screenshot for unsupported actions
+          const fallbackScreenshot = await getAutomationScreenshot(this.currentSessionId);
+          if (fallbackScreenshot.screenshot) {
+            const newState: BrowserState = {
+              ...browserState,
+              screenshot: fallbackScreenshot.screenshot,
+              timestamp: Date.now()
+            };
+            this.updateState({ browserState: newState });
+          }
       }
 
     } catch (error: any) {
       console.error(`[ExecutionAgent] Browser action error:`, error);
-      // Fallback to simulation on error
-      const updates = this.simulateStepExecution(step, browserState);
-      this.updateState({ browserState: updates });
+      throw error; // Propagate error for retry logic
     }
   }
 
