@@ -30,6 +30,13 @@ function App() {
   const [visualValidatorModel, setVisualValidatorModel] = useState(
     localStorage.getItem('visualValidatorModel') || 'google/gemini-2.5-flash-image'
   );
+  
+  const [researchPlannerEnabled, setResearchPlannerEnabled] = useState(
+    localStorage.getItem('researchPlannerEnabled') === 'true'
+  );
+  const [researchPlannerModel, setResearchPlannerModel] = useState(
+    localStorage.getItem('researchPlannerModel') || 'anthropic/claude-3.5-sonnet'
+  );
 
   const [currentSessionId, setCurrentSessionId] = useState(
     localStorage.getItem('currentSessionId') || null
