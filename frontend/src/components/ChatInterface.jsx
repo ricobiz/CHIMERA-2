@@ -600,7 +600,7 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
                   {msg.cost && (
                     <div className="mt-2 pt-2 border-t border-gray-600">
                       <p className="text-[10px] text-gray-400 font-mono font-semibold">
-                        ${msg.cost.total_cost.toFixed(6)} • {msg.cost.total_tokens} tokens
+                        ${msg.cost.total_cost?.toFixed(6) || '0.000000'} • {msg.cost.total_tokens || 0} tokens
                         {apiBalance && apiBalance.remaining !== undefined && (
                           <span className="ml-2 text-[10px] text-green-400">
                             • Balance: ${apiBalance.remaining.toFixed(2)}
