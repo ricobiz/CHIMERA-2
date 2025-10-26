@@ -1,14 +1,16 @@
-import React, { useState } from 'react';
-import { Send, ChevronDown, Save, Settings } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Send, ChevronDown, Save, Settings, Square, Paperclip, Mic, Plus, Upload } from 'lucide-react';
 import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
 import { samplePrompts } from '../mockData';
 import StatusIndicator from './StatusIndicator';
 import ModelIndicator from './ModelIndicator';
 
-const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, activeModel, validatorEnabled, validatorModel, generationStatus = 'idle', onOpenSettings }) => {
+const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, activeModel, validatorEnabled, validatorModel, generationStatus = 'idle', onOpenSettings, onNewProject, currentSessionId, isGenerating, onStopGeneration }) => {
   const [prompt, setPrompt] = useState('');
   const [showSamples, setShowSamples] = useState(true);
+  const [showSettingsMenu, setShowSettingsMenu] = useState(false);
+  const [sessionIdInput, setSessionIdInput] = useState('');
 
   const handleSubmit = () => {
     if (prompt.trim()) {
