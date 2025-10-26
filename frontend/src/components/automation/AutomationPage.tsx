@@ -6,7 +6,7 @@ import { AutomationSession, BrowserState, AgentLogEntry } from '../../agent/type
 import { executionAgent } from '../../agent/executionAgent.ts';
 import { toast } from '../../hooks/use-toast';
 
-const AutomationPage: React.FC = () => {
+const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
   const [session, setSession] = useState<AutomationSession>({
     sessionId: `session-${Date.now()}`,
     goal: '',
