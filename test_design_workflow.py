@@ -10,7 +10,7 @@ import time
 from datetime import datetime
 
 # Backend URL from frontend/.env
-BACKEND_URL = "https://chimera-workspace.preview.emergentagent.com/api"
+BACKEND_URL = "https://smart-browser-5.preview.emergentagent.com/api"
 
 def log_test(test_name, success, message, details=None):
     """Log test results"""
