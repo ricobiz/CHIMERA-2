@@ -130,6 +130,21 @@ function App() {
   const [isValidatingVisually, setIsValidatingVisually] = useState(false);
   const [revisionPlan, setRevisionPlan] = useState([]);
 
+  // Cleanup all intervals on unmount
+  useEffect(() => {
+    return () => {
+      if (revisionIntervalRef.current) {
+        clearInterval(revisionIntervalRef.current);
+      }
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+      }
+      if (balanceIntervalRef.current) {
+        clearInterval(balanceIntervalRef.current);
+      }
+    };
+  }, []);
+
   const handleStopGeneration = () => {
     // TODO: Implement stop generation logic
     setIsGenerating(false);
