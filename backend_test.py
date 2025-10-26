@@ -1290,13 +1290,35 @@ export default App;""",
         print(f"🔗 Backend URL: {BACKEND_URL}")
         print("=" * 60)
         
-        # Test all endpoints
+        # Test original endpoints
         self.test_generate_code_endpoint()
         self.test_openrouter_integration()
         self.test_create_project_endpoint()
         self.test_get_projects_endpoint()
         self.test_get_specific_project_endpoint()
         self.test_invalid_project_id()
+        
+        # Test new Service Integrations endpoints
+        print("\n" + "=" * 60)
+        print("🔧 TESTING SERVICE INTEGRATIONS ENDPOINTS")
+        print("=" * 60)
+        self.test_create_integration_endpoint()
+        self.test_get_integrations_endpoint()
+        self.test_get_specific_integration_endpoint()
+        self.test_update_integration_endpoint()
+        self.test_delete_integration_endpoint()
+        
+        # Test new MCP Servers endpoints
+        print("\n" + "=" * 60)
+        print("🖥️ TESTING MCP SERVERS ENDPOINTS")
+        print("=" * 60)
+        self.test_create_mcp_server_endpoint()
+        self.test_get_mcp_servers_endpoint()
+        self.test_get_specific_mcp_server_endpoint()
+        self.test_update_mcp_server_endpoint()
+        self.test_health_check_mcp_server_endpoint()
+        self.test_get_active_mcp_servers_endpoint()
+        self.test_delete_mcp_server_endpoint()
         
         # Summary
         print("\n" + "=" * 60)
