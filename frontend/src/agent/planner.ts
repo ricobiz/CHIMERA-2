@@ -1,333 +1,158 @@
 // Planner Module: Converts high-level goals into ActionPlans
 import { ActionPlan, ActionStep, PlannerResponse } from './types.ts';
-import { researchTask } from '../services/api';
+import { generatePlan } from '../services/api';
 
 class PlannerService {
-  private plannerModel: string = 'anthropic/claude-3.5-sonnet';
+  private plannerModel: string = 'openai/gpt-5';
 
   setModel(modelId: string) {
     this.plannerModel = modelId;
   }
 
   /**
-   * Generates an ActionPlan from a high-level goal
+   * Generates an ActionPlan from a high-level goal using backend LLM
    */
   async getPlan(goal: string): Promise<PlannerResponse> {
     console.log(`[Planner] Generating plan for goal: "${goal}"`);
 
     try {
-      // First, analyze complexity with Research Planner
-      const research = await researchTask(goal, this.plannerModel, 'analyze');
+      // Call backend planning API with LLM
+      const response = await generatePlan(goal, this.plannerModel);
       
-      const complexity = research.complexity_assessment || 'moderate';
-      const requiresResearch = research.requires_research;
-
-      console.log(`[Planner] Task complexity: ${complexity}, requires research: ${requiresResearch}`);
-
-      // Generate step-by-step plan
-      // In production, this would call the LLM to break down the task
-      // For now, we create a structured plan based on common patterns
+      console.log(`[Planner] Plan generated: ${response.estimatedSteps} steps, complexity: ${response.complexity}`);
       
-      const steps = this.generateStepsForGoal(goal);
-
-      const plan: ActionPlan = {
-        goal,
-        steps,
-        estimatedDuration: steps.length * 3 // 3 seconds per step average
-      };
-
       return {
-        plan,
-        complexity: complexity as 'simple' | 'moderate' | 'complex',
-        estimatedSteps: steps.length
+        plan: response.plan,
+        complexity: response.complexity as 'simple' | 'moderate' | 'complex',
+        estimatedSteps: response.estimatedSteps
       };
 
     } catch (error) {
-      console.error('[Planner] Error generating plan:', error);
+      console.error('[Planner] Error generating plan from backend:', error);
       
-      // Fallback to basic plan
-      const steps = this.generateStepsForGoal(goal);
-      return {
-        plan: {
-          goal,
-          steps,
-          estimatedDuration: steps.length * 3
-        },
-        complexity: 'moderate',
-        estimatedSteps: steps.length
-      };
+      // Fallback to local heuristic generation
+      console.warn('[Planner] Using fallback local planning');
+      return this.generateLocalFallbackPlan(goal);
     }
   }
 
   /**
-   * Generate action steps based on goal analysis
-   * This is a smart heuristic-based generator
+   * Local fallback plan generator when backend API fails
    */
-  private generateStepsForGoal(goal: string): ActionStep[] {
-    const steps: ActionStep[] = [];
+  private generateLocalFallbackPlan(goal: string): PlannerResponse {
     const goalLower = goal.toLowerCase();
-
-    // Pattern matching for common automation tasks
-    if (goalLower.includes('gmail') || goalLower.includes('google account')) {
-      return this.generateGmailRegistrationSteps();
-    }
-
-    if (goalLower.includes('amazon') || goalLower.includes('buy') || goalLower.includes('shop')) {
-      return this.generateShoppingSteps(goal);
-    }
-
-    if (goalLower.includes('login') || goalLower.includes('sign in')) {
-      return this.generateLoginSteps(goal);
-    }
-
-    if (goalLower.includes('search') || goalLower.includes('find')) {
-      return this.generateSearchSteps(goal);
-    }
-
-    if (goalLower.includes('form') || goalLower.includes('fill') || goalLower.includes('submit')) {
-      return this.generateFormSteps(goal);
-    }
-
-    // Generic task breakdown
-    return this.generateGenericSteps(goal);
-  }
-
-  private generateGmailRegistrationSteps(): ActionStep[] {
-    return [
+    
+    // Extract URL from goal
+    const urlMatch = goal.match(/https?:\/\/[^\s]+|[\w-]+\.[\w-]+/);
+    const url = urlMatch ? urlMatch[0] : 'https://google.com';
+    const fullUrl = url.startsWith('http') ? url : `https://${url}`;
+    
+    const steps: ActionStep[] = [
       {
         id: 'step-1',
         actionType: 'NAVIGATE',
-        targetDescription: 'Google Account Creation Page',
-        targetSelector: '',
-        expectedOutcome: 'Page loads with "Create your Google Account" form',
+        targetDescription: `Navigate to ${fullUrl}`,
+        targetSelector: fullUrl,
+        expectedOutcome: 'Page loaded successfully',
         maxRetries: 3
       },
       {
         id: 'step-2',
-        actionType: 'TYPE',
-        targetDescription: 'First Name field',
-        targetSelector: 'input[name="firstName"]',
-        inputValue: '[AUTO_GENERATE]',
-        expectedOutcome: 'First name entered successfully',
-        maxRetries: 2
-      },
-      {
-        id: 'step-3',
-        actionType: 'TYPE',
-        targetDescription: 'Last Name field',
-        targetSelector: 'input[name="lastName"]',
-        inputValue: '[AUTO_GENERATE]',
-        expectedOutcome: 'Last name entered successfully',
-        maxRetries: 2
-      },
-      {
-        id: 'step-4',
-        actionType: 'TYPE',
-        targetDescription: 'Username field',
-        targetSelector: 'input[name="Username"]',
-        inputValue: '[AUTO_GENERATE]',
-        expectedOutcome: 'Username entered and available',
-        maxRetries: 5
-      },
-      {
-        id: 'step-5',
-        actionType: 'TYPE',
-        targetDescription: 'Password field',
-        targetSelector: 'input[name="Passwd"]',
-        inputValue: '[AUTO_GENERATE_STRONG]',
-        expectedOutcome: 'Password meets requirements',
-        maxRetries: 2
-      },
-      {
-        id: 'step-6',
-        actionType: 'CLICK',
-        targetDescription: 'Next button',
-        targetSelector: 'button[type="button"]',
-        expectedOutcome: 'Proceeds to phone verification',
-        maxRetries: 3
-      },
-      {
-        id: 'step-7',
         actionType: 'WAIT',
-        targetDescription: 'Wait for phone verification page',
-        expectedOutcome: 'Phone input field visible',
+        targetDescription: 'Wait for page to load',
+        targetSelector: '',
+        expectedOutcome: 'Page fully loaded',
         maxRetries: 1
       }
     ];
-  }
-
-  private generateShoppingSteps(goal: string): ActionStep[] {
-    return [
-      {
-        id: 'step-1',
-        actionType: 'NAVIGATE',
-        targetDescription: 'E-commerce website',
-        expectedOutcome: 'Homepage loads',
-        maxRetries: 3
-      },
-      {
-        id: 'step-2',
-        actionType: 'TYPE',
-        targetDescription: 'Search box',
-        targetSelector: 'input[type="search"]',
-        inputValue: '[EXTRACTED_FROM_GOAL]',
-        expectedOutcome: 'Search term entered',
-        maxRetries: 2
-      },
-      {
-        id: 'step-3',
-        actionType: 'CLICK',
-        targetDescription: 'Search button',
-        targetSelector: 'button[type="submit"]',
-        expectedOutcome: 'Search results displayed',
-        maxRetries: 2
-      },
-      {
-        id: 'step-4',
-        actionType: 'CLICK',
-        targetDescription: 'First product result',
-        targetSelector: '.product-item:first-child',
-        expectedOutcome: 'Product page opens',
-        maxRetries: 2
-      },
-      {
-        id: 'step-5',
-        actionType: 'CLICK',
-        targetDescription: 'Add to cart button',
-        targetSelector: 'button[name="add-to-cart"]',
-        expectedOutcome: 'Item added to cart',
-        maxRetries: 3
+    
+    // Add registration steps if mentioned
+    if (goalLower.includes('register') || goalLower.includes('sign up')) {
+      steps.push(
+        {
+          id: 'step-3',
+          actionType: 'CLICK',
+          targetDescription: 'sign up button or register link',
+          targetSelector: '',
+          expectedOutcome: 'Registration form visible',
+          maxRetries: 3
+        },
+        {
+          id: 'step-4',
+          actionType: 'TYPE',
+          targetDescription: 'email field',
+          targetSelector: '',
+          inputValue: `testuser${Date.now()}@gmail.com`,
+          expectedOutcome: 'Email entered',
+          maxRetries: 2
+        },
+        {
+          id: 'step-5',
+          actionType: 'TYPE',
+          targetDescription: 'username field',
+          targetSelector: '',
+          inputValue: `user${Date.now()}`,
+          expectedOutcome: 'Username entered',
+          maxRetries: 2
+        },
+        {
+          id: 'step-6',
+          actionType: 'TYPE',
+          targetDescription: 'password field',
+          targetSelector: '',
+          inputValue: 'TestPass123!',
+          expectedOutcome: 'Password entered',
+          maxRetries: 2
+        }
+      );
+      
+      // Add bio if mentioned
+      if (goalLower.includes('bio') || goalLower.includes('description')) {
+        steps.push({
+          id: 'step-7',
+          actionType: 'TYPE',
+          targetDescription: 'bio or description field',
+          targetSelector: '',
+          inputValue: 'I am a test user created for automation testing purposes.',
+          expectedOutcome: 'Bio entered',
+          maxRetries: 2
+        });
       }
-    ];
-  }
-
-  private generateLoginSteps(goal: string): ActionStep[] {
-    return [
-      {
-        id: 'step-1',
-        actionType: 'NAVIGATE',
-        targetDescription: 'Login page',
-        expectedOutcome: 'Login form visible',
-        maxRetries: 3
-      },
-      {
-        id: 'step-2',
-        actionType: 'TYPE',
-        targetDescription: 'Email/Username field',
-        targetSelector: 'input[type="email"], input[name="username"]',
-        inputValue: '[USER_PROVIDED]',
-        expectedOutcome: 'Credentials entered',
-        maxRetries: 2
-      },
-      {
-        id: 'step-3',
-        actionType: 'TYPE',
-        targetDescription: 'Password field',
-        targetSelector: 'input[type="password"]',
-        inputValue: '[USER_PROVIDED]',
-        expectedOutcome: 'Password entered',
-        maxRetries: 2
-      },
-      {
-        id: 'step-4',
+      
+      // Add captcha if mentioned
+      if (goalLower.includes('captcha')) {
+        steps.push({
+          id: 'step-8',
+          actionType: 'CAPTCHA',
+          targetDescription: 'visual captcha element',
+          targetSelector: '',
+          expectedOutcome: 'Captcha solved',
+          maxRetries: 5
+        });
+      }
+      
+      // Add submit
+      steps.push({
+        id: 'step-9',
         actionType: 'CLICK',
-        targetDescription: 'Login button',
-        targetSelector: 'button[type="submit"]',
-        expectedOutcome: 'Successfully logged in',
-        maxRetries: 3
-      }
-    ];
-  }
-
-  private generateSearchSteps(goal: string): ActionStep[] {
-    return [
-      {
-        id: 'step-1',
-        actionType: 'NAVIGATE',
-        targetDescription: 'Search engine or target website',
-        expectedOutcome: 'Page loads with search capability',
-        maxRetries: 3
-      },
-      {
-        id: 'step-2',
-        actionType: 'TYPE',
-        targetDescription: 'Search input field',
-        targetSelector: 'input[type="search"], input[name="q"]',
-        inputValue: '[EXTRACTED_FROM_GOAL]',
-        expectedOutcome: 'Search query entered',
-        maxRetries: 2
-      },
-      {
-        id: 'step-3',
-        actionType: 'SUBMIT',
-        targetDescription: 'Submit search',
-        targetSelector: 'form[role="search"]',
-        expectedOutcome: 'Search results displayed',
-        maxRetries: 2
-      }
-    ];
-  }
-
-  private generateFormSteps(goal: string): ActionStep[] {
-    return [
-      {
-        id: 'step-1',
-        actionType: 'NAVIGATE',
-        targetDescription: 'Form page',
-        expectedOutcome: 'Form visible and ready',
-        maxRetries: 3
-      },
-      {
-        id: 'step-2',
-        actionType: 'TYPE',
-        targetDescription: 'Fill form fields',
-        targetSelector: 'input, textarea, select',
-        inputValue: '[AUTO_GENERATE_OR_USER_PROVIDED]',
-        expectedOutcome: 'All required fields filled',
-        maxRetries: 2
-      },
-      {
-        id: 'step-3',
-        actionType: 'SUBMIT',
-        targetDescription: 'Submit form',
-        targetSelector: 'button[type="submit"], input[type="submit"]',
+        targetDescription: 'submit button or register button',
+        targetSelector: '',
         expectedOutcome: 'Form submitted successfully',
         maxRetries: 3
-      }
-    ];
-  }
-
-  private generateGenericSteps(goal: string): ActionStep[] {
-    // Generic breakdown for any task
-    const words = goal.split(' ');
-    const steps: ActionStep[] = [];
-
-    steps.push({
-      id: 'step-1',
-      actionType: 'NAVIGATE',
-      targetDescription: 'Navigate to target website',
-      expectedOutcome: 'Page loaded successfully',
-      maxRetries: 3
-    });
-
-    steps.push({
-      id: 'step-2',
-      actionType: 'WAIT',
-      targetDescription: 'Wait for page to fully load',
-      expectedOutcome: 'All elements loaded',
-      maxRetries: 1
-    });
-
-    steps.push({
-      id: 'step-3',
-      actionType: 'CLICK',
-      targetDescription: 'Interact with primary element',
-      targetSelector: 'button, a, input',
-      expectedOutcome: 'Action completed',
-      maxRetries: 2
-    });
-
-    return steps;
+      });
+    }
+    
+    const plan: ActionPlan = {
+      goal,
+      steps,
+      estimatedDuration: steps.length * 5
+    };
+    
+    return {
+      plan,
+      complexity: 'moderate',
+      estimatedSteps: steps.length
+    };
   }
 }
 
