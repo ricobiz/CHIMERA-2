@@ -30,9 +30,10 @@ class BrowserAutomationService:
         self.context: Optional[BrowserContext] = None
         self.page: Optional[Page] = None
         self.sessions: Dict[str, Dict[str, Any]] = {}
+        self.captcha_solver: Optional[CaptchaSolver] = None
         
     async def initialize(self):
-        """Initialize Playwright and browser"""
+        """Initialize Playwright and browser with anti-detect"""
         if not self.playwright:
             self.playwright = await async_playwright().start()
             self.browser = await self.playwright.chromium.launch(
@@ -41,10 +42,20 @@ class BrowserAutomationService:
                     '--no-sandbox',
                     '--disable-setuid-sandbox',
                     '--disable-dev-shm-usage',
-                    '--disable-blink-features=AutomationControlled'
+                    '--disable-blink-features=AutomationControlled',
+                    '--disable-web-security',  # For some anti-detect scenarios
+                    '--disable-features=IsolateOrigins,site-per-process'
                 ]
             )
-            logger.info("Browser launched successfully")
+            logger.info("✅ Browser launched with advanced anti-detect")
+            
+            # Initialize CAPTCHA solver
+            try:
+                from services.openrouter_service import openrouter_service
+                self.captcha_solver = CaptchaSolver(openrouter_service)
+                logger.info("✅ CAPTCHA solver initialized")
+            except Exception as e:
+                logger.warning(f"CAPTCHA solver initialization failed: {e}")
     
     async def create_session(self, session_id: str, use_proxy: bool = False) -> Dict[str, Any]:
         """Create a new browser session with anti-detection and optional proxy"""
