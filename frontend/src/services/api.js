@@ -350,3 +350,93 @@ export const switchModelWithContext = async (sessionId, newModel, history, oldMo
   }
 
 };
+
+// Browser Automation API
+export const createAutomationSession = async (sessionId) => {
+  try {
+    const response = await axios.post(`${API}/automation/session/create`, {
+      session_id: sessionId
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error creating automation session:', error);
+    throw error;
+  }
+};
+
+export const navigateAutomation = async (sessionId, url) => {
+  try {
+    const response = await axios.post(`${API}/automation/navigate`, {
+      session_id: sessionId,
+      url
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error navigating:', error);
+    throw error;
+  }
+};
+
+export const findElements = async (sessionId, description) => {
+  try {
+    const response = await axios.post(`${API}/automation/find-elements`, {
+      session_id: sessionId,
+      description
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error finding elements:', error);
+    throw error;
+  }
+};
+
+export const smartClick = async (sessionId, description) => {
+  try {
+    const response = await axios.post(`${API}/automation/smart-click`, {
+      session_id: sessionId,
+      description
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error smart clicking:', error);
+    throw error;
+  }
+};
+
+export const typeText = async (sessionId, description, text) => {
+  try {
+    const response = await axios.post(`${API}/automation/type-text`, {
+      session_id: sessionId,
+      description,
+      text
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error typing text:', error);
+    throw error;
+  }
+};
+
+export const getAutomationScreenshot = async (sessionId) => {
+  try {
+    const response = await axios.get(`${API}/automation/screenshot/${sessionId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error getting screenshot:', error);
+    throw error;
+  }
+};
+
+export const closeAutomationSession = async (sessionId) => {
+  try {
+    const response = await axios.post(`${API}/automation/session/close`, {
+      session_id: sessionId
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error closing session:', error);
+    throw error;
+  }
+
+
+};
