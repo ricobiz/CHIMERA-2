@@ -167,15 +167,18 @@ backend:
 
   - task: "POST /api/mcp-servers endpoint"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/routes/integrations_routes.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Created endpoint for MCP servers with advanced features (priority, fallback order, health checks). Needs testing."
+      - working: true
+        agent: "testing"
+        comment: "✅ Successfully tested POST /api/mcp-servers endpoint. Created MCP server with ID 241037b2-0498-4384-9da3-bf05079efa02. All required fields present (id, name, server_type, enabled, priority, health_status, created_at, updated_at). Advanced features (priority=80, fallback_order=1) working correctly."
 
   - task: "GET /api/mcp-servers endpoint"
     implemented: true
