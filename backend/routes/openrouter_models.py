@@ -33,37 +33,40 @@ async def get_models():
             data = response.json()
             models = data.get('data', [])
             
-            # Filter for code generation models and sort by popularity
-            code_models = []
+            # Process all models
+            all_models = []
             for model in models:
                 model_id = model.get('id', '')
-                # Filter for relevant code generation models
-                if any(keyword in model_id.lower() for keyword in ['claude', 'gpt', 'gemini', 'llama', 'qwen', 'codestral', 'deepseek', 'mistral']):
-                    pricing = model.get('pricing', {})
-                    code_models.append({
-                        'id': model_id,
-                        'name': model.get('name', model_id),
-                        'description': model.get('description', ''),
-                        'context_length': model.get('context_length', 0),
-                        'pricing': {
-                            'prompt': float(pricing.get('prompt', '0')),
-                            'completion': float(pricing.get('completion', '0')),
-                            'image': float(pricing.get('image', '0'))
-                        },
-                        'top_provider': model.get('top_provider', {}),
-                        'architecture': model.get('architecture', {}),
-                        'capabilities': {
-                            'tools': model.get('architecture', {}).get('tokenizer') == 'Llama2' or 'claude' in model_id.lower() or 'gpt' in model_id.lower(),
-                            'vision': 'vision' in model_id.lower() or model.get('architecture', {}).get('modality') == 'multimodal',
-                            'streaming': True
-                        }
-                    })
+                pricing = model.get('pricing', {})
+                architecture = model.get('architecture', {})
+                
+                # Get modality info
+                modality = architecture.get('modality', 'text->text')
+                
+                all_models.append({
+                    'id': model_id,
+                    'name': model.get('name', model_id),
+                    'description': model.get('description', '')[:300] + '...' if len(model.get('description', '')) > 300 else model.get('description', ''),
+                    'context_length': model.get('context_length', 0),
+                    'pricing': {
+                        'prompt': float(pricing.get('prompt', '0')),
+                        'completion': float(pricing.get('completion', '0')),
+                        'image': float(pricing.get('image', '0'))
+                    },
+                    'top_provider': model.get('top_provider', {}),
+                    'architecture': architecture,
+                    'capabilities': {
+                        'tools': 'tool' in modality.lower() or 'function' in str(model).lower(),
+                        'vision': 'image' in modality or 'vision' in model_id.lower() or 'multimodal' in modality.lower(),
+                        'streaming': True
+                    }
+                })
             
-            # Sort by pricing (cheaper first) and limit to top 20
-            code_models.sort(key=lambda x: x['pricing']['prompt'])
+            # Sort by pricing (free first, then by prompt price)
+            all_models.sort(key=lambda x: (x['pricing']['prompt'], x['pricing']['completion']))
             
-            logger.info(f"Fetched {len(code_models)} models from OpenRouter")
-            return {"models": code_models[:20]}
+            logger.info(f"Fetched {len(all_models)} models from OpenRouter")
+            return {"models": all_models}
             
     except httpx.HTTPError as e:
         logger.error(f"HTTP error fetching models: {str(e)}")
