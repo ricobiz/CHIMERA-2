@@ -439,4 +439,19 @@ export const closeAutomationSession = async (sessionId) => {
   }
 
 
+// Planning API
+export const generatePlan = async (goal, model = 'openai/gpt-5') => {
+  try {
+    const response = await axios.post(`${API}/planning/generate`, {
+      goal,
+      model
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error generating plan:', error);
+    throw error;
+  }
+
+
+
 };
