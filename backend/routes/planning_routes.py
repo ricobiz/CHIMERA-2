@@ -138,12 +138,23 @@ def generate_fallback_plan(goal: str) -> Dict:
     """Generate a basic fallback plan when LLM fails"""
     goal_lower = goal.lower()
     
-    # Extract URL if present
+    # Extract URL if present - improved regex
     import re
-    url_match = re.search(r'https?://[^\s]+|[\w-]+\.[\w-]+', goal)
-    url = url_match.group(0) if url_match else 'https://google.com'
+    # Try to find explicit URLs first
+    url_match = re.search(r'https?://[^\s]+', goal)
+    if not url_match:
+        # Try to find domain names
+        url_match = re.search(r'(?:go to |visit |navigate to |open )?([a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)', goal_lower)
+    
+    if url_match:
+        url = url_match.group(1) if not url_match.group(0).startswith('http') else url_match.group(0)
+    else:
+        url = 'https://google.com'
+    
     if not url.startswith('http'):
         url = f'https://{url}'
+    
+    logger.info(f"Extracted URL from goal: {url}")
     
     steps = [
         ActionStep(
@@ -151,60 +162,107 @@ def generate_fallback_plan(goal: str) -> Dict:
             actionType='NAVIGATE',
             targetDescription=f'Navigate to {url}',
             targetSelector=url,
+            inputValue='',
             expectedOutcome='Page loaded successfully',
             maxRetries=3
         ),
         ActionStep(
             id='step-2',
             actionType='WAIT',
-            targetDescription='Wait for page to load',
+            targetDescription='Wait for page to load completely',
+            targetSelector='',
+            inputValue='',
             expectedOutcome='Page fully loaded',
             maxRetries=1
         )
     ]
     
     # Add registration steps if mentioned
-    if 'register' in goal_lower or 'sign up' in goal_lower:
+    if 'register' in goal_lower or 'sign up' in goal_lower or 'signup' in goal_lower:
         steps.extend([
             ActionStep(
                 id='step-3',
                 actionType='CLICK',
-                targetDescription='sign up button',
+                targetDescription='sign up button or register button or signup link',
+                targetSelector='',
+                inputValue='',
                 expectedOutcome='Registration form visible',
                 maxRetries=3
             ),
             ActionStep(
                 id='step-4',
-                actionType='TYPE',
-                targetDescription='email field',
-                inputValue='[AUTO_GENERATE]',
-                expectedOutcome='Email entered',
-                maxRetries=2
+                actionType='WAIT',
+                targetDescription='Wait for form to appear',
+                targetSelector='',
+                inputValue='',
+                expectedOutcome='Form loaded',
+                maxRetries=1
             ),
             ActionStep(
                 id='step-5',
                 actionType='TYPE',
-                targetDescription='username field',
-                inputValue='[AUTO_GENERATE]',
-                expectedOutcome='Username entered',
+                targetDescription='email field or email input',
+                targetSelector='',
+                inputValue=f'testuser{int(time.time())}@gmail.com',
+                expectedOutcome='Email entered',
                 maxRetries=2
             ),
             ActionStep(
                 id='step-6',
                 actionType='TYPE',
-                targetDescription='password field',
-                inputValue='[AUTO_GENERATE]',
-                expectedOutcome='Password entered',
+                targetDescription='username field or username input',
+                targetSelector='',
+                inputValue=f'user{int(time.time())}',
+                expectedOutcome='Username entered',
                 maxRetries=2
             ),
             ActionStep(
                 id='step-7',
-                actionType='CLICK',
-                targetDescription='submit button',
-                expectedOutcome='Form submitted',
-                maxRetries=3
+                actionType='TYPE',
+                targetDescription='password field or password input',
+                targetSelector='',
+                inputValue='SecurePass123!',
+                expectedOutcome='Password entered',
+                maxRetries=2
             )
         ])
+        
+        # Add bio/description if mentioned
+        if 'bio' in goal_lower or 'description' in goal_lower or 'about' in goal_lower:
+            steps.append(ActionStep(
+                id=f'step-{len(steps)+1}',
+                actionType='TYPE',
+                targetDescription='bio field or description field or about field',
+                targetSelector='',
+                inputValue='I am a test user created for automation testing purposes.',
+                expectedOutcome='Bio entered',
+                maxRetries=2
+            ))
+        
+        # Add captcha if mentioned
+        if 'captcha' in goal_lower:
+            steps.append(ActionStep(
+                id=f'step-{len(steps)+1}',
+                actionType='CAPTCHA',
+                targetDescription='captcha checkbox or captcha element',
+                targetSelector='',
+                inputValue='',
+                expectedOutcome='Captcha solved',
+                maxRetries=5
+            ))
+        
+        # Add submit
+        steps.append(ActionStep(
+            id=f'step-{len(steps)+1}',
+            actionType='CLICK',
+            targetDescription='submit button or register button or create account button',
+            targetSelector='',
+            inputValue='',
+            expectedOutcome='Form submitted successfully',
+            maxRetries=3
+        ))
+    
+    logger.info(f"Generated fallback plan with {len(steps)} steps")
     
     return {
         "plan": ActionPlan(
