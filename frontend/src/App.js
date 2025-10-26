@@ -30,6 +30,7 @@ function App() {
   );
 
   const [currentSessionId, setCurrentSessionId] = useState(null);
+  const [generationStatus, setGenerationStatus] = useState('idle'); // 'idle', 'generating', 'success', 'error'
 
   const handleSendPrompt = async (prompt) => {
     const userMessage = { role: 'user', content: prompt };
