@@ -67,4 +67,39 @@ class ProjectListItem(BaseModel):
 
 class ExportRequest(BaseModel):
     code: str
+
+# ============= Automation History Models =============
+
+class StepResult(BaseModel):
+    """Unified step result format"""
+    success: bool
+    confidence: float
+    concerns: List[str] = []
+    needs_human: bool = False
+    step_name: str
+    screenshot_after: Optional[str] = None
+    timestamp: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
+    details: Optional[dict] = {}
+
+class ResultBundle(BaseModel):
+    """Result bundle for completed missions"""
+    credentials: Optional[dict] = {}
+    proof: Optional[dict] = {}
+    notes: Optional[str] = ""
+    created_at: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
+
+class AutomationHistory(BaseModel):
+    """Automation mission history entry"""
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()), alias="_id")
+    job_id: str
+    goal: str
+    steps: List[StepResult] = []
+    mission_status: str  # "completed" | "needs_human" | "failed" | "in_progress"
+    human_help_reason: Optional[str] = None
+    result_bundle: Optional[ResultBundle] = None
+    created_at: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
+    updated_at: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
+    
+    class Config:
+        populate_by_name = True
     project_name: str = "lovable-app"
