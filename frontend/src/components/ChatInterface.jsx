@@ -336,10 +336,10 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, activeM
               <div className="relative settings-menu-container">
                 <button
                   onClick={() => setShowSettingsMenu(!showSettingsMenu)}
-                  className="text-gray-400 hover:text-gray-300 transition-colors"
+                  className="p-2 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 border border-gray-700 hover:border-gray-600 transition-all"
                   title="Menu"
                 >
-                  <Settings className="w-4 h-4" />
+                  <Settings className="w-4 h-4 text-gray-300 hover:text-white transition-colors" />
                 </button>
                 
                 {showSettingsMenu && (
