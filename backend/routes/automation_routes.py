@@ -120,7 +120,7 @@ async def get_page_info(session_id: str):
 
 @router.post("/find-elements")
 async def find_elements(request: FindElementsRequest):
-    """Find elements using vision model"""
+    """Find elements using LOCAL vision model (Florence-2) - NO API COSTS"""
     try:
         result = await browser_service.find_elements_with_vision(
             request.session_id,
@@ -129,6 +129,47 @@ async def find_elements(request: FindElementsRequest):
         return {"elements": result}
     except Exception as e:
         logger.error(f"Error finding elements: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/smart-click")
+async def smart_click(request: FindElementsRequest):
+    """
+    Smart click: Use vision model to find element by description, then click it
+    Example: description="login button" will find and click the login button
+    """
+    try:
+        # Find element using vision
+        elements = await browser_service.find_elements_with_vision(
+            request.session_id,
+            request.description
+        )
+        
+        if not elements:
+            raise HTTPException(status_code=404, detail=f"Element '{request.description}' not found")
+        
+        # Click the first (most confident) element
+        best_element = elements[0]
+        box = best_element['box']
+        
+        # Click at center of bounding box
+        center_x = box['x'] + box['width'] / 2
+        center_y = box['y'] + box['height'] / 2
+        
+        page = browser_service.sessions[request.session_id]['page']
+        await page.mouse.click(center_x, center_y)
+        await page.wait_for_timeout(1000)
+        
+        screenshot = await browser_service.capture_screenshot(request.session_id)
+        
+        return {
+            "success": True,
+            "clicked_element": best_element,
+            "screenshot": screenshot
+        }
+        
+    except Exception as e:
+        logger.error(f"Error in smart click: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
