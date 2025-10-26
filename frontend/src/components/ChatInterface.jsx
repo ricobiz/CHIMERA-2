@@ -208,9 +208,9 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#0f0f10] border-2 border-transparent animated-gradient-border">
-      {/* Header */}
-      <div className="border-b border-gray-800 p-3 md:p-4">
+    <div className="flex flex-col h-full bg-[#0f0f10] border-2 border-transparent animated-gradient-border relative">
+      {/* Header - fixed height */}
+      <div className="flex-shrink-0 border-b border-gray-800 p-3 md:p-4">
         <div className="flex items-center justify-between">
           {/* Session Info - Clickable */}
           <div className="relative session-menu-container">
