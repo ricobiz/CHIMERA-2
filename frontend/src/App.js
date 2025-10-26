@@ -513,6 +513,10 @@ function App() {
     return <AutomationPage />;
   }
 
+  if (showDocVerification) {
+    return <DocumentVerification onClose={() => setShowDocVerification(false)} />;
+  }
+
   if (showSettings) {
     return (
       <div className="flex h-screen overflow-hidden bg-[#0f0f10]">
