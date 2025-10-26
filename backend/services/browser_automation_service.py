@@ -457,14 +457,23 @@ If element not found, set found=false and confidence=0."""
             click_x = box['x'] + box['width'] / 2
             click_y = box['y'] + box['height'] / 2
             
+            # Human-like delay before click
+            await human_like_delay(150, 400)
+            
             # Perform click
             await page.mouse.click(click_x, click_y)
-            await page.wait_for_timeout(500)  # Wait for page to respond
+            
+            # Human-like delay after click
+            await human_like_delay(300, 700)
             
             # Capture screenshot after
             screenshot_after = await self.capture_screenshot(session_id)
             
-            logger.info(f"Smart click successful: {target_hint} at ({click_x}, {click_y})")
+            # Post-check: verify something changed
+            url_after = page.url
+            changed = (screenshot_after != screenshot_before) or (url_after != page.url)
+            
+            logger.info(f"Smart click: {target_hint} at ({click_x}, {click_y}) - Changed: {changed}")
             
             return {
                 "success": True,
