@@ -234,3 +234,20 @@ test_plan:
 agent_communication:
   - agent: "testing"
     message: "Completed comprehensive backend API testing for Lovable.dev clone. All 5 major endpoints tested successfully with 100% pass rate (8/8 tests passed). OpenRouter integration with Claude 3.5 Sonnet working perfectly. MongoDB operations for projects working correctly. All CRUD operations validated. Backend is fully functional and ready for production use."
+  - agent: "main"
+    message: "✅ Completed UI/UX improvements as requested by user:
+    
+    1. **Removed large menu button** (left upper corner) - was causing overlap on mobile
+    2. **Added settings gear icon** (⚙️) next to model indicators (code & eye icons) - compact and accessible
+    3. **Made 'New Workspace' functional** with dropdown menu containing:
+       - Create New Session button
+       - Load Session by ID input with search
+       - Recent Sessions list (top 5 sessions)
+    4. **Implemented dynamic glowing borders** for input textarea:
+       - 🔵 Blue neon during code generation
+       - 🟢 Green on success
+       - 🔴 Red on error
+       - Default gray when idle
+    5. **Mobile layout verified** (375x667px) - no overlapping, all icons visible
+    
+    All features tested with screenshots and code generation. Ready for user testing."
