@@ -112,6 +112,38 @@ export default App;
                     return part
         return content
     
+    async def chat_completion(self, messages: List[Dict], model: str = None, temperature: float = 0.7, max_tokens: int = 1000) -> Dict:
+        """Generic chat completion method for context management"""
+        try:
+            selected_model = model if model else self.model
+            
+            logger.info(f"Chat completion request to OpenRouter with model: {selected_model}")
+            
+            response = self.client.chat.completions.create(
+                model=selected_model,
+                messages=messages,
+                temperature=temperature,
+                max_tokens=max_tokens
+            )
+            
+            # Format response to match expected structure
+            return {
+                'choices': [{
+                    'message': {
+                        'content': response.choices[0].message.content
+                    }
+                }],
+                'usage': {
+                    'prompt_tokens': response.usage.prompt_tokens if response.usage else 0,
+                    'completion_tokens': response.usage.completion_tokens if response.usage else 0,
+                    'total_tokens': response.usage.total_tokens if response.usage else 0
+                }
+            }
+            
+        except Exception as e:
+            logger.error(f"Chat completion error: {str(e)}")
+            raise Exception(f"Failed to complete chat: {str(e)}")
+
     async def get_models(self) -> Dict:
         """Fetch available models and their context limits from OpenRouter API"""
         import httpx
