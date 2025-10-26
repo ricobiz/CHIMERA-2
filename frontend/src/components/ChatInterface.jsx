@@ -272,7 +272,7 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, activeM
       </div>
 
       {/* Input */}
-      <div className="border-t border-gray-800 p-3 md:p-6">
+      <div className="border-t border-gray-800 p-3 md:p-6 sticky bottom-0 bg-[#0f0f10] z-10">
         <div className="max-w-3xl mx-auto">
           <div className="relative">
             <Textarea
