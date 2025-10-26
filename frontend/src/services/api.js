@@ -437,7 +437,7 @@ export const closeAutomationSession = async (sessionId) => {
     console.error('Error closing session:', error);
     throw error;
   }
-
+};
 
 // Planning API
 export const generatePlan = async (goal, model = 'openai/gpt-5') => {
@@ -451,7 +451,4 @@ export const generatePlan = async (goal, model = 'openai/gpt-5') => {
     console.error('Error generating plan:', error);
     throw error;
   }
-
-
-
 };
