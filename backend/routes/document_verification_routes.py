@@ -186,8 +186,41 @@ Be EXTREMELY thorough and critical. False negatives (missing fraud) are more dan
         
         secondary_result = json.loads(secondary_text)
         
-        # Consensus analysis - combine both models' results
-        logger.info("Creating consensus analysis...")
+        # Tertiary verification with Gemini Vision for additional validation
+        logger.info("Running tertiary verification with Gemini Vision...")
+        tertiary_messages = [
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": analysis_prompt},
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/jpeg;base64,{request.document_base64}"
+                        }
+                    }
+                ]
+            }
+        ]
+        
+        tertiary_response = await openrouter_service.chat_completion(
+            messages=tertiary_messages,
+            model=tertiary_model,
+            temperature=0.1
+        )
+        
+        tertiary_text = tertiary_response['choices'][0]['message']['content']
+        
+        # Extract JSON
+        if '```json' in tertiary_text:
+            tertiary_text = tertiary_text.split('```json')[1].split('```')[0].strip()
+        elif '```' in tertiary_text:
+            tertiary_text = tertiary_text.split('```')[1].split('```')[0].strip()
+        
+        tertiary_result = json.loads(tertiary_text)
+        
+        # Consensus analysis - combine ALL THREE models' results
+        logger.info("Creating consensus analysis from 3 models...")
         
         # Average scores with slight weight on more conservative (higher fraud probability)
         avg_fraud_prob = (
