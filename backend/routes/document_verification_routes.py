@@ -334,7 +334,6 @@ Be EXTREMELY thorough and critical. False negatives (missing fraud) are more dan
         
     except json.JSONDecodeError as e:
         logger.error(f"JSON parsing error: {str(e)}")
-        logger.error(f"Response text (first 500 chars): {response_text[:500] if 'response_text' in locals() else 'N/A'}")
         raise HTTPException(
             status_code=500, 
             detail="Failed to parse AI analysis. Please try again."
