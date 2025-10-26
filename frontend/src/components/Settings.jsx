@@ -369,6 +369,99 @@ const Settings = ({ selectedModel, onModelChange, onClose, visualValidatorEnable
               </div>
             )}
           </div>
+            </>
+          )}
+
+          {/* Secrets Tab */}
+          {activeTab === 'secrets' && (
+            <div className="space-y-6">
+              {/* Add New Secret */}
+              <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-5">
+                <h3 className="text-gray-300 font-semibold text-base mb-4">Add New Secret</h3>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-1">Secret Name</label>
+                    <input
+                      type="text"
+                      value={newSecretName}
+                      onChange={(e) => setNewSecretName(e.target.value)}
+                      placeholder="e.g., OPENROUTER_API_KEY, STRIPE_SECRET_KEY"
+                      className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-gray-300 placeholder-gray-600 focus:border-purple-500 focus:outline-none text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-1">Secret Value</label>
+                    <input
+                      type="password"
+                      value={newSecretValue}
+                      onChange={(e) => setNewSecretValue(e.target.value)}
+                      placeholder="Enter API key or secret value"
+                      className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-gray-300 placeholder-gray-600 focus:border-purple-500 focus:outline-none text-sm"
+                    />
+                  </div>
+                  <Button
+                    onClick={handleAddSecret}
+                    className="w-full bg-purple-600 hover:bg-purple-500 text-white flex items-center justify-center gap-2"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add Secret
+                  </Button>
+                </div>
+              </div>
+
+              {/* Saved Secrets */}
+              <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-5">
+                <h3 className="text-gray-300 font-semibold text-base mb-4">Saved Secrets ({secrets.length})</h3>
+                {secrets.length === 0 ? (
+                  <p className="text-gray-500 text-sm text-center py-4">No secrets saved yet</p>
+                ) : (
+                  <div className="space-y-3">
+                    {secrets.map((secret) => (
+                      <div key={secret.id} className="bg-gray-800/50 border border-gray-700 rounded-lg p-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <p className="text-gray-300 font-medium text-sm">{secret.name}</p>
+                            <div className="flex items-center gap-2 mt-1">
+                              <p className="text-gray-500 text-xs font-mono">
+                                {showValues[secret.id] ? secret.value : '••••••••••••••••'}
+                              </p>
+                              <button
+                                onClick={() => toggleShowValue(secret.id)}
+                                className="text-gray-500 hover:text-gray-400"
+                              >
+                                {showValues[secret.id] ? (
+                                  <EyeOff className="w-3 h-3" />
+                                ) : (
+                                  <Eye className="w-3 h-3" />
+                                )}
+                              </button>
+                            </div>
+                            <p className="text-gray-600 text-xs mt-1">
+                              Added: {new Date(secret.createdAt).toLocaleDateString()}
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => handleDeleteSecret(secret.id)}
+                            className="text-red-500 hover:text-red-400 p-2"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Info */}
+              <div className="bg-blue-900/20 border border-blue-800/50 rounded-lg p-4">
+                <p className="text-blue-400 text-sm">
+                  <strong>Note:</strong> Secrets are stored securely in your browser's localStorage. 
+                  AI models will have access to these secrets when needed for API calls and integrations.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
