@@ -692,7 +692,7 @@ function App() {
         </div>
 
         {/* Floating Preview Toggle Button (only on mobile, only when chat is visible) */}
-        {!showPreview && (
+        {!showPreview && !showSettings && !showAutomation && !showDocVerification && !showSelfImprovement && !showAIEntry && (
           <button
             onClick={() => setShowPreview(true)}
             className="md:hidden fixed right-0 top-1/2 -translate-y-1/2 z-50 bg-transparent border-l-2 border-t-2 border-b-2 border-gray-700 hover:border-gray-500 hover:bg-gray-900/50 text-gray-400 hover:text-gray-300 px-2 py-4 rounded-l-lg backdrop-blur-sm transform transition-all duration-300"
@@ -708,7 +708,7 @@ function App() {
         )}
 
         {/* Close Preview Button (only on mobile, only when preview is visible) */}
-        {showPreview && (
+        {showPreview && !showSettings && !showAutomation && !showDocVerification && !showSelfImprovement && !showAIEntry && (
           <button
             onClick={() => setShowPreview(false)}
             className="md:hidden fixed right-0 top-1/2 -translate-y-1/2 z-50 bg-transparent border-l-2 border-t-2 border-b-2 border-gray-700 hover:border-gray-500 hover:bg-gray-900/50 text-gray-400 hover:text-gray-300 px-2 py-4 rounded-l-lg backdrop-blur-sm transform transition-all duration-300"
