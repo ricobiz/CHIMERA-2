@@ -111,5 +111,26 @@ export default App;
                         return '\n'.join(lines[1:])
                     return part
         return content
+    
+    async def get_models(self) -> Dict:
+        """Fetch available models and their context limits from OpenRouter API"""
+        import httpx
+        
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(
+                    "https://openrouter.ai/api/v1/models",
+                    headers={
+                        "Authorization": f"Bearer {self.api_key}",
+                        "HTTP-Referer": "https://lovable.dev",
+                        "X-Title": "Lovable Dev"
+                    },
+                    timeout=10.0
+                )
+                response.raise_for_status()
+                return response.json()
+        except Exception as e:
+            logger.error(f"Failed to fetch models from OpenRouter: {str(e)}")
+            return {"data": []}
 
 openrouter_service = OpenRouterService()
