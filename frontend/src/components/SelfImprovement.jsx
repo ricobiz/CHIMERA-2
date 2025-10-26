@@ -185,18 +185,18 @@ const SelfImprovement = ({ onClose }) => {
             <div className="bg-gray-900/50 rounded-lg border border-gray-800 p-6">
               <h2 className="text-lg font-semibold text-white mb-4">Code Analysis & Optimization</h2>
               
-              <div className="flex gap-4 mb-4">
+              <div className="flex flex-wrap gap-2 md:gap-4 mb-4">
                 <select value={selectedTarget} onChange={(e) => setSelectedTarget(e.target.value)} className="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white">
                   <option value="full">Full Application</option>
                   <option value="backend">Backend Only</option>
                   <option value="frontend">Frontend Only</option>
                 </select>
                 
-                <button onClick={analyzeCode} disabled={isAnalyzing} className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white rounded-lg disabled:opacity-50">
+                <button onClick={analyzeCode} disabled={isAnalyzing} className="px-3 md:px-6 py-1.5 md:py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white rounded-lg disabled:opacity-50 text-sm md:text-base">
                   {isAnalyzing ? 'Analyzing...' : 'Analyze Code'}
                 </button>
                 
-                <button onClick={reloadServices} className="px-6 py-2 bg-orange-600 hover:bg-orange-500 text-white rounded-lg">
+                <button onClick={reloadServices} className="px-3 md:px-6 py-1.5 md:py-2 bg-orange-600 hover:bg-orange-500 text-white rounded-lg text-sm md:text-base">
                   Reload Services
                 </button>
               </div>
