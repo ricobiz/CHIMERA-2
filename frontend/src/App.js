@@ -37,7 +37,8 @@ function App() {
 
   const handleSendPrompt = async (prompt) => {
     const userMessage = { role: 'user', content: prompt };
-    setMessages(prev => [...prev, userMessage]);
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
     
     setIsGenerating(true);
     
@@ -49,13 +50,40 @@ function App() {
         content: response.message,
         cost: response.cost 
       };
-      setMessages(prev => [...prev, aiMessage]);
+      const updatedMessages = [...newMessages, aiMessage];
+      setMessages(updatedMessages);
       
       setGeneratedCode(response.code);
       
       // Update total cost
       if (response.cost) {
-        setTotalCost(prev => prev + response.cost.total_cost);
+        const newTotalCost = totalCost + response.cost.total_cost;
+        setTotalCost(newTotalCost);
+        
+        // Auto-save session
+        if (currentSessionId) {
+          await updateSession(currentSessionId, {
+            messages: updatedMessages,
+            generated_code: response.code,
+            model_used: selectedModel,
+            validator_model: visualValidatorModel,
+            validator_enabled: visualValidatorEnabled,
+            total_cost: newTotalCost
+          });
+        } else {
+          // Create new session
+          const session = await createSession({
+            name: prompt.substring(0, 50) + (prompt.length > 50 ? '...' : ''),
+            messages: updatedMessages,
+            generated_code: response.code,
+            model_used: selectedModel,
+            validator_model: visualValidatorModel,
+            validator_enabled: visualValidatorEnabled,
+            total_cost: newTotalCost
+          });
+          setCurrentSessionId(session.id);
+          setSessionName(session.name);
+        }
       }
 
       // On mobile, automatically switch to preview
