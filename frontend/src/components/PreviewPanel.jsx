@@ -32,7 +32,7 @@ const PreviewPanel = ({ generatedCode, isGenerating }) => {
     }
 
     try {
-      const projectName = `lovable-app-${Date.now()}`;
+      const projectName = `app-${Date.now()}`;
       await exportProject(generatedCode, projectName);
       
       toast({
@@ -100,7 +100,7 @@ const PreviewPanel = ({ generatedCode, isGenerating }) => {
   };
 
   return (
-    <div className="flex-1 bg-[#1a1a1b] border-l border-gray-800 flex flex-col h-screen">
+    <div className="flex-1 bg-[#1a1a1b] flex flex-col h-screen border-2 border-transparent animated-gradient-border-preview">
       {/* Header */}
       <div className="border-b border-gray-800 p-3 md:p-4">
         <div className="flex items-center justify-between">
@@ -117,17 +117,6 @@ const PreviewPanel = ({ generatedCode, isGenerating }) => {
             </TabsList>
           </Tabs>
           <div className="flex items-center gap-1 md:gap-2">
-            {generatedCode && (
-              <Button
-                onClick={handleExport}
-                variant="ghost"
-                size="sm"
-                className="text-gray-400 hover:text-white text-xs md:text-sm"
-              >
-                <Download className="w-3 h-3 md:w-4 md:h-4" />
-                <span className="hidden md:inline ml-1">Export</span>
-              </Button>
-            )}
             <Button
               onClick={refreshPreview}
               variant="ghost"
@@ -167,7 +156,7 @@ const PreviewPanel = ({ generatedCode, isGenerating }) => {
                     No Preview Yet
                   </h3>
                   <p className="text-sm md:text-base text-gray-400">
-                    Start by describing your app idea in the chat, and the live preview will appear here.
+                    Start by describing your app idea in the chat.
                   </p>
                 </div>
               </div>
@@ -187,7 +176,7 @@ const PreviewPanel = ({ generatedCode, isGenerating }) => {
                     No Code Generated
                   </h3>
                   <p className="text-sm md:text-base text-gray-400">
-                    Generated code will appear here once the AI creates your app.
+                    Generated code will appear here.
                   </p>
                 </div>
               </div>
@@ -195,6 +184,29 @@ const PreviewPanel = ({ generatedCode, isGenerating }) => {
           </div>
         )}
       </div>
+      
+      {/* Animated gradient border */}
+      <style jsx>{`
+        .animated-gradient-border-preview {
+          position: relative;
+          border: 2px solid transparent;
+          background: linear-gradient(#1a1a1b, #1a1a1b) padding-box,
+                      linear-gradient(90deg, 
+                        rgba(16, 185, 129, 0.3),
+                        rgba(59, 130, 246, 0.3),
+                        rgba(236, 72, 153, 0.3),
+                        rgba(59, 130, 246, 0.3),
+                        rgba(16, 185, 129, 0.3)
+                      ) border-box;
+          background-size: 200% 100%;
+          animation: gradientShiftPreview 3s ease infinite;
+        }
+        
+        @keyframes gradientShiftPreview {
+          0%, 100% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+        }
+      `}</style>
     </div>
   );
 };

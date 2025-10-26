@@ -6,7 +6,7 @@ import { samplePrompts } from '../mockData';
 import StatusIndicator from './StatusIndicator';
 import ModelIndicator from './ModelIndicator';
 
-const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, onOpenSettings, activeModel, validatorEnabled, validatorModel }) => {
+const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, activeModel, validatorEnabled, validatorModel }) => {
   const [prompt, setPrompt] = useState('');
   const [showSamples, setShowSamples] = useState(true);
 
@@ -23,15 +23,15 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, onOpenS
   };
 
   return (
-    <div className="flex-1 flex flex-col bg-[#0f0f10] h-screen">
+    <div className="flex-1 flex flex-col bg-[#0f0f10] h-screen border-2 border-transparent animated-gradient-border">
       {/* Header */}
       <div className="border-b border-gray-800 p-3 md:p-4">
         <div className="flex items-center justify-between">
           <h2 className="text-white font-medium text-sm">AI Assistant</h2>
           
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             {/* Model Indicators */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <ModelIndicator 
                 type="code" 
                 modelName={activeModel?.split('/').pop()}
@@ -44,22 +44,21 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, onOpenS
               />
             </div>
             
-            {/* Status & Cost */}
-            <div className="flex items-center gap-2">
+            {/* Status & Save */}
+            <div className="flex items-center gap-3">
               <StatusIndicator />
+              
+              {messages.length > 0 && (
+                <Button
+                  onClick={onSave}
+                  variant="ghost"
+                  size="sm"
+                  className="text-gray-500 hover:text-gray-400 h-6 px-2"
+                >
+                  <Save className="w-3 h-3" />
+                </Button>
+              )}
             </div>
-            
-            {/* Save Button */}
-            {messages.length > 0 && (
-              <Button
-                onClick={onSave}
-                variant="ghost"
-                size="sm"
-                className="text-gray-500 hover:text-gray-400 h-6 px-2"
-              >
-                <Save className="w-3 h-3" />
-              </Button>
-            )}
           </div>
         </div>
       </div>
@@ -92,7 +91,7 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, onOpenS
                   <button
                     key={idx}
                     onClick={() => handleSampleClick(sample)}
-                    className="w-full p-3 md:p-4 bg-gray-900 hover:bg-gray-800 rounded-lg text-left text-sm md:text-base text-gray-400 hover:text-gray-300 transition-colors border border-gray-800"
+                    className="w-full p-3 md:p-4 bg-gray-900 hover:bg-gray-800 rounded-lg text-left text-sm md:text-base text-gray-400 hover:text-gray-300 transition-colors border border-gray-800 hover:border-purple-500/30"
                   >
                     {sample}
                   </button>
@@ -107,10 +106,10 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, onOpenS
                 key={idx}
                 className={`p-3 md:p-4 rounded-lg text-sm md:text-base border ${
                   msg.role === 'user'
-                    ? 'bg-gray-900 border-gray-800 ml-4 md:ml-12'
+                    ? 'bg-gray-900 border-blue-500/30 ml-4 md:ml-12 glow-blue'
                     : msg.role === 'design'
-                    ? 'bg-purple-900/20 border-purple-800/30 mr-4 md:mr-12'
-                    : 'bg-gray-900/50 border-gray-800/50 mr-4 md:mr-12'
+                    ? 'bg-purple-900/20 border-purple-500/30 mr-4 md:mr-12 glow-purple'
+                    : 'bg-gray-900/50 border-gray-700 mr-4 md:mr-12'
                 }`}
               >
                 <div className="flex items-start gap-2 md:gap-3">
@@ -149,12 +148,12 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, onOpenS
                 }
               }}
               placeholder="Describe your app..."
-              className="min-h-[80px] md:min-h-[100px] bg-gray-900 border-gray-800 text-sm md:text-base text-gray-300 resize-none pr-12 placeholder-gray-600"
+              className="min-h-[80px] md:min-h-[100px] bg-gray-900 border-gray-700 focus:border-purple-500/50 text-sm md:text-base text-gray-300 resize-none pr-12 placeholder-gray-600"
             />
             <Button
               onClick={handleSubmit}
               disabled={!prompt.trim()}
-              className="absolute bottom-2 md:bottom-3 right-2 md:right-3 bg-gray-700 hover:bg-gray-600 disabled:opacity-30 h-7 w-7 p-0"
+              className="absolute bottom-2 md:bottom-3 right-2 md:right-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 disabled:opacity-30 h-7 w-7 p-0"
               size="sm"
             >
               <Send className="w-3.5 h-3.5" />
@@ -162,6 +161,37 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, onOpenS
           </div>
         </div>
       </div>
+      
+      {/* Add CSS for animated gradient border */}
+      <style jsx>{`
+        .animated-gradient-border {
+          position: relative;
+          border: 2px solid transparent;
+          background: linear-gradient(#0f0f10, #0f0f10) padding-box,
+                      linear-gradient(90deg, 
+                        rgba(139, 92, 246, 0.3),
+                        rgba(59, 130, 246, 0.3),
+                        rgba(16, 185, 129, 0.3),
+                        rgba(59, 130, 246, 0.3),
+                        rgba(139, 92, 246, 0.3)
+                      ) border-box;
+          background-size: 200% 100%;
+          animation: gradientShift 3s ease infinite;
+        }
+        
+        @keyframes gradientShift {
+          0%, 100% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+        }
+        
+        .glow-blue {
+          box-shadow: 0 0 10px rgba(59, 130, 246, 0.2);
+        }
+        
+        .glow-purple {
+          box-shadow: 0 0 10px rgba(139, 92, 246, 0.2);
+        }
+      `}</style>
     </div>
   );
 };
