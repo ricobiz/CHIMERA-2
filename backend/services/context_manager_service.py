@@ -288,13 +288,13 @@ Format as a flowing paragraph, not bullet points."""
         
         logger.info(f"🔗 Created new session {new_session_id} chained from {current_session_id}")
         
-        # Remember in AI memory
-        await memory_service.remember_conversation(
-            user_message=f"Session {current_session_id} reached context limit",
-            assistant_response=f"Created new session {new_session_id} with preserved context",
-            session_id=new_session_id,
-            important=True
-        )
+        # Remember in AI memory (disabled)
+        # await memory_service.remember_conversation(
+        #     user_message=f"Session {current_session_id} reached context limit",
+        #     assistant_response=f"Created new session {new_session_id} with preserved context",
+        #     session_id=new_session_id,
+        #     important=True
+        # )
         
         return session_data
     
