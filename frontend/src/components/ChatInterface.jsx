@@ -4,7 +4,7 @@ import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
 import { samplePrompts } from '../mockData';
 
-const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, onOpenSettings }) => {
+const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, onOpenSettings, activeModel, validatorEnabled, validatorModel }) => {
   const [prompt, setPrompt] = useState('');
   const [showSamples, setShowSamples] = useState(true);
 
