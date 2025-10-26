@@ -8,7 +8,7 @@ import { getModels, createIntegration, getIntegrations, updateIntegration, delet
 import { toast } from '../hooks/use-toast';
 import { CodeIcon, EyeIcon } from './Icons';
 
-const Settings = ({ selectedModel, onModelChange, onClose, visualValidatorEnabled, onVisualValidatorToggle, visualValidatorModel, onVisualValidatorModelChange }) => {
+const Settings = ({ selectedModel, onModelChange, onClose, visualValidatorEnabled, onVisualValidatorToggle, visualValidatorModel, onVisualValidatorModelChange, researchPlannerEnabled, onResearchPlannerToggle, researchPlannerModel, onResearchPlannerModelChange }) => {
   const [models, setModels] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -16,6 +16,9 @@ const Settings = ({ selectedModel, onModelChange, onClose, visualValidatorEnable
   const [localValidatorEnabled, setLocalValidatorEnabled] = useState(visualValidatorEnabled);
   const [localValidatorModel, setLocalValidatorModel] = useState(visualValidatorModel);
   const [validatorSearchTerm, setValidatorSearchTerm] = useState('');
+  const [localResearchEnabled, setLocalResearchEnabled] = useState(researchPlannerEnabled);
+  const [localResearchModel, setLocalResearchModel] = useState(researchPlannerModel);
+  const [researchSearchTerm, setResearchSearchTerm] = useState('');
   
   // Secrets management
   const [activeTab, setActiveTab] = useState('models'); // 'models', 'secrets', 'integrations', 'mcp'
