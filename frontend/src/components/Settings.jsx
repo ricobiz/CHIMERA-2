@@ -153,6 +153,205 @@ const Settings = ({ selectedModel, onModelChange, onClose, visualValidatorEnable
     }));
   };
 
+  // ========== Integrations Functions ==========
+
+  const loadIntegrations = async () => {
+    setIntegrationsLoading(true);
+    try {
+      const data = await getIntegrations();
+      setIntegrations(data || []);
+    } catch (error) {
+      console.error('Failed to load integrations:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load integrations.",
+        variant: "destructive"
+      });
+    } finally {
+      setIntegrationsLoading(false);
+    }
+  };
+
+  const handleAddIntegration = async () => {
+    if (!newIntegration.name.trim()) {
+      toast({
+        title: "Invalid Input",
+        description: "Please provide integration name.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      await createIntegration(newIntegration);
+      toast({
+        title: "Integration Added",
+        description: `${newIntegration.name} has been added.`,
+      });
+      setNewIntegration({
+        service_type: 'huggingface',
+        name: '',
+        credentials: {},
+        enabled: true
+      });
+      loadIntegrations();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to add integration.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleDeleteIntegration = async (id) => {
+    try {
+      await deleteIntegration(id);
+      toast({
+        title: "Integration Deleted",
+        description: "Integration has been removed.",
+      });
+      loadIntegrations();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete integration.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleToggleIntegration = async (id, enabled) => {
+    try {
+      await updateIntegration(id, { enabled });
+      toast({
+        title: enabled ? "Integration Enabled" : "Integration Disabled",
+        description: "Integration status updated.",
+      });
+      loadIntegrations();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update integration.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // ========== MCP Servers Functions ==========
+
+  const loadMCPServers = async () => {
+    setMcpLoading(true);
+    try {
+      const data = await getMCPServers();
+      setMcpServers(data || []);
+    } catch (error) {
+      console.error('Failed to load MCP servers:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load MCP servers.",
+        variant: "destructive"
+      });
+    } finally {
+      setMcpLoading(false);
+    }
+  };
+
+  const handleAddMCPServer = async () => {
+    if (!newMCPServer.name.trim()) {
+      toast({
+        title: "Invalid Input",
+        description: "Please provide server name.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (newMCPServer.server_type === 'custom' && !newMCPServer.endpoint_url.trim()) {
+      toast({
+        title: "Invalid Input",
+        description: "Custom servers require an endpoint URL.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      await createMCPServer(newMCPServer);
+      toast({
+        title: "MCP Server Added",
+        description: `${newMCPServer.name} has been added.`,
+      });
+      setNewMCPServer({
+        name: '',
+        server_type: 'custom',
+        endpoint_url: '',
+        authentication: {},
+        enabled: true,
+        priority: 0,
+        fallback_order: null
+      });
+      loadMCPServers();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to add MCP server.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleDeleteMCPServer = async (id) => {
+    try {
+      await deleteMCPServer(id);
+      toast({
+        title: "Server Deleted",
+        description: "MCP server has been removed.",
+      });
+      loadMCPServers();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete MCP server.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleToggleMCPServer = async (id, enabled) => {
+    try {
+      await updateMCPServer(id, { enabled });
+      toast({
+        title: enabled ? "Server Enabled" : "Server Disabled",
+        description: "Server status updated.",
+      });
+      loadMCPServers();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update server.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleHealthCheck = async (id) => {
+    try {
+      const result = await healthCheckMCPServer(id);
+      toast({
+        title: "Health Check",
+        description: `Server is ${result.status}`,
+      });
+      loadMCPServers();
+    } catch (error) {
+      toast({
+        title: "Health Check Failed",
+        description: "Unable to reach server.",
+        variant: "destructive"
+      });
+    }
+  };
+
   const filteredModels = models.filter(model => {
     const matchesSearch = model.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       model.id.toLowerCase().includes(searchTerm.toLowerCase());
