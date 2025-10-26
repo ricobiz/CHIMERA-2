@@ -222,19 +222,26 @@ Be EXTREMELY thorough and critical. False negatives (missing fraud) are more dan
         # Consensus analysis - combine ALL THREE models' results
         logger.info("Creating consensus analysis from 3 models...")
         
-        # Average scores with slight weight on more conservative (higher fraud probability)
+        # Average scores from all 3 models with equal weight
         avg_fraud_prob = (
-            primary_result['fraud_probability'] * 0.5 + 
-            secondary_result['fraud_probability'] * 0.5
+            primary_result['fraud_probability'] * 0.34 + 
+            secondary_result['fraud_probability'] * 0.33 +
+            tertiary_result['fraud_probability'] * 0.33
         )
         
+        # Calculate disagreement across all 3 models
+        fraud_probs = [
+            primary_result['fraud_probability'],
+            secondary_result['fraud_probability'],
+            tertiary_result['fraud_probability']
+        ]
+        max_fraud = max(fraud_probs)
+        min_fraud = min(fraud_probs)
+        disagreement = max_fraud - min_fraud
+        
         # If models disagree significantly, increase fraud probability (be conservative)
-        disagreement = abs(
-            primary_result['fraud_probability'] - 
-            secondary_result['fraud_probability']
-        )
         if disagreement > 30:
-            avg_fraud_prob = min(avg_fraud_prob + 10, 100)
+            avg_fraud_prob = min(avg_fraud_prob + 15, 100)
             logger.warning(f"Models disagree by {disagreement}%, increasing fraud probability")
         
         # Determine final verdict
