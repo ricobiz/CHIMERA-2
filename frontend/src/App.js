@@ -7,7 +7,7 @@ import ChatInterface from './components/ChatInterface';
 import PreviewPanel from './components/PreviewPanel';
 import Settings from './components/Settings';
 import TaskProgress from './components/TaskProgress';
-import { generateCode, saveProject, createSession, updateSession, getSession } from './services/api';
+import { generateCode, saveProject, createSession, updateSession, getSession, getOpenRouterBalance } from './services/api';
 import { toast } from './hooks/use-toast';
 import { Toaster } from './components/ui/toaster';
 
@@ -22,6 +22,7 @@ function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [apiBalance, setApiBalance] = useState(null); // OpenRouter balance
   
   const [visualValidatorEnabled, setVisualValidatorEnabled] = useState(
     localStorage.getItem('visualValidatorEnabled') === 'true'
