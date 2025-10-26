@@ -41,8 +41,26 @@ function App() {
   const [proposedDesign, setProposedDesign] = useState(null);
 
   const handleSendPrompt = async (prompt) => {
-    // Store original request for validation
-    if (!originalUserRequest) {
+    // Check if this is a design approval response
+    if (awaitingDesignApproval) {
+      const lowerPrompt = prompt.toLowerCase();
+      if (lowerPrompt.includes('yes') || lowerPrompt.includes('да') || lowerPrompt.includes('approve') || lowerPrompt.includes('подтверждаю')) {
+        // User approved design, proceed with code generation
+        setAwaitingDesignApproval(false);
+        await generateCodeWithDesign(originalUserRequest, proposedDesign);
+        return;
+      } else if (lowerPrompt.includes('no') || lowerPrompt.includes('нет') || lowerPrompt.includes('reject')) {
+        // User rejected, ask for modifications
+        setAwaitingDesignApproval(false);
+        setProposedDesign(null);
+        const rejectMessage = { role: 'assistant', content: 'Please describe what you\'d like to change in the design.' };
+        setMessages(prev => [...prev, rejectMessage]);
+        return;
+      }
+    }
+    
+    // Store original request
+    if (!originalUserRequest && !awaitingDesignApproval) {
       setOriginalUserRequest(prompt);
     }
     
@@ -50,85 +68,28 @@ function App() {
     const newMessages = [...messages, userMessage];
     setMessages(newMessages);
     
-    setIsGenerating(true);
-    
-    try {
-      const response = await generateCode(prompt, messages, selectedModel);
-      
-      const aiMessage = { 
-        role: 'assistant', 
-        content: response.message,
-        cost: response.cost 
-      };
-      const updatedMessages = [...newMessages, aiMessage];
-      setMessages(updatedMessages);
-      
-      setGeneratedCode(response.code);
-      
-      // Update total cost
-      let newTotalCost = totalCost;
-      if (response.cost) {
-        newTotalCost = totalCost + response.cost.total_cost;
-        setTotalCost(newTotalCost);
-      }
-
-      // Auto-save session
-      if (currentSessionId) {
-        await updateSession(currentSessionId, {
-          messages: updatedMessages,
-          generated_code: response.code,
-          model_used: selectedModel,
-          validator_model: visualValidatorModel,
-          validator_enabled: visualValidatorEnabled,
-          total_cost: newTotalCost
-        });
-      } else {
-        // Create new session
-        const session = await createSession({
-          name: prompt.substring(0, 50) + (prompt.length > 50 ? '...' : ''),
-          messages: updatedMessages,
-          generated_code: response.code,
-          model_used: selectedModel,
-          validator_model: visualValidatorModel,
-          validator_enabled: visualValidatorEnabled,
-          total_cost: newTotalCost
-        });
-        setCurrentSessionId(session.id);
-        setSessionName(session.name);
-      }
-
-      // On mobile, automatically switch to preview
-      if (window.innerWidth < 768) {
-        setShowPreview(true);
-      }
-      
-      toast({
-        title: "Code Generated!",
-        description: visualValidatorEnabled ? "Validating UI..." : "Your app is ready in the preview panel.",
-      });
-      
-      // Run visual validation if enabled
-      if (visualValidatorEnabled && response.code) {
-        setTimeout(() => runVisualValidation(originalUserRequest || prompt), 2000);
-      }
-      
-    } catch (error) {
-      console.error('Error generating code:', error);
-      const errorMessage = { 
-        role: 'assistant', 
-        content: `Sorry, I encountered an error: ${error.response?.data?.detail || error.message}. Please try again.`
-      };
-      setMessages(prev => [...prev, errorMessage]);
-      
-      toast({
-        title: "Error",
-        description: "Failed to generate code. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsGenerating(false);
-    }
-  };
+    // Step 1: Generate design first (if validator enabled)
+    if (visualValidatorEnabled && !awaitingDesignApproval) {
+      setIsGenerating(true);
+      try {
+        const designMessage = { role: 'assistant', content: 'Generating design concept...' };
+        setMessages(prev => [...prev, designMessage]);
+        
+        const designResult = await generateDesign(prompt, visualValidatorModel);
+        
+        setProposedDesign(designResult.design_spec);
+        
+        const designProposal = {
+          role: 'design',
+          content: `**Design Proposal:**\n\n${designResult.design_spec}\n\n---\n\n**Do you approve this design?** Reply with "yes" to proceed with code generation, or describe changes you'd like.`
+        };
+        
+        setMessages(prev => [...prev.slice(0, -1), designProposal]);
+        setAwaitingDesignApproval(true);
+        setIsGenerating(false);
+        
+        toast({
+          title: \"Design Ready\",\n          description: \"Review the design and approve to continue.\",\n        });\n        \n        return;\n        \n      } catch (error) {\n        console.error('Design generation error:', error);\n        toast({\n          title: \"Design Error\",\n          description: \"Proceeding with direct code generation.\",\n          variant: \"destructive\"\n        });\n        setIsGenerating(false);\n        // Fall through to normal code generation\n      }\n    }\n    \n    // Normal flow: direct code generation\n    await generateCodeDirectly(prompt, newMessages);\n  };\n\n  const generateCodeWithDesign = async (userRequest, designSpec) => {\n    setIsGenerating(true);\n    \n    try {\n      const enhancedPrompt = `${userRequest}\n\nDesign Specification:\n${designSpec}`;\n      \n      const response = await generateCode(enhancedPrompt, messages, selectedModel);\n      \n      const aiMessage = { \n        role: 'assistant', \n        content: response.message,\n        cost: response.cost \n      };\n      const updatedMessages = [...messages, aiMessage];\n      setMessages(updatedMessages);\n      \n      setGeneratedCode(response.code);\n      \n      let newTotalCost = totalCost;\n      if (response.cost) {\n        newTotalCost = totalCost + response.cost.total_cost;\n        setTotalCost(newTotalCost);\n      }\n\n      // Auto-save session\n      if (currentSessionId) {\n        await updateSession(currentSessionId, {\n          messages: updatedMessages,\n          generated_code: response.code,\n          model_used: selectedModel,\n          validator_model: visualValidatorModel,\n          validator_enabled: visualValidatorEnabled,\n          total_cost: newTotalCost\n        });\n      } else {\n        const session = await createSession({\n          name: userRequest.substring(0, 50) + (userRequest.length > 50 ? '...' : ''),\n          messages: updatedMessages,\n          generated_code: response.code,\n          model_used: selectedModel,\n          validator_model: visualValidatorModel,\n          validator_enabled: visualValidatorEnabled,\n          total_cost: newTotalCost\n        });\n        setCurrentSessionId(session.id);\n        setSessionName(session.name);\n      }\n\n      if (window.innerWidth < 768) {\n        setShowPreview(true);\n      }\n      \n      toast({\n        title: \"Code Generated!\",\n        description: visualValidatorEnabled ? \"Validating UI...\" : \"Your app is ready.\",\n      });\n      \n      // Run visual validation if enabled\n      if (visualValidatorEnabled && response.code) {\n        setTimeout(() => runVisualValidation(userRequest), 2000);\n      }\n      \n    } catch (error) {\n      console.error('Error generating code:', error);\n      const errorMessage = { \n        role: 'assistant', \n        content: `Error: ${error.response?.data?.detail || error.message}`\n      };\n      setMessages(prev => [...prev, errorMessage]);\n      \n      toast({\n        title: \"Error\",\n        description: \"Failed to generate code.\",\n        variant: \"destructive\"\n      });\n    } finally {\n      setIsGenerating(false);\n    }\n  };\n\n  const generateCodeDirectly = async (prompt, newMessages) => {\n    setIsGenerating(true);\n    \n    try {\n      const response = await generateCode(prompt, messages, selectedModel);\n      \n      const aiMessage = { \n        role: 'assistant', \n        content: response.message,\n        cost: response.cost \n      };\n      const updatedMessages = [...newMessages, aiMessage];\n      setMessages(updatedMessages);\n      \n      setGeneratedCode(response.code);\n      \n      let newTotalCost = totalCost;\n      if (response.cost) {\n        newTotalCost = totalCost + response.cost.total_cost;\n        setTotalCost(newTotalCost);\n      }\n\n      if (currentSessionId) {\n        await updateSession(currentSessionId, {\n          messages: updatedMessages,\n          generated_code: response.code,\n          model_used: selectedModel,\n          validator_model: visualValidatorModel,\n          validator_enabled: visualValidatorEnabled,\n          total_cost: newTotalCost\n        });\n      } else {\n        const session = await createSession({\n          name: prompt.substring(0, 50) + (prompt.length > 50 ? '...' : ''),\n          messages: updatedMessages,\n          generated_code: response.code,\n          model_used: selectedModel,\n          validator_model: visualValidatorModel,\n          validator_enabled: visualValidatorEnabled,\n          total_cost: newTotalCost\n        });\n        setCurrentSessionId(session.id);\n        setSessionName(session.name);\n      }\n\n      if (window.innerWidth < 768) {\n        setShowPreview(true);\n      }\n      \n      toast({\n        title: \"Code Generated!\",\n        description: \"Your app is ready.\",\n      });\n      \n    } catch (error) {\n      console.error('Error generating code:', error);\n      const errorMessage = { \n        role: 'assistant', \n        content: `Error: ${error.response?.data?.detail || error.message}`\n      };\n      setMessages(prev => [...prev, errorMessage]);\n      \n      toast({\n        title: \"Error\",\n        description: \"Failed to generate code.\",\n        variant: \"destructive\"\n      });\n    } finally {\n      setIsGenerating(false);\n    }\n  };
 
   const runVisualValidation = async (userRequest) => {
     if (!generatedCode) return;
