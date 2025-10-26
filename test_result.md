@@ -182,15 +182,18 @@ backend:
 
   - task: "GET /api/mcp-servers endpoint"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/routes/integrations_routes.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Created endpoint to retrieve all MCP servers sorted by priority. Needs testing."
+      - working: true
+        agent: "testing"
+        comment: "✅ Successfully tested GET /api/mcp-servers endpoint. Retrieved 1 MCP server correctly. Response structure validated with all required fields (id, name, server_type, enabled, priority, health_status). Priority sorting functionality implemented correctly."
 
   - task: "PUT /api/mcp-servers/{id} endpoint"
     implemented: true
