@@ -49,6 +49,69 @@ function App() {
     });
   };
 
+  const handleApprove = () => {
+    setShowApprovalButtons(false);
+    setGenerationStatus('idle');
+    setDevelopmentPlan([]);
+    
+    toast({
+      title: "Project Approved!",
+      description: "Your application is ready to use.",
+    });
+  };
+
+  const handleRevise = () => {
+    setShowApprovalButtons(false);
+    
+    // Create revision plan
+    const revisions = [
+      { name: 'Analyze Feedback', description: 'Understanding required changes', status: 'in-progress' },
+      { name: 'Visual Adjustments', description: 'UI/UX improvements', status: 'pending' },
+      { name: 'Functional Fixes', description: 'Logic and behavior corrections', status: 'pending' },
+      { name: 'Re-validation', description: 'Final verification', status: 'pending' }
+    ];
+    
+    setRevisionPlan(revisions);
+    setDevelopmentPlan(revisions);
+    setCurrentTaskIndex(0);
+    
+    toast({
+      title: "Revision Mode",
+      description: "Creating plan for improvements...",
+    });
+    
+    // Simulate revision workflow
+    let taskIdx = 0;
+    const revisionInterval = setInterval(() => {
+      if (taskIdx < revisions.length - 1) {
+        setDevelopmentPlan(prev => {
+          const updated = [...prev];
+          updated[taskIdx] = { ...updated[taskIdx], status: 'validating' };
+          return updated;
+        });
+        
+        setTimeout(() => {
+          setDevelopmentPlan(prev => {
+            const updated = [...prev];
+            updated[taskIdx] = { ...updated[taskIdx], status: 'completed' };
+            if (taskIdx < revisions.length - 1) {
+              updated[taskIdx + 1] = { ...updated[taskIdx + 1], status: 'in-progress' };
+            }
+            return updated;
+          });
+          taskIdx++;
+          setCurrentTaskIndex(taskIdx);
+        }, 2000);
+      } else {
+        clearInterval(revisionInterval);
+        // Show approval buttons again after revisions
+        setTimeout(() => {
+          setShowApprovalButtons(true);
+        }, 2000);
+      }
+    }, 4000);
+  };
+
   const handleSendPrompt = async (prompt) => {
     const userMessage = { role: 'user', content: prompt };
     const newMessages = [...messages, userMessage];
