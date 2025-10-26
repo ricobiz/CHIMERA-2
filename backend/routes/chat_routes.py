@@ -8,10 +8,15 @@ from services.ai_memory_service import memory_service
 from services.openrouter_service import openrouter_service
 from services.thinking_service import thinking_service
 from services.context_manager_service import context_manager
+from services.task_classifier_service import task_classifier
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api", tags=["chat"])
+
+class TaskClassificationRequest(BaseModel):
+    message: str
+    model: str = "anthropic/claude-3.5-sonnet"
 
 class ChatRequest(BaseModel):
     message: str
