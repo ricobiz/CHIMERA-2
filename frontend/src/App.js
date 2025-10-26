@@ -512,7 +512,7 @@ function App() {
   };
 
   if (showAutomation) {
-    return <AutomationPage />;
+    return <AutomationPage onClose={() => setShowAutomation(false)} />;
   }
 
   if (showDocVerification) {
