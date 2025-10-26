@@ -492,27 +492,45 @@ frontend:
 
   - task: "Context Usage Display in Chat"
     implemented: true
-    working: "NA"
+    working: false
     file: "/app/frontend/src/App.js, /app/frontend/src/components/ChatInterface.jsx"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Added context usage percentage display next to cost info in chat messages. Shows '• Context: X.X%' in blue text. Frontend now handles new_session_id transitions and context_warning notifications from backend."
+      - working: false
+        agent: "testing"
+        comment: "❌ Context usage display not visible in chat interface during comprehensive testing. Context percentage information not appearing next to cost info as expected. Feature may not be properly integrated or activated."
 
   - task: "Context Management API Functions"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/frontend/src/services/api.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Added getContextStatus() and switchModelWithContext() API functions for frontend context management integration."
+      - working: true
+        agent: "testing"
+        comment: "✅ API functions implemented correctly in services/api.js. Backend context management endpoints are working (confirmed in previous tests). Frontend integration appears complete but context display component needs debugging."
+
+  - task: "Comprehensive Calculator Generation with Design-First Workflow Testing"
+    implemented: true
+    working: false
+    file: "/app/frontend/src/App.js, /app/frontend/src/components/ChatInterface.jsx, /app/backend/routes/lovable_routes.py"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "❌ CRITICAL ISSUES FOUND: (1) JavaScript runtime errors in preview panel - 'Cannot read properties of undefined (reading 'toFixed')' and related React errors, (2) Calculator generation workflow partially working but preview shows JavaScript errors preventing proper functionality, (3) Russian prompt processing works, (4) Settings access confirmed (4 tabs: Models, API Keys, Integrations, MCP Servers), (5) Visual Validator and Research Planner enabled, (6) Cost tracking visible in sidebar, (7) Mode switching and basic UI navigation functional. MAJOR ISSUE: Preview panel has JavaScript runtime errors that prevent calculator from displaying/functioning properly."
 
     working: true
     file: "/app/frontend/src/App.js, /app/frontend/src/components/ChatInterface.jsx, /app/frontend/src/services/api.js"
