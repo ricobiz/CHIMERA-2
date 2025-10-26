@@ -98,8 +98,7 @@ const Sidebar = ({ onNewProject, onProjectSelect, onOpenSettings, onSessionSelec
       {/* Header */}
       <div className="p-6 border-b border-gray-800">
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-8 h-8 bg-gradient-to-br from-gray-700 to-gray-800 rounded-lg"></div>
-          <span className="text-xl font-semibold text-gray-300">AI Studio</span>
+          <ChimeraLogo size="sm" />
         </div>
         
         <h1 className="text-2xl font-bold mb-2 text-gray-300">
