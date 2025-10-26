@@ -3,8 +3,8 @@ import { Send, ChevronDown, Save } from 'lucide-react';
 import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
 import { samplePrompts } from '../mockData';
-import { CodeIcon, EyeIcon } from './Icons';
 import StatusIndicator from './StatusIndicator';
+import ModelIndicator from './ModelIndicator';
 
 const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, onOpenSettings, activeModel, validatorEnabled, validatorModel }) => {
   const [prompt, setPrompt] = useState('');
@@ -26,55 +26,44 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, onOpenS
     <div className="flex-1 flex flex-col bg-[#0f0f10] h-screen">
       {/* Header */}
       <div className="border-b border-gray-800 p-3 md:p-4">
-        <div className="flex items-center justify-between flex-wrap gap-2">
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <h2 className="text-white font-semibold text-sm md:text-base">AI Assistant</h2>
+            <h2 className="text-white font-medium text-sm">AI Assistant</h2>
             
-            {/* System Status */}
-            <StatusIndicator />
-            
-            {/* Active Models - Capsule Design */}
-            <div className="flex items-center gap-2 ml-2">
-              {/* Code Model Capsule */}
-              <div className="flex items-center gap-1.5 px-2.5 py-1 bg-blue-500/10 rounded-full border border-blue-500/20">
-                <div className="w-1 h-1 rounded-full bg-blue-500 animate-pulse"></div>
-                <CodeIcon className="w-3 h-3 text-blue-400" />
-                <span className="text-[10px] text-blue-400 font-medium">
-                  {activeModel?.split('/')[1]?.substring(0, 12) || 'claude-3.5'}
-                </span>
-              </div>
-              
-              {/* Validator Model Capsule */}
-              {validatorEnabled && (
-                <div className="flex items-center gap-1.5 px-2.5 py-1 bg-green-500/10 rounded-full border border-green-500/20">
-                  <div className="w-1 h-1 rounded-full bg-green-500 animate-pulse"></div>
-                  <EyeIcon className="w-3 h-3 text-green-400" />
-                  <span className="text-[10px] text-green-400 font-medium">
-                    {validatorModel?.split('/')[1]?.substring(0, 12) || 'haiku'}
-                  </span>
-                </div>
-              )}
+            {/* Model Indicators - Icon Only */}
+            <div className="flex items-center gap-3">
+              <ModelIndicator 
+                type="code" 
+                modelName={activeModel?.split('/').pop()}
+                isActive={true}
+              />
+              <ModelIndicator 
+                type="validator" 
+                modelName={validatorModel?.split('/').pop()}
+                isActive={validatorEnabled}
+              />
             </div>
           </div>
           
-          <div className="flex items-center gap-2">
-            {/* Cost Display */}
-            {totalCost > 0 && (
-              <div className="px-2 py-1 bg-gray-800/50 rounded-full border border-gray-700/50">
-                <span className="text-[10px] text-gray-500 font-mono">
+          <div className="flex items-center gap-3">
+            {/* System Status & Balance */}
+            <div className="flex items-center gap-2">
+              <StatusIndicator />
+              {totalCost > 0 && (
+                <span className="text-[9px] text-gray-600 font-mono">
                   ${totalCost.toFixed(4)}
                 </span>
-              </div>
-            )}
+              )}
+            </div>
+            
             {messages.length > 0 && (
               <Button
                 onClick={onSave}
                 variant="ghost"
                 size="sm"
-                className="text-gray-400 hover:text-white h-7"
+                className="text-gray-500 hover:text-gray-400 h-6 px-2"
               >
-                <Save className="w-3.5 h-3.5" />
-                <span className="hidden md:inline ml-1 text-xs">Save</span>
+                <Save className="w-3 h-3" />
               </Button>
             )}
           </div>
@@ -125,15 +114,20 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, onOpenS
                 className={`p-3 md:p-4 rounded-lg text-sm md:text-base border ${
                   msg.role === 'user'
                     ? 'bg-gray-900 border-gray-800 ml-4 md:ml-12'
+                    : msg.role === 'design'
+                    ? 'bg-purple-900/20 border-purple-800/30 mr-4 md:mr-12'
                     : 'bg-gray-900/50 border-gray-800/50 mr-4 md:mr-12'
                 }`}
               >
                 <div className="flex items-start gap-2 md:gap-3">
                   <div className="flex-1">
                     <p className="text-xs text-gray-500 mb-1">
-                      {msg.role === 'user' ? 'You' : 'Assistant'}
+                      {msg.role === 'user' ? 'You' : msg.role === 'design' ? 'Design Proposal' : 'Assistant'}
                     </p>
                     <p className="text-gray-300 whitespace-pre-wrap">{msg.content}</p>
+                    {msg.image && (
+                      <img src={msg.image} alt="Design" className="mt-3 rounded-lg max-w-md" />
+                    )}
                     {msg.cost && (
                       <p className="text-[10px] text-gray-600 mt-2 font-mono">
                         ${msg.cost.total_cost.toFixed(6)} • {msg.cost.total_tokens} tokens
