@@ -112,9 +112,9 @@ RESPOND WITH STRUCTURED JSON ONLY (no markdown, no code blocks):
 
 Be EXTREMELY thorough and critical. False negatives (missing fraud) are more dangerous than false positives."""
 
-        # Analysis with vision model
-        logger.info(f"Running analysis with {primary_model}...")
-        messages = [
+        # PRIMARY MODEL ANALYSIS (GPT-4o)
+        logger.info(f"Running PRIMARY analysis with {primary_model}...")
+        primary_messages = [
             {
                 "role": "system",
                 "content": "You are a forensic document analyst. Respond ONLY with valid JSON - no markdown formatting, no code blocks."
@@ -133,64 +133,146 @@ Be EXTREMELY thorough and critical. False negatives (missing fraud) are more dan
             }
         ]
         
-        response = await openrouter_service.chat_completion(
-            messages=messages,
+        primary_response = await openrouter_service.chat_completion(
+            messages=primary_messages,
             model=primary_model,
-            temperature=0.1  # Low temperature for consistency
+            temperature=0.1
         )
         
-        response_text = response['choices'][0]['message']['content']
-        logger.info(f"Model response length: {len(response_text)} chars")
+        primary_text = primary_response['choices'][0]['message']['content']
+        logger.info(f"Primary model response: {len(primary_text)} chars")
+        primary_result = extract_json(primary_text, "PRIMARY")
         
-        # Extract JSON from response - try multiple methods
-        result = None
-        try:
-            # Method 1: Try direct JSON parse
-            result = json.loads(response_text)
-            logger.info("✅ Parsed JSON directly")
-        except json.JSONDecodeError as e:
-            logger.warning(f"Direct JSON parse failed: {e}")
-            # Method 2: Extract from code blocks
-            if '```json' in response_text:
-                response_text = response_text.split('```json')[1].split('```')[0].strip()
-                logger.info("Extracted from ```json block")
-            elif '```' in response_text:
-                response_text = response_text.split('```')[1].split('```')[0].strip()
-                logger.info("Extracted from ``` block")
-            
-            # Try parsing again
-            try:
-                result = json.loads(response_text)
-                logger.info("✅ Parsed JSON after extraction")
-            except json.JSONDecodeError as e2:
-                logger.warning(f"Second parse attempt failed: {e2}")
-                # Method 3: Try to find JSON object in text
-                import re
-                json_match = re.search(r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}', response_text, re.DOTALL)
-                if json_match:
-                    result = json.loads(json_match.group(0))
-                    logger.info("✅ Parsed JSON via regex")
+        # SECONDARY MODEL ANALYSIS (Claude 3.5 Sonnet)
+        logger.info(f"Running SECONDARY analysis with {secondary_model}...")
+        secondary_messages = [
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": analysis_prompt},
+                    {
+                        "type": "image",
+                        "source": {
+                            "type": "base64",
+                            "media_type": "image/jpeg",
+                            "data": request.document_base64
+                        }
+                    }
+                ]
+            }
+        ]
         
-        if not result:
-            logger.error(f"Failed to parse response. First 500 chars: {response_text[:500]}")
-            raise ValueError("Could not extract valid JSON from model response")
+        secondary_response = await openrouter_service.chat_completion(
+            messages=secondary_messages,
+            model=secondary_model,
+            temperature=0.1
+        )
         
-        # Ensure all required fields exist with defaults
+        secondary_text = secondary_response['choices'][0]['message']['content']
+        logger.info(f"Secondary model response: {len(secondary_text)} chars")
+        secondary_result = extract_json(secondary_text, "SECONDARY")
+        
+        # TERTIARY MODEL ANALYSIS (Gemini Vision)
+        logger.info(f"Running TERTIARY analysis with {tertiary_model}...")
+        tertiary_messages = [
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": analysis_prompt},
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/jpeg;base64,{request.document_base64}"
+                        }
+                    }
+                ]
+            }
+        ]
+        
+        tertiary_response = await openrouter_service.chat_completion(
+            messages=tertiary_messages,
+            model=tertiary_model,
+            temperature=0.1
+        )
+        
+        tertiary_text = tertiary_response['choices'][0]['message']['content']
+        logger.info(f"Tertiary model response: {len(tertiary_text)} chars")
+        tertiary_result = extract_json(tertiary_text, "TERTIARY")
+        
+        # CONSENSUS ANALYSIS - Combine all 3 models
+        logger.info("Creating consensus from 3 models...")
+        
+        # Average fraud probabilities with equal weight
+        fraud_probs = [
+            primary_result['fraud_probability'],
+            secondary_result['fraud_probability'],
+            tertiary_result['fraud_probability']
+        ]
+        avg_fraud_prob = sum(fraud_probs) / 3
+        
+        # Calculate disagreement (for confidence adjustment)
+        max_fraud = max(fraud_probs)
+        min_fraud = min(fraud_probs)
+        disagreement = max_fraud - min_fraud
+        
+        # If models disagree significantly (>30%), be conservative
+        if disagreement > 30:
+            avg_fraud_prob = min(avg_fraud_prob + 10, 100)
+            logger.warning(f"Models disagree by {disagreement}%, increasing fraud probability")
+        
+        # Determine final verdict based on consensus
+        if avg_fraud_prob >= 70:
+            final_verdict = "LIKELY_FAKE"
+        elif avg_fraud_prob >= 40:
+            final_verdict = "SUSPICIOUS"
+        else:
+            final_verdict = "AUTHENTIC"
+        
+        # Combine red flags from ALL models (unique)
+        all_red_flags = list(set(
+            primary_result.get('red_flags', []) + 
+            secondary_result.get('red_flags', []) +
+            tertiary_result.get('red_flags', [])
+        ))
+        
+        # Combine authenticity indicators from ALL models (unique)
+        all_authenticity = list(set(
+            primary_result.get('authenticity_indicators', []) + 
+            secondary_result.get('authenticity_indicators', []) +
+            tertiary_result.get('authenticity_indicators', [])
+        ))
+        
+        # Build comprehensive consensus result
         final_result = {
-            "verdict": result.get('verdict', 'SUSPICIOUS'),
-            "confidence_score": result.get('confidence_score', 50),
-            "fraud_probability": result.get('fraud_probability', 50),
-            "analysis_details": result.get('analysis_details', {}),
-            "red_flags": result.get('red_flags', []),
-            "authenticity_indicators": result.get('authenticity_indicators', []),
-            "recommendations": result.get('recommendations') or generate_recommendations(
-                result.get('verdict', 'SUSPICIOUS'), 
-                result.get('fraud_probability', 50), 
-                result.get('red_flags', [])
-            )
+            "verdict": final_verdict,
+            "confidence_score": round(100 - disagreement, 1),  # Lower if models disagree
+            "fraud_probability": round(avg_fraud_prob, 1),
+            "multi_model_analysis": {
+                "primary_model": {
+                    "name": "GPT-4o",
+                    "verdict": primary_result.get('verdict'),
+                    "fraud_probability": primary_result.get('fraud_probability')
+                },
+                "secondary_model": {
+                    "name": "Claude 3.5 Sonnet",
+                    "verdict": secondary_result.get('verdict'),
+                    "fraud_probability": secondary_result.get('fraud_probability')
+                },
+                "tertiary_model": {
+                    "name": "Gemini Vision",
+                    "verdict": tertiary_result.get('verdict'),
+                    "fraud_probability": tertiary_result.get('fraud_probability')
+                },
+                "agreement_level": round(100 - disagreement, 1),
+                "models_used": 3
+            },
+            "analysis_details": primary_result.get('analysis_details', {}),  # Use primary as base
+            "red_flags": all_red_flags,
+            "authenticity_indicators": all_authenticity,
+            "recommendations": generate_recommendations(final_verdict, avg_fraud_prob, all_red_flags)
         }
         
-        logger.info(f"Verification complete: {final_result['verdict']} ({final_result['fraud_probability']}% fraud probability)")
+        logger.info(f"✅ Consensus complete: {final_verdict} ({avg_fraud_prob:.1f}% fraud, {100-disagreement:.1f}% agreement)")
         
         return final_result
         
