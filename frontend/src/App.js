@@ -32,6 +32,8 @@ function App() {
   const [currentSessionId, setCurrentSessionId] = useState(null);
   const [generationStatus, setGenerationStatus] = useState('idle'); // 'idle', 'generating', 'success', 'error'
   const [chatMode, setChatMode] = useState('chat'); // 'chat' or 'agent'
+  const [developmentPlan, setDevelopmentPlan] = useState([]);
+  const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
 
   const handleStopGeneration = () => {
     // TODO: Implement stop generation logic
