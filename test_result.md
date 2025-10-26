@@ -472,6 +472,18 @@ frontend:
         agent: "main"
         comment: "✅ Verified mobile layout (375x667px). Menu button (☰) on left, icons (code, eye, settings) on right. No overlapping issues. All elements properly positioned and visible."
 
+  - task: "END-TO-END Calculator Generation with Design-First Workflow"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/App.js, /app/frontend/src/components/ChatInterface.jsx, /app/backend/routes/lovable_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ COMPREHENSIVE END-TO-END TEST PASSED: Complete calculator generation workflow tested successfully. Russian prompt ('Создай калькулятор с базовыми операциями (+, -, *, /). Используй синюю цветовую схему') processed correctly. All workflow stages verified: initial state → Agent mode switch → generation request → process monitoring (blue border, stop button, development plan) → completion (green border) → cost display → preview functionality → settings access. All 10 test scenarios passed. Design-first workflow fully functional."
+
 metadata:
   created_by: "testing_agent"
   version: "1.0"
