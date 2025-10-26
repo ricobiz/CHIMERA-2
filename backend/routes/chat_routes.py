@@ -59,16 +59,19 @@ async def classify_task(request: TaskClassificationRequest):
 @router.post("/chat")
 async def chat(request: ChatRequest):
     """
-    Chat endpoint with THINKING + MEMORY + CONTEXT MANAGEMENT integration
+    Chat endpoint with THINKING + CONTEXT MANAGEMENT integration
     AI thinks deeply before responding - честность и точность превыше всего
+    (Memory temporarily disabled - will use external embedding API)
     """
     try:
-        # Update interaction count
-        memory_service.update_interaction_count()
+        # Update interaction count (disabled)
+        # memory_service.update_interaction_count()
         
-        # Get relevant memories for context
-        memories = await memory_service.recall(request.message, memory_type="all", n_results=3)
-        context = await memory_service.get_context_for_prompt(request.message, n_memories=3)
+        # Get relevant memories for context (disabled)
+        # memories = await memory_service.recall(request.message, memory_type="all", n_results=3)
+        # context = await memory_service.get_context_for_prompt(request.message, n_memories=3)
+        memories = []
+        context = ""
         
         # 🧠 DEEP THINKING PHASE
         thinking_result = await thinking_service.deep_think(
@@ -79,11 +82,12 @@ async def chat(request: ChatRequest):
         
         logger.info(f"💭 Thinking confidence: {thinking_result['confidence']:.2f}")
         
-        # Prepare messages with personality + memory + thinking
+        # Prepare messages with personality + thinking
         messages = []
         
         # System message with personality and thinking results
-        personality = memory_service.personality
+        personality = "You are Chimera AI, a helpful AI assistant."  # Default personality
+        # personality = memory_service.personality  # Disabled
         
         thinking_context = f"""
 Your thinking process:
