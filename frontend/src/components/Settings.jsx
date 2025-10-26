@@ -14,6 +14,7 @@ const Settings = ({ selectedModel, onModelChange, onClose, visualValidatorEnable
   const [filterType, setFilterType] = useState('all'); // all, free, paid
   const [localValidatorEnabled, setLocalValidatorEnabled] = useState(visualValidatorEnabled);
   const [localValidatorModel, setLocalValidatorModel] = useState(visualValidatorModel);
+  const [validatorSearchTerm, setValidatorSearchTerm] = useState('');
 
   useEffect(() => {
     loadModels();
