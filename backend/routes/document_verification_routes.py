@@ -142,14 +142,32 @@ Be EXTREMELY thorough and critical. False negatives (missing fraud) are more dan
         )
         
         primary_text = primary_response['choices'][0]['message']['content']
+        logger.info(f"Primary model response length: {len(primary_text)} chars")
         
-        # Extract JSON from response
-        if '```json' in primary_text:
-            primary_text = primary_text.split('```json')[1].split('```')[0].strip()
-        elif '```' in primary_text:
-            primary_text = primary_text.split('```')[1].split('```')[0].strip()
+        # Extract JSON from response - try multiple methods
+        primary_result = None
+        try:
+            # Method 1: Try direct JSON parse
+            primary_result = json.loads(primary_text)
+        except json.JSONDecodeError:
+            # Method 2: Extract from code blocks
+            if '```json' in primary_text:
+                primary_text = primary_text.split('```json')[1].split('```')[0].strip()
+            elif '```' in primary_text:
+                primary_text = primary_text.split('```')[1].split('```')[0].strip()
+            
+            # Try parsing again
+            try:
+                primary_result = json.loads(primary_text)
+            except json.JSONDecodeError:
+                # Method 3: Try to find JSON object in text
+                import re
+                json_match = re.search(r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}', primary_text, re.DOTALL)
+                if json_match:
+                    primary_result = json.loads(json_match.group(0))
         
-        primary_result = json.loads(primary_text)
+        if not primary_result:
+            raise ValueError("Could not extract valid JSON from primary model response")
         
         # Secondary verification with Claude for cross-validation
         logger.info("Running secondary verification with Claude Sonnet...")
