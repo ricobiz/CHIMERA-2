@@ -242,6 +242,32 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, activeM
       {/* Input */}
       <div className="border-t border-gray-800 p-3 md:p-6">
         <div className="max-w-3xl mx-auto">
+          {/* Mode Switcher */}
+          <div className="flex items-center justify-center mb-3">
+            <div className="inline-flex items-center bg-gray-900 rounded-full p-1 border border-gray-700">
+              <button
+                onClick={() => onChatModeChange('chat')}
+                className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${
+                  chatMode === 'chat'
+                    ? 'bg-gray-700 text-white'
+                    : 'text-gray-500 hover:text-gray-400'
+                }`}
+              >
+                💬 Chat
+              </button>
+              <button
+                onClick={() => onChatModeChange('agent')}
+                className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${
+                  chatMode === 'agent'
+                    ? 'bg-gray-700 text-white'
+                    : 'text-gray-500 hover:text-gray-400'
+                }`}
+              >
+                🤖 Agent
+              </button>
+            </div>
+          </div>
+
           <div className="relative">
             <Textarea
               value={prompt}
@@ -252,7 +278,7 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, activeM
                   handleSubmit();
                 }
               }}
-              placeholder="Describe your app..."
+              placeholder={chatMode === 'chat' ? 'Chat about your app idea...' : 'Describe your app...'}
               className={`min-h-[80px] md:min-h-[100px] bg-gray-900 text-sm md:text-base text-gray-300 resize-none pr-32 pl-3 placeholder-gray-600 transition-all duration-300 ${
                 generationStatus === 'generating' 
                   ? 'border-2 border-blue-400 shadow-lg shadow-blue-500/50' 
