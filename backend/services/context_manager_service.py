@@ -67,8 +67,30 @@ class ContextWindowManager:
             total += 4
         return total
     
-    def get_model_limit(self, model: str) -> int:
-        """Получить лимит контекста для модели"""
+    async def get_model_limit(self, model: str) -> int:
+        """
+        Получить лимит контекста для модели
+        Пытается получить из OpenRouter API, если не получается - использует fallback
+        """
+        try:
+            # Try to fetch from OpenRouter API
+            models_data = await openrouter_service.get_models()
+            
+            # Find our model
+            for model_data in models_data.get('data', []):
+                if model_data.get('id') == model:
+                    context_length = model_data.get('context_length', 0)
+                    if context_length > 0:
+                        logger.info(f"✓ Model {model} context limit: {context_length} tokens (from OpenRouter)")
+                        return context_length
+            
+            # Model not found in API, use fallback
+            logger.warning(f"Model {model} not found in OpenRouter API, using fallback")
+            
+        except Exception as e:
+            logger.warning(f"Failed to fetch model limits from OpenRouter: {str(e)}, using fallback")
+        
+        # Fallback to hardcoded limits
         return self.MODEL_LIMITS.get(model, self.MODEL_LIMITS["default"])
     
     def calculate_usage(self, messages: List[Dict], model: str) -> Dict[str, Any]:
