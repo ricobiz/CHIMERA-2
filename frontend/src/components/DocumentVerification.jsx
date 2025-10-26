@@ -432,30 +432,80 @@ const DocumentVerification = ({ onClose }) => {
                 {/* Multi-Model Analysis */}
                 {verificationResult.multi_model_analysis && (
                   <div className="bg-gray-900/50 rounded-lg border border-gray-800 p-6">
-                    <h3 className="text-lg font-semibold text-white mb-4">🤖 Dual-Model Verification</h3>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="bg-gray-800/50 rounded-lg p-4">
-                        <p className="text-sm text-gray-400 mb-2">{verificationResult.multi_model_analysis.primary_model.name}</p>
-                        <p className={`text-lg font-semibold ${getVerdictColor(verificationResult.multi_model_analysis.primary_model.verdict)}`}>
+                    <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                      <span>🤖</span>
+                      <span>Triple-Model Cross-Validation</span>
+                      <span className="px-2 py-1 bg-purple-600/20 text-purple-400 rounded text-xs">
+                        {verificationResult.multi_model_analysis.models_used} AI Models
+                      </span>
+                    </h3>
+                    <div className="grid grid-cols-3 gap-4">
+                      {/* Primary Model */}
+                      <div className="bg-gray-800/50 rounded-lg p-4 border border-blue-500/30">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="w-2 h-2 rounded-full bg-blue-400"></div>
+                          <p className="text-sm font-semibold text-blue-400">{verificationResult.multi_model_analysis.primary_model.name}</p>
+                        </div>
+                        <p className={`text-xl font-bold ${getVerdictColor(verificationResult.multi_model_analysis.primary_model.verdict)}`}>
                           {verificationResult.multi_model_analysis.primary_model.verdict}
                         </p>
                         <p className="text-sm text-gray-400 mt-1">
-                          {verificationResult.multi_model_analysis.primary_model.fraud_probability}% fraud probability
+                          {verificationResult.multi_model_analysis.primary_model.fraud_probability}% fraud
                         </p>
                       </div>
-                      <div className="bg-gray-800/50 rounded-lg p-4">
-                        <p className="text-sm text-gray-400 mb-2">{verificationResult.multi_model_analysis.secondary_model.name}</p>
-                        <p className={`text-lg font-semibold ${getVerdictColor(verificationResult.multi_model_analysis.secondary_model.verdict)}`}>
+                      
+                      {/* Secondary Model */}
+                      <div className="bg-gray-800/50 rounded-lg p-4 border border-purple-500/30">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="w-2 h-2 rounded-full bg-purple-400"></div>
+                          <p className="text-sm font-semibold text-purple-400">{verificationResult.multi_model_analysis.secondary_model.name}</p>
+                        </div>
+                        <p className={`text-xl font-bold ${getVerdictColor(verificationResult.multi_model_analysis.secondary_model.verdict)}`}>
                           {verificationResult.multi_model_analysis.secondary_model.verdict}
                         </p>
                         <p className="text-sm text-gray-400 mt-1">
-                          {verificationResult.multi_model_analysis.secondary_model.fraud_probability}% fraud probability
+                          {verificationResult.multi_model_analysis.secondary_model.fraud_probability}% fraud
+                        </p>
+                      </div>
+                      
+                      {/* Tertiary Model */}
+                      <div className="bg-gray-800/50 rounded-lg p-4 border border-green-500/30">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="w-2 h-2 rounded-full bg-green-400"></div>
+                          <p className="text-sm font-semibold text-green-400">{verificationResult.multi_model_analysis.tertiary_model.name}</p>
+                        </div>
+                        <p className={`text-xl font-bold ${getVerdictColor(verificationResult.multi_model_analysis.tertiary_model.verdict)}`}>
+                          {verificationResult.multi_model_analysis.tertiary_model.verdict}
+                        </p>
+                        <p className="text-sm text-gray-400 mt-1">
+                          {verificationResult.multi_model_analysis.tertiary_model.fraud_probability}% fraud
                         </p>
                       </div>
                     </div>
-                    <p className="text-sm text-gray-400 mt-4">
-                      Agreement Level: <span className="text-white font-semibold">{verificationResult.multi_model_analysis.agreement_level}%</span>
-                    </p>
+                    
+                    {/* Agreement Level */}
+                    <div className="mt-4 p-4 bg-gray-800/30 rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-400">Inter-Model Agreement Level:</span>
+                        <span className={`text-lg font-bold ${
+                          verificationResult.multi_model_analysis.agreement_level >= 80 ? 'text-green-400' :
+                          verificationResult.multi_model_analysis.agreement_level >= 50 ? 'text-yellow-400' :
+                          'text-red-400'
+                        }`}>
+                          {verificationResult.multi_model_analysis.agreement_level}%
+                        </span>
+                      </div>
+                      <div className="mt-2 w-full h-2 bg-gray-700 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full transition-all ${
+                            verificationResult.multi_model_analysis.agreement_level >= 80 ? 'bg-green-500' :
+                            verificationResult.multi_model_analysis.agreement_level >= 50 ? 'bg-yellow-500' :
+                            'bg-red-500'
+                          }`}
+                          style={{ width: `${verificationResult.multi_model_analysis.agreement_level}%` }}
+                        ></div>
+                      </div>
+                    </div>
                   </div>
                 )}
 
