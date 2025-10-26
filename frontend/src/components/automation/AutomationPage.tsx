@@ -160,23 +160,28 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
   const sessionActive = ['planning', 'executing', 'paused'].includes(session.status);
 
   return (
-    <div className="flex flex-col h-screen bg-[#0f0f10] overflow-hidden">
+    <div className="flex flex-col min-h-screen bg-[#0f0f10] relative">
+      {/* Mobile safe area top padding */}
+      <div className="h-safe-top bg-[#0f0f10]" style={{ paddingTop: 'env(safe-area-inset-top)' }} />
+      
       {/* Page Header */}
-      <div className="px-6 py-4 border-b border-gray-800 flex-shrink-0">
+      <div className="px-4 md:px-6 py-3 md:py-4 border-b border-gray-800 flex-shrink-0 sticky top-0 bg-[#0f0f10] z-10">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={onClose}
-              className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors flex items-center gap-2"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-              Back
-            </button>
+          <div className="flex items-center gap-2 md:gap-4">
+            {onClose && (
+              <button
+                onClick={onClose}
+                className="px-2 md:px-4 py-1.5 md:py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors flex items-center gap-1 md:gap-2 text-sm md:text-base"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                <span className="hidden sm:inline">Back</span>
+              </button>
+            )}
             <div>
-              <h1 className="text-xl font-bold text-gray-200">Browser Automation</h1>
-              <p className="text-sm text-gray-500 mt-1">AI-powered browser automation</p>
+              <h1 className="text-base md:text-xl font-bold text-gray-200">Browser Automation</h1>
+              <p className="text-xs md:text-sm text-gray-500 mt-0.5 md:mt-1 hidden sm:block">AI-powered browser automation</p>
             </div>
           </div>
           {session.result && (
