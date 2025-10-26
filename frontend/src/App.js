@@ -206,16 +206,30 @@ function App() {
           body: JSON.stringify({
             message: prompt,
             history: messages,
-            model: selectedModel
+            model: selectedModel,
+            session_id: currentSessionId // Include session ID for context management
           })
         });
         
         const data = await response.json();
         
+        // Handle context warnings and session transitions
+        if (data.context_warning) {
+          console.log('📊 Context:', data.context_warning);
+          // Could show toast notification here
+        }
+        
+        if (data.new_session_id) {
+          // Model switched or context limit reached - new session created
+          console.log('🔄 New session created:', data.new_session_id);
+          setCurrentSessionId(data.new_session_id);
+        }
+        
         const aiMessage = { 
           role: 'assistant', 
           content: data.message || data.response,
-          cost: data.cost 
+          cost: data.cost,
+          context_info: data.context_usage // Store context usage info
         };
         const updatedMessages = [...newMessages, aiMessage];
         setMessages(updatedMessages);
