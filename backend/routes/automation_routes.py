@@ -87,30 +87,20 @@ async def type_text(request: TypeRequest):
 
 
 @router.post("/type-text")
-async def smart_type_text(request: FindElementsRequest):
+async def smart_type_text(request: SmartTypeRequest):
     """
     Smart type: Use vision model to find element by description, then type text
     Example: description="email field", text="user@example.com"
     """
     try:
-        # Parse request body for text field
-        from pydantic import BaseModel
-        class SmartTypeRequest(BaseModel):
-            session_id: str
-            description: str
-            text: str
-        
-        # Re-parse with correct model
-        smart_req = SmartTypeRequest(**request.dict(), text=request.dict().get('text', ''))
-        
         # Find element using vision
         elements = await browser_service.find_elements_with_vision(
-            smart_req.session_id,
-            smart_req.description
+            request.session_id,
+            request.description
         )
         
         if not elements:
-            raise HTTPException(status_code=404, detail=f"Element '{smart_req.description}' not found")
+            raise HTTPException(status_code=404, detail=f"Element '{request.description}' not found")
         
         # Click and type into the first (most confident) element
         best_element = elements[0]
@@ -120,20 +110,20 @@ async def smart_type_text(request: FindElementsRequest):
         center_x = box['x'] + box['width'] / 2
         center_y = box['y'] + box['height'] / 2
         
-        page = browser_service.sessions[smart_req.session_id]['page']
+        page = browser_service.sessions[request.session_id]['page']
         await page.mouse.click(center_x, center_y)
         await page.wait_for_timeout(500)
         
         # Type the text
-        await page.keyboard.type(smart_req.text)
+        await page.keyboard.type(request.text)
         await page.wait_for_timeout(500)
         
-        screenshot = await browser_service.capture_screenshot(smart_req.session_id)
+        screenshot = await browser_service.capture_screenshot(request.session_id)
         
         return {
             "success": True,
             "typed_into": best_element,
-            "text": smart_req.text,
+            "text": request.text,
             "screenshot": screenshot,
             "box": box
         }
