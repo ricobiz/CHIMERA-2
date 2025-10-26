@@ -53,6 +53,48 @@ function App() {
     setIsGenerating(true);
     setGenerationStatus('generating');
     
+    // Create development plan (in agent mode)
+    if (chatMode === 'agent') {
+      const plan = [
+        { name: 'Planning', description: 'Creating project structure', status: 'in-progress' },
+        { name: 'UI Components', description: 'Building interface components', status: 'pending' },
+        { name: 'Logic & State', description: 'Implementing functionality', status: 'pending' },
+        { name: 'Validation', description: 'Testing and validation', status: 'pending' },
+        { name: 'Finalization', description: 'Final review and polish', status: 'pending' }
+      ];
+      setDevelopmentPlan(plan);
+      setCurrentTaskIndex(0);
+      
+      // Simulate task progression
+      let taskIdx = 0;
+      const progressInterval = setInterval(() => {
+        if (taskIdx < plan.length - 1) {
+          // Mark current as validating
+          setDevelopmentPlan(prev => {
+            const updated = [...prev];
+            updated[taskIdx] = { ...updated[taskIdx], status: 'validating' };
+            return updated;
+          });
+          
+          // After validation, mark as completed and move to next
+          setTimeout(() => {
+            setDevelopmentPlan(prev => {
+              const updated = [...prev];
+              updated[taskIdx] = { ...updated[taskIdx], status: 'completed' };
+              if (taskIdx < plan.length - 1) {
+                updated[taskIdx + 1] = { ...updated[taskIdx + 1], status: 'in-progress' };
+              }
+              return updated;
+            });
+            taskIdx++;
+            setCurrentTaskIndex(taskIdx);
+          }, 2000);
+        } else {
+          clearInterval(progressInterval);
+        }
+      }, 4000);
+    }
+    
     try {
       const response = await generateCode(prompt, messages, selectedModel);
       
