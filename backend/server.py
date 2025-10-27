@@ -36,6 +36,8 @@ class StatusCheck(BaseModel):
 
 class StatusCheckCreate(BaseModel):
     client_name: str
+from routes.profile_routes import router as profile_router
+
 
 # Add your routes to the router instead of directly to app
 @api_router.get("/")
