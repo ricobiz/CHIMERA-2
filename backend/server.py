@@ -102,6 +102,8 @@ app.include_router(hook_router)
 app.include_router(proxy_router)
 app.include_router(personalization_router)
 
+app.include_router(profile_router)
+
 # Validation endpoint for browser automation
 from pydantic import BaseModel as PydanticBaseModel
 from services.visual_validator_service import visual_validator_service
