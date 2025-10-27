@@ -586,6 +586,66 @@ export default App;""",
                 {"error_type": type(e).__name__}
             )
     
+    def test_proxy_status_endpoint(self):
+        """Test GET /api/proxy/status endpoint - CRITICAL for automation"""
+        print("\n🧪 Testing Proxy Status Endpoint...")
+        
+        try:
+            response = self.session.get(f"{BACKEND_URL}/proxy/status", timeout=15)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'enabled' in data:
+                    if data['enabled']:
+                        # Check proxy details
+                        required_fields = ['total_proxies', 'current_index', 'proxies']
+                        missing_fields = [field for field in required_fields if field not in data]
+                        
+                        if not missing_fields:
+                            self.log_test(
+                                "Proxy Status - Enabled",
+                                True,
+                                f"Proxy service enabled with {data['total_proxies']} proxies",
+                                {"total_proxies": data['total_proxies'], "current_index": data['current_index']}
+                            )
+                        else:
+                            self.log_test(
+                                "Proxy Status - Missing Fields",
+                                False,
+                                f"Proxy enabled but missing fields: {missing_fields}",
+                                {"missing_fields": missing_fields}
+                            )
+                    else:
+                        self.log_test(
+                            "Proxy Status - Disabled",
+                            False,
+                            "Proxy service is disabled - automation with proxy will fail",
+                            {"enabled": False, "message": data.get('message', 'No message')}
+                        )
+                else:
+                    self.log_test(
+                        "Proxy Status - Invalid Response",
+                        False,
+                        "Response missing 'enabled' field",
+                        {"response_keys": list(data.keys())}
+                    )
+            else:
+                self.log_test(
+                    "Proxy Status - HTTP Error",
+                    False,
+                    f"HTTP {response.status_code}: {response.text}",
+                    {"status_code": response.status_code}
+                )
+                
+        except Exception as e:
+            self.log_test(
+                "Proxy Status - Exception",
+                False,
+                f"Unexpected error: {str(e)}",
+                {"error_type": type(e).__name__}
+            )
+    
     # ============= Service Integrations Tests =============
     
     def test_create_integration_endpoint(self):
