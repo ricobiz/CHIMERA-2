@@ -5,29 +5,31 @@ from typing import List, Dict, Optional
 # Optional ONNX runtime (if available)
 try:
     import onnxruntime as ort  # type: ignore
+except Exception:  # pragma: no cover
+    ort = None
+
 from .grid_service import GridConfig
 
 MODEL_PATH = "/app/backend/models/ui-detector.onnx"
 
 # Simple lazy downloader for a tiny onnx model (placeholder URL)
-MODEL_URL = os.environ.get("UI_DETECTOR_MODEL_URL", "https://huggingface.co/onnx/models/resolve/main/tiny_detectors/ui-detector.onnx")
+MODEL_URL = os.environ.get(
+    "UI_DETECTOR_MODEL_URL",
+    "https://huggingface.co/onnx/models/resolve/main/tiny_detectors/ui-detector.onnx"
+)
+
 def ensure_model():
     os.makedirs(os.path.dirname(MODEL_PATH), exist_ok=True)
     if not os.path.exists(MODEL_PATH):
         try:
-            import requests
-            r = requests.get(MODEL_URL, timeout=20)
-            if r.status_code == 200:
+            import httpx
+            r = httpx.get(MODEL_URL, timeout=20.0)
+            if r.status_code == 200 and r.content:
                 with open(MODEL_PATH, 'wb') as f:
                     f.write(r.content)
         except Exception:
+            # If download fails, we'll continue with DOM fallback only
             pass
-
-
-except Exception:  # pragma: no cover
-    ort = None
-
-from .grid_service import GridConfig
 
 ensure_model()
 
@@ -43,7 +45,7 @@ class LocalVisionService:
         self.session = None
 
     def maybe_load_model(self, model_path: Optional[str]) -> None:
-        if model_path and ort and self.session is None:
+        if model_path and ort and self.session is None and os.path.exists(model_path):
             try:
                 self.session = ort.InferenceSession(model_path, providers=["CPUExecutionProvider"])  # noqa: E501
             except Exception:
@@ -58,18 +60,10 @@ class LocalVisionService:
         """
         Returns list of {cell, bbox:{x,y,w,h}, label, type, confidence}
         """
-        # Decode image (keeping for future model)
-        try:
-            _img = Image.open(io.BytesIO(base64.b64decode(screenshot_base64.split(',')[-1])))
-        except Exception:
-            _img = None
-
-        # Try model if available (not implemented detailed due to env constraints)
+        # Try model if available (placeholder – not producing detections yet)
         if model_path:
             self.maybe_load_model(model_path)
-        if self.session and _img is not None:
-            # Placeholder: pretend model returns nothing (hook for future)
-            pass
+        # If session exists, you can add real model inference here later
 
         results: List[Dict] = []
 
@@ -85,7 +79,7 @@ class LocalVisionService:
                     'bbox': bbox,
                     'label': label[:64],
                     'type': etype,
-                    'confidence': el.get('confidence', 0.75)
+                    'confidence': float(el.get('confidence', 0.75))
                 })
 
         return results
