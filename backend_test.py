@@ -1388,57 +1388,58 @@ export default App;""",
                 "model": "x-ai/grok-code-fast-1"
             }
         
-        try:
-            response = self.session.post(
-                f"{BACKEND_URL}/chat",
-                json=payload_russian,
-                timeout=30
-            )
-            
-            if response.status_code == 200:
-                data = response.json()
+            try:
+                response = self.session.post(
+                    f"{BACKEND_URL}/chat",
+                    json=payload_2,
+                    timeout=30
+                )
                 
-                if 'message' in data and 'response' in data:
-                    response_text = data['message']
-                    # Check if response contains Cyrillic characters (indicating Russian response)
-                    has_cyrillic = any('\u0400' <= char <= '\u04FF' for char in response_text)
+                if response.status_code == 200:
+                    data = response.json()
                     
-                    if has_cyrillic and len(response_text) > 10:
-                        self.log_test(
-                            "Chat - Russian Language",
-                            True,
-                            f"Chat responded in Russian ({len(response_text)} chars)",
-                            {"response_length": len(response_text), "has_cyrillic": has_cyrillic}
-                        )
+                    if 'message' in data and 'response' in data:
+                        response_text = data['message']
+                        # Check for stub patterns mentioned in the issue
+                        stub_patterns = ["I understand! In Chat mode", "stub", "fallback"]
+                        is_stub = any(pattern.lower() in response_text.lower() for pattern in stub_patterns)
+                        
+                        if len(response_text) > 10 and not is_stub and "4" in response_text:
+                            self.log_test(
+                                "Chat - Second Message with History",
+                                True,
+                                f"Second message worked correctly ({len(response_text)} chars)",
+                                {"response_length": len(response_text), "contains_answer": "4" in response_text}
+                            )
+                        else:
+                            self.log_test(
+                                "Chat - Second Message - CRITICAL FAILURE",
+                                False,
+                                "Second message returning stub response - CONFIRMS USER ISSUE",
+                                {"response_preview": response_text[:100], "is_stub": is_stub}
+                            )
                     else:
                         self.log_test(
-                            "Chat - Russian Language - Wrong Language",
+                            "Chat - Second Message - Missing Fields",
                             False,
-                            "Response not in Russian or too short",
-                            {"response_preview": response_text[:100], "has_cyrillic": has_cyrillic}
+                            "Response missing required fields",
+                            {"response_keys": list(data.keys())}
                         )
                 else:
                     self.log_test(
-                        "Chat - Russian Language - Missing Fields",
+                        "Chat - Second Message - HTTP Error",
                         False,
-                        "Response missing required fields",
-                        {"response_keys": list(data.keys())}
+                        f"HTTP {response.status_code}: {response.text}",
+                        {"status_code": response.status_code}
                     )
-            else:
+                    
+            except Exception as e:
                 self.log_test(
-                    "Chat - Russian Language - HTTP Error",
+                    "Chat - Second Message - Exception",
                     False,
-                    f"HTTP {response.status_code}: {response.text}",
-                    {"status_code": response.status_code}
+                    f"Unexpected error: {str(e)}",
+                    {"error_type": type(e).__name__}
                 )
-                
-        except Exception as e:
-            self.log_test(
-                "Chat - Russian Language - Exception",
-                False,
-                f"Unexpected error: {str(e)}",
-                {"error_type": type(e).__name__}
-            )
         
         # Test 3: Chat with history
         print("   Testing chat with conversation history...")
