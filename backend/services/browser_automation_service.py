@@ -387,7 +387,7 @@ class BrowserAutomationService:
         try:
             screenshot_bytes = await page.screenshot(type='png', full_page=False)
             screenshot_base64 = base64.b64encode(screenshot_bytes).decode('utf-8')
-            return f"data:image/png;base64,{screenshot_base64}"
+            return f"{screenshot_base64}"
         except Exception as e:
             logger.error(f"Screenshot error: {str(e)}")
             return ""
