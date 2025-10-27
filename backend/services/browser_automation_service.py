@@ -118,6 +118,91 @@ class BrowserAutomationService:
             'history': [],
             'use_proxy': use_proxy
         }
+    async def _inject_grid_overlay(self, page: Page) -> None:
+        """Inject a lightweight grid overlay and DOM clickables collector."""
+        js = """
+        (() => {
+          if (window.__chimeraGrid) return;
+          const style = document.createElement('style');
+          style.textContent = `
+            .chimera-grid-cell { position: fixed; border: 1px dashed rgba(150,150,150,0.15); pointer-events: none; z-index: 2147483646; }
+            .chimera-grid-label { position: fixed; font: 10px monospace; color: rgba(200,200,200,0.35); background: rgba(0,0,0,0.2); padding: 1px 2px; border-radius: 2px; z-index: 2147483647; pointer-events: none; }
+          `;
+          document.head.appendChild(style);
+          const overlay = document.createElement('div');
+          overlay.id = 'chimera-grid-overlay';
+          overlay.style.position = 'fixed';
+          overlay.style.top = '0';
+          overlay.style.left = '0';
+          overlay.style.right = '0';
+          overlay.style.bottom = '0';
+          overlay.style.pointerEvents = 'none';
+          overlay.style.display = 'none';
+          overlay.style.zIndex = '2147483645';
+          document.body.appendChild(overlay);
+
+          function layoutGrid(rows, cols) {
+            overlay.innerHTML = '';
+            const vw = window.innerWidth, vh = window.innerHeight;
+            const cw = vw / cols, ch = vh / rows;
+            const A = 'A'.charCodeAt(0);
+            for (let r = 0; r < rows; r++) {
+              for (let c = 0; c < cols; c++) {
+                const cell = document.createElement('div');
+                cell.className = 'chimera-grid-cell';
+                cell.style.left = (c * cw) + 'px';
+                cell.style.top = (r * ch) + 'px';
+                cell.style.width = cw + 'px';
+                cell.style.height = ch + 'px';
+                overlay.appendChild(cell);
+                const label = document.createElement('div');
+                label.className = 'chimera-grid-label';
+                label.style.left = (c * cw + 3) + 'px';
+                label.style.top = (r * ch + 2) + 'px';
+                label.textContent = String.fromCharCode(A + c) + (r + 1);
+                overlay.appendChild(label);
+              }
+            }
+          }
+
+          window.__chimeraGrid = {
+            show: (rows, cols) => { layoutGrid(rows, cols); overlay.style.display = 'block'; },
+            hide: () => { overlay.style.display = 'none'; },
+            collect: () => {
+              const vw = window.innerWidth, vh = window.innerHeight;
+              const clickables = [];
+              const candidates = Array.from(document.querySelectorAll('a,button,input,textarea,select,[role="button"], [onclick]'));
+              for (const el of candidates) {
+                const rect = el.getBoundingClientRect();
+                if (!rect || rect.width < 6 || rect.height < 6) continue;
+                const style = window.getComputedStyle(el);
+                if (style.visibility === 'hidden' || style.display === 'none') continue;
+                const label = (el.innerText || el.value || el.getAttribute('aria-label') || el.name || '').slice(0, 64);
+                const type = (el.tagName || 'button').toLowerCase();
+                clickables.push({
+                  bbox: { x: Math.max(0, Math.floor(rect.left)), y: Math.max(0, Math.floor(rect.top)), w: Math.floor(rect.width), h: Math.floor(rect.height) },
+                  label,
+                  type,
+                  confidence: 0.8
+                });
+              }
+              return { vw, vh, clickables };
+            }
+          };
+        })();
+        """
+        await page.add_init_script(js)
+
+    async def _collect_dom_clickables(self, page: Page) -> Dict[str, Any]:
+        try:
+            data = await page.evaluate("window.__chimeraGrid ? window.__chimeraGrid.collect() : null")
+            if not data:
+                await self._inject_grid_overlay(page)
+                data = await page.evaluate("window.__chimeraGrid.collect()")
+            return data
+        except Exception:
+            return {"vw": 1280, "vh": 800, "clickables": []}
+
         
         logger.info(f"✅ Created session: {session_id} (proxy={use_proxy})")
         return {'session_id': session_id, 'status': 'ready', 'proxy_enabled': use_proxy}
