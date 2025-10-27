@@ -333,12 +333,14 @@ function App() {
         setTimeout(() => setGenerationStatus('idle'), 3000);
         
       } catch (error) {
-        console.error('Chat error:', error);
+        console.error('❌ Chat error:', error);
+        console.error('Error details:', error.message);
+        console.error('Error stack:', error.stack);
         
         // Fallback to simple response
         const aiMessage = { 
           role: 'assistant', 
-          content: 'I understand! In Chat mode, I can help you plan and discuss your app idea. When you\'re ready to generate code, switch to Agent mode using the toggle below.'
+          content: `[Error: ${error.message}] I understand! In Chat mode, I can help you plan and discuss your app idea. When you're ready to generate code, switch to Agent mode using the toggle below.`
         };
         setMessages([...newMessages, aiMessage]);
         setGenerationStatus('idle');
