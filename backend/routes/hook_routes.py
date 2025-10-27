@@ -9,396 +9,394 @@ from typing import List, Optional, Dict, Any
 import uuid
 from datetime import datetime
 import logging
-from services.supervisor_service import mission_supervisor
-from motor.motor_asyncio import AsyncIOMotorClient
+import asyncio
+import random
+
+from services.browser_automation_service import browser_service
+from services.supervisor_service import supervisor_service
+
 import os
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/hook", tags=["agent-hook"])
 
-# MongoDB connection
-mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
-client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ.get('DB_NAME', 'chimera_db')]
-automation_history_collection = db['automation_history']
-
-# Global state objects - REAL, not mocked
-current_task = {"text": "", "job_id": None, "timestamp": None}
-execution_logs = []
-agent_status = "IDLE"  # IDLE, ACTIVE, ERROR
-
-# Global result object - stores final artifacts
-last_result = {
-    "screenshot": None,
-    "credentials": None,
-    "completed": False
-}
-
-# Global control state - agent mode
-control_state = {
-    "run_mode": "PAUSED"  # ACTIVE, PAUSED, STOP
-}
+# In-memory state (single-runner MVP)
+current_task: Dict[str, Any] = {"text": "", "job_id": None, "timestamp": None}
+execution_logs: List[Dict[str, Any]] = []
+agent_status: str = "IDLE"  # ACTIVE, PAUSED, WAITING_USER, DONE, ERROR
+control_state: Dict[str, Any] = {"run_mode": "PAUSED"}  # ACTIVE, PAUSED, STOP
+last_result: Dict[str, Any] = {"screenshot": None, "credentials": None, "completed": False}
+last_observation: Dict[str, Any] = {"screenshot_base64": None, "vision": [], "grid": {"rows": 12, "cols": 8}, "status": "idle"}
+current_session_id: Optional[str] = None
+history_steps: List[Dict[str, Any]] = []
 
 class TaskRequest(BaseModel):
     text: str
     timestamp: int
     nocache: bool = True
 
-class LogEntry(BaseModel):
-    ts: str
-    step: int
-    action: str
-    status: str  # ok, error, warning, info
-    error: Optional[str] = None
-
-@router.post("/exec")
-async def execute_task(request: TaskRequest):
-    """
-    Execute a task - main entry point for orchestrator AI
-    Returns job_id for tracking
-    """
-    global current_task, agent_status, execution_logs
-    
-    try:
-        job_id = str(uuid.uuid4())
-        
-        # Store current task
-        current_task = {
-            "text": request.text,
-            "job_id": job_id,
-            "timestamp": request.timestamp
-        }
-        
-        # Clear previous logs
-        execution_logs = []
-        
-        # Set agent to active
-        agent_status = "ACTIVE"
-        
-        logger.info(f"[HOOK] Task accepted: {request.text[:100]}... | Job ID: {job_id}")
-        
-        # Add initial log entry
-        execution_logs.append({
-            "ts": datetime.now().isoformat(),
-            "step": 0,
-            "action": f"Task received: {request.text[:80]}...",
-            "status": "ok",
-            "error": None
-        })
-        
-        # Simulate task execution (mock)
-        # In real implementation, this would trigger actual browser automation
-        _simulate_task_execution(request.text)
-        
-        return {
-            "status": "accepted",
-            "job_id": job_id,
-            "message": "Task accepted for execution"
-        }
-        
-    except Exception as e:
-        logger.error(f"[HOOK] Error executing task: {str(e)}")
-        agent_status = "ERROR"
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.get("/log")
-async def get_logs(nocache: int = 1, ts: Optional[int] = None, read: bool = False):
-    """
-    Get execution logs in real-time with mission status
-    Returns array of log entries, agent status, and mission status
-    """
-    global execution_logs, agent_status, current_task
-    
-    try:
-        # Get mission report from supervisor
-        mission_report = mission_supervisor.get_mission_report()
-        
-        # If read=true, just return logs without updates
-        if read:
-            logger.info(f"[HOOK] Read logs requested - {len(execution_logs)} entries")
-        
-        return {
-            "logs": execution_logs,
-            "status": agent_status,  # IDLE, ACTIVE, ERROR
-            "mission_status": mission_report.get('mission_status', 'idle') if mission_report.get('active') else 'idle',
-            "human_help_reason": mission_report.get('human_help_reason'),
-            "job_id": current_task.get('job_id'),
-            "result_ready": mission_report.get('result_ready', False),
-            "total_steps": len(execution_logs),
-            "timestamp": datetime.now().isoformat()
-        }
-        
-    except Exception as e:
-        logger.error(f"[HOOK] Error getting logs: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.get("/refresh")
-async def refresh_agent(target: str = "main", nocache: int = 1, timestamp: Optional[int] = None):
-    """
-    Force refresh/restart the agent watcher
-    """
-    global agent_status, execution_logs
-    
-    try:
-        logger.info(f"[HOOK] Refresh requested for target: {target}")
-        
-        # Reset agent status
-        agent_status = "IDLE"
-        
-        # Add log entry
-        execution_logs.append({
-            "ts": datetime.now().isoformat(),
-            "step": len(execution_logs),
-            "action": f"Agent refreshed (target: {target})",
-            "status": "ok",
-            "error": None
-        })
-        
-        return {
-            "status": "refresh_ok",
-            "target": target,
-            "message": "Agent watcher refreshed successfully"
-        }
-        
-    except Exception as e:
-        logger.error(f"[HOOK] Error refreshing agent: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.get("/text")
-
-
-
-@router.get("/result")
-async def get_result(nocache: int = 1, timestamp: Optional[int] = None):
-    """
-    Get last task result - credentials, screenshot, completion status
-    """
-    global last_result
-    
-    try:
-        return {
-            "success": True,
-            "result": last_result,
-            "timestamp": datetime.now().isoformat()
-        }
-        
-    except Exception as e:
-        logger.error(f"[HOOK] Error getting result: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.get("/result_bundle")
-async def get_result_bundle(job_id: Optional[str] = None):
-    """
-    Get result bundle with credentials and proof
-    Contains sensitive data - separate from logs
-    """
-    try:
-        current_mission = mission_supervisor.get_current_mission()
-        
-        if not current_mission:
-            return {
-                "success": False,
-                "message": "No active mission"
-            }
-        
-        # Check if job_id matches
-        if job_id and current_mission.get('job_id') != job_id:
-            return {
-                "success": False,
-                "message": "Job ID mismatch"
-            }
-        
-        result_bundle = current_mission.get('result_bundle')
-        
-        if not result_bundle:
-            return {
-                "success": False,
-                "message": "Result bundle not ready yet"
-            }
-        
-        return {
-            "success": True,
-            "job_id": current_mission['job_id'],
-            "result_bundle": result_bundle,
-            "timestamp": datetime.now().isoformat()
-        }
-        
-    except Exception as e:
-        logger.error(f"[HOOK] Error getting result bundle: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
 class ControlRequest(BaseModel):
     mode: str  # ACTIVE, PAUSED, STOP
 
+class UserInputRequest(BaseModel):
+    job_id: str
+    field: str
+    value: str
+
+# -------- Utilities --------
+
+def log_step(action: str, status: str = "ok", error: Optional[str] = None):
+    entry = {
+        "ts": datetime.now().isoformat(),
+        "step": len(execution_logs) + 1,
+        "action": action,
+        "status": status,
+        "error": error
+    }
+    execution_logs.append(entry)
+    logger.info(f"[HOOK] {action} => {status}")
+
+async def observe(session_id: str):
+    global last_observation
+    try:
+        # Inject and collect DOM + screenshot + vision
+        page = browser_service.sessions[session_id]['page']
+        await browser_service._inject_grid_overlay(page)
+        dom_data = await browser_service._collect_dom_clickables(page)
+        screenshot_b64 = await browser_service.capture_screenshot(session_id)
+        vision = await browser_service._augment_with_vision(screenshot_b64, dom_data)
+        last_observation = {
+            "screenshot_base64": screenshot_b64,
+            "vision": vision,
+            "grid": {"rows": browser_service.grid_rows, "cols": browser_service.grid_cols},
+            "status": "idle",
+            "url": page.url
+        }
+        return last_observation
+    except Exception as e:
+        logger.error(f"[HOOK] observe error: {e}")
+        last_observation = {"screenshot_base64": None, "vision": [], "grid": {"rows": 12, "cols": 8}, "status": "error"}
+        return last_observation
+
+async def auto_solve_captcha(session_id: str):
+    """Attempt automatic CAPTCHA solving without user involvement.
+       Heuristics: try checkbox/slider/puzzle via grid moves; fallback to VLM solver.
+    """
+    try:
+        obs = await observe(session_id)
+        vision = obs.get('vision', [])
+        # Simple heuristic: look for captcha keywords
+        keywords = ['captcha', "i'm not a robot", 'robot', 'пожалуйста подтвердите', 'verify']
+        slider_types = ['slider']
+        checkbox_types = ['checkbox']
+        found_keyword = any(any(k in (v.get('label','').lower()) for k in keywords) for v in vision)
+        found_slider = any(v.get('type') in slider_types for v in vision)
+        found_checkbox = any(v.get('type') in checkbox_types for v in vision)
+
+        # Try checkbox click
+        if found_checkbox:
+            target = next(v for v in vision if v.get('type') in checkbox_types)
+            from services.grid_service import GridConfig
+            grid = GridConfig(rows=browser_service.grid_rows, cols=browser_service.grid_cols)
+            # Click at cell
+            await browser_service.wait(300)
+            from services.anti_detect import HumanBehaviorSimulator
+            page = browser_service.sessions[session_id]['page']
+            dom_data = await browser_service._collect_dom_clickables(page)
+            vw, vh = dom_data.get('vw', 1280), dom_data.get('vh', 800)
+            x, y = grid.cell_to_xy(target['cell'], vw, vh)
+            await HumanBehaviorSimulator.human_click(page, x, y)
+            await browser_service.wait(600)
+            await observe(session_id)
+            log_step(f"CAPTCHA checkbox clicked at {target['cell']}")
+            return True
+
+        # Try slider drag (drag right within same row by 2 columns)
+        if found_slider:
+            target = next(v for v in vision if v.get('type') in slider_types)
+            from services.grid_service import GridConfig
+            grid = GridConfig(rows=browser_service.grid_rows, cols=browser_service.grid_cols)
+            cell = target['cell']
+            col_letter = cell[0]
+            row_num = int(cell[1:])
+            # move 2 columns to the right within bounds
+            to_col_index = min(ord(col_letter) - ord('A') + 2, browser_service.grid_cols - 1)
+            to_cell = f"{chr(ord('A') + to_col_index)}{row_num}"
+            page = browser_service.sessions[session_id]['page']
+            dom_data = await browser_service._collect_dom_clickables(page)
+            vw, vh = dom_data.get('vw', 1280), dom_data.get('vh', 800)
+            sx, sy = grid.cell_to_xy(cell, vw, vh)
+            ex, ey = grid.cell_to_xy(to_cell, vw, vh)
+            from services.anti_detect import HumanBehaviorSimulator
+            await HumanBehaviorSimulator.human_drag(page, sx, sy, ex, ey)
+            await browser_service.wait(800)
+            await observe(session_id)
+            log_step(f"CAPTCHA slider drag {cell} → {to_cell}")
+            return True
+
+        # Fallback to solver (vision VLM)
+        try:
+            solved = await browser_service.detect_and_solve_captcha(session_id)
+            if solved.get('success'):
+                log_step("CAPTCHA solved via VLM solver")
+                await observe(session_id)
+                return True
+        except Exception as e:
+            logger.warning(f"[HOOK] captcha solver fallback error: {e}")
+
+    except Exception as e:
+        logger.warning(f"[HOOK] auto_solve_captcha error: {e}")
+    return False
+
+async def run_task_loop(job_id: str, goal_text: str):
+    global agent_status, last_result, current_session_id, history_steps
+    try:
+        agent_status = "ACTIVE"
+        control_state["run_mode"] = "ACTIVE"
+        # Prepare creds for Gmail
+        base_user = f"{uuid.uuid4().hex[:8]}{random.randint(10,99)}"
+        password = f"{uuid.uuid4().hex[:6]}A!{random.randint(1000,9999)}"
+        credentials = {"login": f"{base_user}", "password": password}
+
+        # Create session
+        session_id = f"sess-{job_id[:8]}"
+        current_session_id = session_id
+        await browser_service.create_session(session_id, use_proxy=True)
+        log_step("Session created")
+
+        # Navigate to Gmail signup
+        await browser_service.navigate(session_id, "https://accounts.google.com/signup")
+        log_step("Navigated to Gmail signup")
+        await observe(session_id)
+
+        history_steps = []
+        # Main loop
+        while True:
+            # Respect control state
+            if control_state.get("run_mode") == "PAUSED":
+                await asyncio.sleep(0.5)
+                continue
+            if control_state.get("run_mode") == "STOP":
+                agent_status = "IDLE"
+                log_step("Stopped by user", status="info")
+                return
+
+            # Try solve CAPTCHA opportunistically
+            await auto_solve_captcha(session_id)
+
+            obs = await observe(session_id)
+            screenshot_b64 = obs.get('screenshot_base64')
+            vision = obs.get('vision', [])
+
+            # Ask brain for next step
+            decision = await supervisor_service.next_step(
+                goal=goal_text + f"\nUse prepared credentials: username={credentials['login']}, password={credentials['password']}.",
+                history=history_steps,
+                screenshot_base64=screenshot_b64,
+                vision=vision,
+                model=os.environ.get('AUTOMATION_VLM_MODEL', 'qwen/qwen2.5-vl')
+            )
+
+            if decision.get('error'):
+                log_step(f"Brain error: {decision.get('error')}", status="error")
+                agent_status = "ERROR"
+                break
+
+            # Handle needs_user_input only for phone/2FA
+            if decision.get('needs_user_input'):
+                ask = (decision.get('ask_user') or '').lower()
+                if any(k in ask for k in ['phone', 'sms', '2fa', 'code', 'номер', 'смс']):
+                    agent_status = "WAITING_USER"
+                    log_step(f"WAITING_USER: {decision.get('ask_user')}", status="info")
+                    # Pause loop until resumed with provided data (future endpoint)
+                    await asyncio.sleep(2.0)
+                    continue
+                else:
+                    # Try continue automatically; do not block on captchas
+                    log_step("Brain requested user input, ignored (non-2FA)", status="warning")
+
+            action = (decision.get('next_action') or '').upper()
+            target_cell = decision.get('target_cell')
+            text = decision.get('text', '')
+            direction = decision.get('direction', 'down')
+            amount = int(decision.get('amount', 400) or 400)
+
+            ok = True
+            try:
+                if action == 'CLICK_CELL' and target_cell:
+                    res = await browser_service.wait(200)
+                    res = await router.dependency_overrides.get if False else None  # no-op to keep linter calm
+                    # use anti-detect human click
+                    from services.grid_service import GridConfig
+                    page = browser_service.sessions[session_id]['page']
+                    dom_data = await browser_service._collect_dom_clickables(page)
+                    vw, vh = dom_data.get('vw', 1280), dom_data.get('vh', 800)
+                    grid = GridConfig(rows=browser_service.grid_rows, cols=browser_service.grid_cols)
+                    x, y = grid.cell_to_xy(target_cell, vw, vh)
+                    await HumanBehaviorSimulator.human_click(page, x, y)  # type: ignore
+                elif action == 'TYPE_AT_CELL' and target_cell:
+                    # Fill with prepared creds if text hints empty
+                    if not text:
+                        # Heuristic: decide based on vision label
+                        label = next((v.get('label','').lower() for v in vision if v.get('cell') == target_cell), '')
+                        if any(k in label for k in ['user', 'email', 'gmail', 'логин']):
+                            text = credentials['login']
+                        elif any(k in label for k in ['pass', 'парол']):
+                            text = credentials['password']
+                    await browser_service.wait(200)
+                    # Move and type
+                    from services.grid_service import GridConfig
+                    page = browser_service.sessions[session_id]['page']
+                    dom_data = await browser_service._collect_dom_clickables(page)
+                    vw, vh = dom_data.get('vw', 1280), dom_data.get('vh', 800)
+                    grid = GridConfig(rows=browser_service.grid_rows, cols=browser_service.grid_cols)
+                    x, y = grid.cell_to_xy(target_cell, vw, vh)
+                    await HumanBehaviorSimulator.human_move(page, x, y)  # type: ignore
+                    await page.mouse.click(x, y)
+                    await page.keyboard.type(text or "test", delay=50)
+                elif action == 'HOLD_DRAG' and target_cell and isinstance(decision.get('to_cell', None), str):
+                    from_cell = target_cell
+                    to_cell = decision['to_cell']
+                    from services.grid_service import GridConfig
+                    page = browser_service.sessions[session_id]['page']
+                    dom_data = await browser_service._collect_dom_clickables(page)
+                    vw, vh = dom_data.get('vw', 1280), dom_data.get('vh', 800)
+                    grid = GridConfig(rows=browser_service.grid_rows, cols=browser_service.grid_cols)
+                    sx, sy = grid.cell_to_xy(from_cell, vw, vh)
+                    ex, ey = grid.cell_to_xy(to_cell, vw, vh)
+                    await HumanBehaviorSimulator.human_drag(page, sx, sy, ex, ey)  # type: ignore
+                elif action == 'SCROLL':
+                    dy = amount if direction == 'down' else -abs(amount)
+                    await browser_service.scroll(session_id, 0, dy)
+                elif action == 'WAIT':
+                    await browser_service.wait(amount)
+                elif action == 'DONE':
+                    agent_status = "DONE"
+                    log_step("Task finished (brain signaled DONE)", status="ok")
+                    break
+                else:
+                    log_step(f"Unknown action: {action}", status="warning")
+                # After action, observe again and record
+                obs2 = await observe(session_id)
+                history_steps.append({"action": action, "cell": target_cell, "text": (text[:20] if text else '')})
+                log_step(f"Step: {action} {target_cell or ''} {'"'+text+'"' if text else ''} → ok")
+            except Exception as e:
+                ok = False
+                log_step(f"Step error: {action} {target_cell or ''}", status="error", error=str(e))
+                # retry slight wait
+                await asyncio.sleep(0.5)
+
+        # Finalize result (heuristic success if reached DONE)
+        last_result["completed"] = (agent_status == "DONE")
+        last_result["credentials"] = {"login": f"{credentials['login']}@gmail.com", "password": credentials['password']}
+        last_result["screenshot"] = last_observation.get('screenshot_base64')
+
+        agent_status = "IDLE" if agent_status != "WAITING_USER" else agent_status
+
+    except Exception as e:
+        agent_status = "ERROR"
+        log_step(f"Fatal error: {str(e)}", status="error")
+
+# --------- Endpoints ---------
+
+@router.post("/exec")
+async def execute_task(request: TaskRequest):
+    """Kick off real automation loop in background."""
+    global current_task, agent_status, execution_logs, history_steps
+    try:
+        job_id = str(uuid.uuid4())
+        current_task = {"text": request.text, "job_id": job_id, "timestamp": request.timestamp}
+        execution_logs = []
+        history_steps = []
+        agent_status = "ACTIVE"
+        # Start background task
+        asyncio.create_task(run_task_loop(job_id, request.text))
+        log_step(f"Task accepted: {request.text[:80]}...")
+        return {"status": "accepted", "job_id": job_id, "message": "Task accepted for execution"}
+    except Exception as e:
+        agent_status = "ERROR"
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/log")
+async def get_logs(nocache: int = 1, ts: Optional[int] = None, read: bool = False):
+    try:
+        return {
+            "logs": execution_logs,
+            "status": agent_status,
+            "job_id": current_task.get('job_id'),
+            "result_ready": last_result.get('completed', False),
+            "total_steps": len(execution_logs),
+            "timestamp": datetime.now().isoformat(),
+            "observation": last_observation,
+            "session_id": current_session_id
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/refresh")
+async def refresh_agent(target: str = "main", nocache: int = 1, timestamp: Optional[int] = None):
+    try:
+        # Soft reset state
+        return {"status": "refresh_ok", "target": target}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/text")
+async def get_current_text():
+    try:
+        return {"text": current_task.get("text", ""), "job_id": current_task.get("job_id"), "timestamp": current_task.get("timestamp")}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/result")
+async def get_result(nocache: int = 1, timestamp: Optional[int] = None):
+    try:
+        return {"success": True, "result": last_result, "timestamp": datetime.now().isoformat()}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/result_bundle")
+async def get_result_bundle(job_id: Optional[str] = None):
+    try:
+        if not last_result.get('completed'):
+            return {"success": False, "message": "Result bundle not ready yet"}
+        bundle = {
+            "credentials": last_result.get('credentials'),
+            "screenshot": last_result.get('screenshot'),
+            "status": "success" if last_result.get('completed') else "failed",
+            "job_id": current_task.get('job_id')
+        }
+        return {"success": True, "result_bundle": bundle}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.post("/control")
 async def control_agent(request: ControlRequest):
-    """
-    Control agent execution mode
-    """
     global control_state, agent_status
-    
     try:
         if request.mode not in ["ACTIVE", "PAUSED", "STOP"]:
-            raise HTTPException(
-                status_code=400, 
-                detail="Invalid mode. Must be ACTIVE, PAUSED, or STOP"
-            )
-        
-        # Update control state
+            raise HTTPException(status_code=400, detail="Invalid mode. Must be ACTIVE, PAUSED, or STOP")
         control_state["run_mode"] = request.mode
-        
-        # Update agent status accordingly
-        if request.mode == "ACTIVE":
-            if agent_status == "IDLE":
-                agent_status = "ACTIVE"
+        if request.mode == "ACTIVE" and agent_status in ["IDLE", "WAITING_USER"]:
+            agent_status = "ACTIVE"
         elif request.mode == "PAUSED":
-            if agent_status == "ACTIVE":
-                agent_status = "IDLE"
+            agent_status = "IDLE"
         elif request.mode == "STOP":
             agent_status = "IDLE"
-            # Clear execution logs on STOP
-            execution_logs.clear()
-        
-        logger.info(f"[HOOK] Control mode changed to: {request.mode}")
-        logger.info(f"[HOOK] Agent status: {agent_status}")
-        
-        return {
-            "success": True,
-            "run_mode": control_state["run_mode"],
-            "agent_status": agent_status,
-            "message": f"Agent mode set to {request.mode}"
-        }
-        
-    except HTTPException:
-        raise
+            # No force close session — can be added
+        return {"success": True, "run_mode": control_state["run_mode"], "agent_status": agent_status}
     except Exception as e:
-        logger.error(f"[HOOK] Error controlling agent: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
-
-async def get_current_task(nocache: int = 1, timestamp: Optional[int] = None):
-    """
-    Get current active task text
-    """
-    global current_task
-    
-    try:
-        return {
-            "text": current_task.get("text", ""),
-            "job_id": current_task.get("job_id"),
-            "timestamp": current_task.get("timestamp")
-        }
-        
-    except Exception as e:
-        logger.error(f"[HOOK] Error getting current task: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-def _simulate_task_execution(task_text: str):
-    """
-    Execute real task (currently simplified)
-    In production, this would trigger actual agent execution
-    """
-    global execution_logs, agent_status, last_result
-    
-    # Reset previous result
-    last_result = {
-        "screenshot": None,
-        "credentials": None,
-        "completed": False
-    }
-    
-    # Mock execution steps based on task
-    if "gmail" in task_text.lower() or "register" in task_text.lower():
-        # Simulate Gmail registration
-        mock_steps = [
-            {"action": "Opening https://accounts.google.com/signup", "status": "ok"},
-            {"action": "Filling first name field", "status": "ok"},
-            {"action": "Filling last name field", "status": "ok"},
-            {"action": "Generating random username", "status": "ok"},
-            {"action": "Creating strong password", "status": "ok"},
-            {"action": "Detecting CAPTCHA challenge", "status": "warning"},
-            {"action": "Solving CAPTCHA using AI vision", "status": "ok"},
-            {"action": "Submitting registration form", "status": "ok"},
-            {"action": "Waiting for confirmation", "status": "ok"},
-            {"action": "Taking screenshot of success page", "status": "ok"},
-        ]
-        
-        # Set real result after execution
-        last_result["screenshot"] = "mock://screenshot_success.png"
-        last_result["credentials"] = {
-            "login": "generated_user@gmail.com",
-            "password": "auto_generated_password_123"
-        }
-        last_result["completed"] = True
-        
-    elif "search" in task_text.lower():
-        # Simulate search task
-        mock_steps = [
-            {"action": "Opening browser", "status": "ok"},
-            {"action": f"Navigating to search page", "status": "ok"},
-            {"action": "Typing search query", "status": "ok"},
-            {"action": "Clicking search button", "status": "ok"},
-            {"action": "Extracting results", "status": "ok"},
-        ]
-        
-        last_result["completed"] = True
-        last_result["screenshot"] = "mock://search_results.png"
-        
-    else:
-        # Generic task
-        mock_steps = [
-            {"action": "Analyzing task requirements", "status": "ok"},
-            {"action": "Creating execution plan", "status": "ok"},
-            {"action": "Initializing browser context", "status": "ok"},
-            {"action": "Executing task steps", "status": "ok"},
-        ]
-        
-        last_result["completed"] = True
-    
-    # Add mock logs
-    for i, step in enumerate(mock_steps, start=1):
-        execution_logs.append({
-            "ts": datetime.now().isoformat(),
-            "step": i,
-            "action": step["action"],
-            "status": step["status"],
-            "error": None
-        })
-    
-    # Final completion log
-    execution_logs.append({
-        "ts": datetime.now().isoformat(),
-        "step": len(mock_steps) + 1,
-        "action": "Task completed successfully",
-        "status": "ok",
-        "error": None
-    })
-    
-    # Set agent back to idle
-    agent_status = "IDLE"
-    
-    logger.info(f"[HOOK] Task execution completed with {len(mock_steps)} steps")
-    logger.info(f"[HOOK] Result: {last_result}")
-
 
 @router.get("/status")
 async def get_agent_status():
-    """
-    Get current agent status with control mode and completion state
-    """
-    global agent_status, current_task, control_state, last_result
-    
     return {
         "status": agent_status,
         "current_task": current_task.get("text", ""),
         "job_id": current_task.get("job_id"),
         "active": agent_status == "ACTIVE",
         "run_mode": control_state["run_mode"],
-        "completed": last_result["completed"]
+        "completed": last_result["completed"],
+        "session_id": current_session_id
     }
