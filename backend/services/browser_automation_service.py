@@ -31,6 +31,9 @@ class BrowserAutomationService:
         self.page: Optional[Page] = None
         self.sessions: Dict[str, Dict[str, Any]] = {}
         self.captcha_solver: Optional[CaptchaSolver] = None
+        # Grid config defaults (12x8)
+        self.grid_rows = 12
+        self.grid_cols = 8
         
     async def initialize(self):
         """Initialize Playwright and browser with anti-detect"""
