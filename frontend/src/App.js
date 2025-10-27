@@ -304,6 +304,10 @@ function App() {
         
         const data = await response.json();
         
+        console.log('✅ Chat API response:', data);
+        console.log('Message field:', data.message);
+        console.log('Response field:', data.response);
+        
         // Handle context warnings and session transitions
         if (data.context_warning) {
           console.log('📊 Context:', data.context_warning);
