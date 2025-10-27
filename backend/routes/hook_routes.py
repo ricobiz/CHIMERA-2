@@ -22,6 +22,8 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/hook", tags=["agent-hook"])
 
 # In-memory state (single-runner MVP)
+current_profile_id: Optional[str] = None
+
 current_task: Dict[str, Any] = {"text": "", "job_id": None, "timestamp": None}
 execution_logs: List[Dict[str, Any]] = []
 agent_status: str = "IDLE"  # ACTIVE, PAUSED, WAITING_USER, DONE, ERROR
