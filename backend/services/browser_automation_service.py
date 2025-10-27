@@ -130,6 +130,19 @@ class BrowserAutomationService:
         logger.info(f"✅ Session from profile created: {session_id} (profile={profile_id})")
         return {'session_id': session_id, 'status': 'ready', 'profile_id': profile_id}
 
+    async def close_session(self, session_id: str) -> bool:
+        try:
+            if session_id in self.sessions:
+                ctx = self.sessions[session_id]['context']
+                await ctx.close()
+                del self.sessions[session_id]
+                logger.info(f"✅ Closed session {session_id}")
+                return True
+            return False
+        except Exception as e:
+            logger.error(f"Close session error: {e}")
+            return False
+
                 logger.info(f"✅ Session using proxy: {proxy['server']} ({proxy['country']})")
             else:
                 logger.warning("Proxy requested but none available, using direct connection")
