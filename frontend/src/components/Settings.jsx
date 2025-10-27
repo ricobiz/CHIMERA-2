@@ -683,86 +683,112 @@ const Settings = ({ selectedModel, onModelChange, chatModel, onChatModelChange, 
           <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-5">
             <div className="flex items-center gap-2 mb-3">
               <CodeIcon className="w-4 h-4 text-gray-400" />
-              <h3 className="text-gray-300 font-semibold text-base">Code Generation Model</h3>
+              <h3 className="text-gray-300 font-semibold text-base">Models</h3>
             </div>
             <p className="text-gray-500 text-sm mb-4">
-              Select the AI model for generating code.
+              Pick separate models for Chat and Code generation.
             </p>
 
-            <div className="flex gap-2 mb-4">
-              <input
-                type="text"
-                placeholder="Search models..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="flex-1 p-2 bg-gray-900 border border-gray-800 rounded text-gray-300 text-xs placeholder-gray-600"
-              />
-              <select
-                value={filterType}
-                onChange={(e) => setFilterType(e.target.value)}
-                className="p-2 bg-gray-900 border border-gray-800 rounded text-gray-300 text-xs"
-              >
-                <option value="all">All</option>
-                <option value="free">Free</option>
-                <option value="paid">Paid</option>
-              </select>
-            </div>
-
-            <p className="text-[10px] text-gray-600 mb-3">
-              {filteredModels.length} of {models.length} models
-            </p>
-
-            {loading ? (
-              <div className="text-center py-6 text-gray-600 text-sm">Loading...</div>
-            ) : (
-              <div className="space-y-2 max-h-96 overflow-y-auto pr-2">
-                {filteredModels.map((model) => (
-                  <Card
-                    key={model.id}
-                    onClick={() => handleModelSelect(model.id)}
-                    className={`p-2.5 cursor-pointer transition-all text-xs ${
-                      selectedModel === model.id
-                        ? 'bg-gray-800 border-gray-700'
-                        : 'bg-gray-900/50 border-gray-800/50 hover:border-gray-700'
-                    }`}
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h4 className="text-gray-300 font-medium">{model.name}</h4>
-                          {selectedModel === model.id && (
-                            <Check className="w-3 h-3 text-gray-500" />
-                          )}
-                        </div>
-                        
-                        <div className="flex items-center gap-2 mb-1.5">
-                          {model.capabilities.vision && (
-                            <span className="text-[10px] text-gray-600">Vision</span>
-                          )}
-                          {model.capabilities.tools && (
-                            <span className="text-[10px] text-gray-600">Tools</span>
-                          )}
-                          {model.context_length > 0 && (
-                            <span className="text-[10px] text-gray-600">
-                              {(model.context_length / 1000).toFixed(0)}K
-                            </span>
-                          )}
-                        </div>
-
-                        <div className="flex items-center gap-3 text-[10px]">
-                          <span className="text-gray-600 font-mono">
-                            ${(model.pricing.prompt * 1000000).toFixed(2)}/M in
-                          </span>
-                          <span className="text-gray-600 font-mono">
-                            ${(model.pricing.completion * 1000000).toFixed(2)}/M out
-                          </span>
+            {/* Chat Model */}
+            <div className="mb-5">
+              <label className="text-xs text-gray-500 mb-2 block">Chat Model</label>
+              <div className="flex gap-2 mb-2">
+                <input
+                  type="text"
+                  placeholder="Search models..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="flex-1 p-2 bg-gray-900 border border-gray-800 rounded text-gray-300 text-xs placeholder-gray-600"
+                />
+                <select
+                  value={filterType}
+                  onChange={(e) => setFilterType(e.target.value)}
+                  className="p-2 bg-gray-900 border border-gray-800 rounded text-gray-300 text-xs"
+                >
+                  <option value="all">All</option>
+                  <option value="free">Free</option>
+                  <option value="paid">Paid</option>
+                </select>
+              </div>
+              <div className="space-y-2 max-h-48 overflow-y-auto pr-2">
+                {filteredModels.map((model) => {
+                  const inPrice = (model.pricing.prompt * 1000000).toFixed(2);
+                  const outPrice = (model.pricing.completion * 1000000).toFixed(2);
+                  const priceLabel = (inPrice === '0.00' && outPrice === '0.00') ? 'FREE' : `${inPrice}$/${outPrice}$`;
+                  return (
+                    <Card
+                      key={model.id}
+                      onClick={() => handleChatModelSelect(model.id)}
+                      className={`p-2.5 cursor-pointer transition-all text-xs ${
+                        localChatModel === model.id
+                          ? 'bg-gray-800 border-gray-700'
+                          : 'bg-gray-900/50 border-gray-800/50 hover:border-gray-700'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h4 className="text-gray-300 font-medium">{model.name}</h4>
+                            {localChatModel === model.id && (
+                              <Check className="w-3 h-3 text-gray-500" />
+                            )}
+                          </div>
+                          <p className="text-[10px] text-gray-600 mb-1.5">{model.id}</p>
+                          <div className="flex items-center gap-3 text-[10px]">
+                            <span className="text-gray-600 font-mono">{priceLabel}</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </Card>
-                ))}
+                    </Card>
+                  );
+                })}
               </div>
-            )}
+            </div>
+
+            {/* Code Generation Model */}
+            <div>
+              <label className="text-xs text-gray-500 mb-2 block">Code Generation Model</label>
+              <p className="text-[10px] text-gray-600 mb-2">
+                {filteredModels.length} of {models.length} models
+              </p>
+              {loading ? (
+                <div className="text-center py-6 text-gray-600 text-sm">Loading...</div>
+              ) : (
+                <div className="space-y-2 max-h-48 overflow-y-auto pr-2">
+                  {filteredModels.map((model) => {
+                    const inPrice = (model.pricing.prompt * 1000000).toFixed(2);
+                    const outPrice = (model.pricing.completion * 1000000).toFixed(2);
+                    const priceLabel = (inPrice === '0.00' && outPrice === '0.00') ? 'FREE' : `${inPrice}$/${outPrice}$`;
+                    return (
+                      <Card
+                        key={model.id}
+                        onClick={() => handleModelSelect(model.id)}
+                        className={`p-2.5 cursor-pointer transition-all text-xs ${
+                          selectedModel === model.id
+                            ? 'bg-gray-800 border-gray-700'
+                            : 'bg-gray-900/50 border-gray-800/50 hover:border-gray-700'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h4 className="text-gray-300 font-medium">{model.name}</h4>
+                              {selectedModel === model.id && (
+                                <Check className="w-3 h-3 text-gray-500" />
+                              )}
+                            </div>
+                            <p className="text-[10px] text-gray-600 mb-1.5">{model.id}</p>
+                            <div className="flex items-center gap-3 text-[10px]">
+                              <span className="text-gray-600 font-mono">{priceLabel}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </Card>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
             </>
           )}
