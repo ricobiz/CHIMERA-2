@@ -18,6 +18,27 @@ class NavigateRequest(BaseModel):
     session_id: str
     url: str
 
+class ClickCellRequest(BaseModel):
+    session_id: str
+    cell: str
+    click_type: str = 'single'
+    humanize: bool = True
+
+class TypeAtCellRequest(BaseModel):
+    session_id: str
+    cell: str
+    text: str
+
+class HoldDragRequest(BaseModel):
+    session_id: str
+    from_cell: str
+    to_cell: str
+    speed: Optional[float] = 1.0
+    humanize: bool = True
+
+class ScreenshotRequest(BaseModel):
+    session_id: str
+
 class ClickRequest(BaseModel):
     session_id: str
     selector: str
