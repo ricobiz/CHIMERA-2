@@ -181,6 +181,34 @@ export const generateDesign = async (userRequest, model) => {
   }
 };
 
+export const generateMockup = async (designSpec, userRequest, model) => {
+  try {
+    const response = await axios.post(`${API}/generate-mockup`, {
+      design_spec: designSpec,
+      user_request: userRequest,
+      model
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error generating mockup:', error);
+    throw error;
+  }
+};
+
+export const reviseDesign = async (currentDesign, revisionRequest, model) => {
+  try {
+    const response = await axios.post(`${API}/revise-design`, {
+      current_design: currentDesign,
+      revision_request: revisionRequest,
+      model
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error revising design:', error);
+    throw error;
+  }
+};
+
 // ========== Service Integrations ==========
 
 export const createIntegration = async (integrationData) => {
@@ -305,7 +333,7 @@ export const getActiveMCPServers = async () => {
   }
 };
 
-// OpenRouter Balance (kept for compatibility; Settings may use overview)
+// OpenRouter Balance
 export const getOpenRouterBalance = async () => {
   try {
     const response = await axios.get(`${API}/openrouter/balance`);
