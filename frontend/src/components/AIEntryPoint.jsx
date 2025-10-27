@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Play, RefreshCw, FileText, Activity, AlertCircle, CheckCircle, Pause, Square, Link, Copy } from 'lucide-react';
-import { sendTask, getLogs, refreshAgent, getCurrentTask, getAgentStatus, getResult, controlAgent } from '../services/agentApi';
+import { sendTask, getLogs, refreshAgent, getCurrentTask, getAgentStatus, getResult, controlAgent, automationCreateSession, automationNavigate, automationScreenshot, automationClickCell, automationTypeAtCell, automationHoldDrag, automationScroll, brainNextStep } from '../services/agentApi';
 
 const AIEntryPoint = ({ onClose }) => {
   // State
