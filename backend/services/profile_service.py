@@ -210,4 +210,22 @@ class ProfileService:
             'is_clean': is_clean
         }
 
+    def status(self, profile_id: str) -> Dict[str, Any]:
+        """Get profile status information"""
+        if not self.profile_exists(profile_id):
+            raise ValueError("Profile not found")
+        
+        meta = self.read_meta(profile_id)
+        return {
+            "profile_id": profile_id,
+            "region": meta.get('region'),
+            "proxy_tier": meta.get('proxy_tier'),
+            "proxy": meta.get('proxy', {}),
+            "created_at": meta.get('created_at'),
+            "last_used": meta.get('last_used'),
+            "used_count": meta.get('used_count', 0),
+            "is_warm": meta.get('is_warm', False),
+            "is_clean": meta.get('is_clean', False)
+        }
+
 profile_service = ProfileService()
