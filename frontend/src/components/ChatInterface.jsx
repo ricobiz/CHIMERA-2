@@ -804,6 +804,27 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
                         >
                           Cancel
                         </button>
+                      {msg.type === 'mockup' && msg.image && (
+                        <div className="mt-3 flex items-center gap-2">
+                          <button
+                            onClick={() => {
+                              if (window.onAnnotateMockup) window.onAnnotateMockup(msg.image);
+                            }}
+                            className="px-3 py-1.5 text-xs bg-purple-700/30 hover:bg-purple-700/50 border border-purple-600/40 rounded text-purple-200"
+                          >
+                            Annotate
+                          </button>
+                          <button
+                            onClick={() => {
+                              if (window.onApproveDesign) window.onApproveDesign();
+                            }}
+                            className="px-3 py-1.5 text-xs bg-green-700/30 hover:bg-green-700/50 border border-green-600/40 rounded text-green-200"
+                          >
+                            Approve Design
+                          </button>
+                        </div>
+                      )}
+
                       </div>
                     </div>
                   ) : (
