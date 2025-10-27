@@ -148,10 +148,11 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
   const quickCreate = async () => {
     try {
       const sid = 'auto-' + Date.now();
+      setQuickError(null);
       const resp = await fetch(`${BASE_URL}/api/automation/session/create`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ session_id: sid, use_proxy: false }) });
       const data = await resp.json();
-      if (!resp.ok) throw new Error(data.detail || 'create failed');
-      setQuickSessionId(sid);
+      if (!resp.ok || !data.session_id) throw new Error(data.detail || 'create failed');
+      setQuickSessionId(data.session_id || sid);
     } catch (e: any) {
       alert(e.message || 'Quick create failed');
     }
