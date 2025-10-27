@@ -210,14 +210,15 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
       {/* Top: Live Viewer */}
       <div className="px-4 md:px-6 py-3 md:py-4 border-b border-gray-800 flex-shrink-0">
         <div className="relative w-full h-72 md:h-[420px] border border-gray-800 rounded bg-black/60 overflow-hidden flex items-center justify-center">
+          {/* Quick test controls */}
+          <div className="absolute top-2 left-2 right-2 flex items-center gap-2 z-10">
+            <input value={quickUrl} onChange={(e:any)=>setQuickUrl(e.target.value)} className="flex-1 px-2 py-1 text-xs bg-black/60 border border-gray-700 rounded text-gray-200 placeholder-gray-500" placeholder="https://..." />
+            <button onClick={quickCreate} className="px-2 py-1 text-xs bg-gray-800/60 hover:bg-gray-700/60 border border-gray-700 rounded text-gray-300">Create</button>
+            <button onClick={quickNavigate} className="px-2 py-1 text-xs bg-blue-800/60 hover:bg-blue-700/60 border border-blue-700 rounded text-blue-300">Go</button>
+          </div>
+
           {displaySrc ? (
             <img src={`data:image/png;base64,${displaySrc}`} alt="screenshot" className="max-w-full max-h-full object-contain" />
-        <div className="mb-3 flex items-center gap-2">
-          <input value={quickUrl} onChange={(e:any)=>setQuickUrl(e.target.value)} className="flex-1 px-2 py-1 text-xs bg-gray-900 border border-gray-800 rounded text-gray-300" placeholder="https://..." />
-          <button onClick={quickCreate} className="px-2 py-1 text-xs bg-gray-800/60 hover:bg-gray-700/60 border border-gray-700 rounded text-gray-300">Create Session</button>
-          <button onClick={quickNavigate} className="px-2 py-1 text-xs bg-blue-800/60 hover:bg-blue-700/60 border border-blue-700 rounded text-blue-300">Go & Screenshot</button>
-        </div>
-
           ) : (
             <div className="text-xs text-gray-600">No screenshot</div>
           )}
