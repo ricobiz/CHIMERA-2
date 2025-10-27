@@ -11,6 +11,18 @@ MODEL_PATH = "/app/backend/models/ui-detector.onnx"
 
 # Simple lazy downloader for a tiny onnx model (placeholder URL)
 MODEL_URL = os.environ.get("UI_DETECTOR_MODEL_URL", "https://huggingface.co/onnx/models/resolve/main/tiny_detectors/ui-detector.onnx")
+def ensure_model():
+    os.makedirs(os.path.dirname(MODEL_PATH), exist_ok=True)
+    if not os.path.exists(MODEL_PATH):
+        try:
+            import requests
+            r = requests.get(MODEL_URL, timeout=20)
+            if r.status_code == 200:
+                with open(MODEL_PATH, 'wb') as f:
+                    f.write(r.content)
+        except Exception:
+            pass
+
 
 except Exception:  # pragma: no cover
     ort = None
