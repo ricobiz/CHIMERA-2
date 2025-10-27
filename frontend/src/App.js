@@ -781,10 +781,6 @@ function App() {
     };
   }, []);
 
-      });
-    }
-  };
-
   const handleSessionSelect = async (session) => {
     try {
       const fullSession = await getSession(session.id);
