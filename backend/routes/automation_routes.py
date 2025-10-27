@@ -75,6 +75,9 @@ class ValidateNavigationRequest(BaseModel):
     screenshot: str
     expectedUrl: str
     currentUrl: str
+    pageTitle: str
+    description: str
+
 @router.get("/screenshot/{session_id}/full")
 async def get_screenshot_full(session_id: str):
     try:
