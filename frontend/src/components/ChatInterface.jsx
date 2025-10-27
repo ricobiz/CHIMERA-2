@@ -354,6 +354,13 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
           
           <div className="flex items-center gap-4">
             {/* Model Indicators + Settings Menu */}
+            {/* Current models display */}
+            <div className="hidden md:flex items-center gap-2 text-[10px] text-gray-500 font-mono">
+              <span>Chat: {chatModel?.split('/').pop() || '—'}</span>
+              <span>•</span>
+              <span>Code: {activeModel?.split('/').pop() || '—'}</span>
+            </div>
+
             <div className="flex items-center gap-3">
               <ModelIndicator 
                 type="code" 
