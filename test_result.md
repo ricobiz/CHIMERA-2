@@ -1316,6 +1316,9 @@ agent_communication:
    - Fast session creation (~2-3s) from warmed profiles
    
 4. **POST /api/profile/check** - Bot detection testing ✅
+  - agent: "main"
+    message: "Requesting backend testing: models list not loading and chat unresponsive on mobile. Please verify /api/openrouter/overview, /api/models (if any), and /api/chat endpoints; also sanity-check /api/hook/log and /api/automation/screenshot for connectivity. Report status codes, bodies, and whether backend is up."
+
    - Tests against bot.sannysoft.com and arh.antoinevastel.com
    - Returns: flashid/fingerprint screenshots (non-empty base64), is_clean boolean
    - Meta correctly updated after check
