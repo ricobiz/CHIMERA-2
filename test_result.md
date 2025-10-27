@@ -106,15 +106,18 @@ user_problem_statement: "Chimera AIOS - AI code generation tool. Test full funct
 
   - task: "GET /api/openrouter/overview - Models + Balance"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/routes/openrouter_models.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Added combined endpoint to fetch OpenRouter models (with pricing/capabilities) and account balance in one call. Uses official OpenRouter API with referer/title headers."
+      - working: true
+        agent: "testing"
+        comment: "✅ VERIFIED: OpenRouter overview endpoint working perfectly. Retrieved 348 models (>50 as expected). All models have required fields: id, name, pricing (prompt/completion), capabilities (vision boolean). Balance field correctly returns number or null. Fixed httpx.gather issue by using asyncio.gather. Endpoint fully functional for frontend model selection."
 
   - task: "GET /api/openrouter/balance (openrouter_models)"
     implemented: true
