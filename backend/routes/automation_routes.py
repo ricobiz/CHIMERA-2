@@ -78,6 +78,11 @@ async def create_session(request: CreateSessionRequest):
 async def navigate(request: NavigateRequest):
     """Navigate to URL"""
     try:
+        # Check if session exists, recreate if needed
+        if request.session_id not in browser_service.sessions:
+            logger.warning(f"Session {request.session_id} not found, recreating...")
+            await browser_service.create_session(request.session_id, use_proxy=False)
+        
         result = await browser_service.navigate(request.session_id, request.url)
         return result
     except Exception as e:
