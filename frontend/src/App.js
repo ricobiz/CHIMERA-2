@@ -59,6 +59,10 @@ function App() {
   ); // 'chat' or 'agent'
   
   // Design approval workflow
+  // Design mockup annotator
+  const [showAnnotator, setShowAnnotator] = useState(false);
+  const [annotateImageUrl, setAnnotateImageUrl] = useState(null);
+
   const [pendingDesign, setPendingDesign] = useState(null);
   const [pendingPrompt, setPendingPrompt] = useState('');
   const [awaitingDesignApproval, setAwaitingDesignApproval] = useState(false);
