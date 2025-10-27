@@ -1441,16 +1441,22 @@ export default App;""",
                     {"error_type": type(e).__name__}
                 )
         
-        # Test 3: Chat with history
-        print("   Testing chat with conversation history...")
-        payload_with_history = {
-            "message": "What colors would look good?",
-            "history": [
-                {"role": "user", "content": "I want to build a fitness app"},
-                {"role": "assistant", "content": "That sounds great! What features are you thinking about?"}
-            ],
-            "model": "anthropic/claude-3.5-sonnet"
-        }
+        # Test 3: Third message with extended history (CRITICAL TEST)
+        print("   Testing third chat message with extended history...")
+        if first_message_response:
+            # Build extended history
+            extended_history = [
+                {"role": "user", "content": "Hello, how are you?"},
+                {"role": "assistant", "content": first_message_response['message']},
+                {"role": "user", "content": "What's 2+2?"},
+                {"role": "assistant", "content": "2+2 equals 4."}
+            ]
+            
+            payload_3 = {
+                "message": "Tell me a joke",
+                "history": extended_history,
+                "model": "x-ai/grok-code-fast-1"
+            }
         
         try:
             response = self.session.post(
