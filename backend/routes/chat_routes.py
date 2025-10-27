@@ -16,12 +16,12 @@ router = APIRouter(prefix="/api", tags=["chat"])
 
 class TaskClassificationRequest(BaseModel):
     message: str
-    model: str = "anthropic/claude-3.5-sonnet"
+    model: str = "anthropic/claude-sonnet-4.5"  # Planning/conversation model
 
 class ChatRequest(BaseModel):
     message: str
     history: List[Dict[str, str]] = []
-    model: str = "anthropic/claude-3.5-sonnet"
+    model: str = "anthropic/claude-sonnet-4.5"  # Planning/conversation model
     session_id: Optional[str] = None  # Add session_id
 
 class ChatResponse(BaseModel):
