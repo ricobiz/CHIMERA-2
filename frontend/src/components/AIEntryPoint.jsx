@@ -402,6 +402,26 @@ const AIEntryPoint = ({ onClose }) => {
               <>
                 <p className="text-xs text-gray-500 mb-3">
                   Поделитесь этой ссылкой с внешним AI для доступа к агенту:
+          {/* Waiting User Modal */}
+          {askUser && (
+            <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+              <div className="bg-[#0f0f10] border border-gray-800 rounded-lg w-full max-w-md p-4">
+                <div className="text-sm text-gray-300 mb-2">Agent needs your input</div>
+                <div className="text-xs text-gray-400 mb-3">{askUser}</div>
+                <div className="flex items-center gap-2">
+                  <input id="user_input_field" className="flex-1 px-2 py-1 text-xs bg-gray-900 border border-gray-700 rounded text-gray-300" placeholder="Enter value (phone/code)" />
+                  <button onClick={async() => {
+                    const val = document.getElementById('user_input_field').value;
+                    if (!jobId) return;
+                    await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/hook/user_input`, { method: 'POST', headers: { 'Content-Type':'application/json' }, body: JSON.stringify({ job_id: jobId, field: 'code', value: val })});
+                    setAskUser(null);
+                  }} className="px-3 py-1.5 text-xs bg-blue-600/20 hover:bg-blue-600/30 border border-blue-600/50 text-blue-300 rounded">Submit</button>
+                  <button onClick={() => setAskUser(null)} className="px-3 py-1.5 text-xs bg-gray-800/20 hover:bg-gray-800/30 border border-gray-700 text-gray-300 rounded">Cancel</button>
+                </div>
+              </div>
+            </div>
+          )}
+
                 </p>
                 <div className="bg-gray-800/50 border border-gray-700 rounded p-2 mb-2 flex items-center gap-2">
                   <input
