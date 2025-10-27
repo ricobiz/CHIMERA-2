@@ -314,6 +314,8 @@ async def hold_drag(req: HoldDragRequest):
             "status": "idle",
             "dom_event": {"type": "drag", "from": req.from_cell, "to": req.to_cell}
         }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 class ScrollRequest(BaseModel):
     session_id: str
