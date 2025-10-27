@@ -1628,15 +1628,17 @@ export default App;""",
 
     # ============= BROWSER AUTOMATION TESTS =============
     
-    def test_browser_automation_create_session(self):
-        """Test POST /api/automation/session/create endpoint"""
-        print("\n🧪 Testing Browser Automation - Create Session...")
+    def test_browser_automation_create_session_with_proxy(self):
+        """Test POST /api/automation/session/create endpoint with proxy - CRITICAL"""
+        print("\n🧪 Testing Browser Automation - Create Session with Proxy...")
         
         # Generate unique session ID
         session_id = f"test_session_{int(time.time())}"
         
+        # Test with proxy as mentioned in review request
         payload = {
-            "session_id": session_id
+            "session_id": session_id,
+            "use_proxy": True  # Critical test with proxy
         }
         
         try:
