@@ -996,6 +996,9 @@ frontend:
     file: "/app/frontend/src/components/ChatInterface.jsx, /app/frontend/src/App.js"
     stuck_count: 0
     priority: "high"
+  - agent: "main"
+    message: "Implemented OpenRouter overview endpoint and frontend model separation. Please run backend tests focusing on: GET /api/openrouter/overview and chat using chatModel= openai/gpt-5, code using selectedModel= x-ai/grok-code-fast-1. Verify balance appears in header (StatusIndicator) and Settings lists >300 models with price format like 3$/15$; FREE when zero."
+
     needs_retesting: false
     status_history:
       - working: true
