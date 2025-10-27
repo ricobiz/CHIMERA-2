@@ -107,7 +107,8 @@ Examples of BAD responses (NEVER use these):
 
 Just be {agent_name} - natural, genuine, and conversational."""
         
-        messages.append({"role": "system", "content": system_message})
+        # Build messages array
+        messages = [{"role": "system", "content": system_message}]
         
         # Add conversation history
         for msg in request.history:
@@ -116,76 +117,22 @@ Just be {agent_name} - natural, genuine, and conversational."""
         # Add current message
         messages.append({"role": "user", "content": request.message})
         
-        # 🗂️ CONTEXT WINDOW MANAGEMENT
-        # Auto-manage context before making LLM call
-        session_id = request.session_id or "default"
-        context_result = await context_manager.auto_manage_context(
-            messages=messages,
-            session_id=session_id,
-            model=request.model
-        )
-        
-        logger.info(f"📊 Context usage: {context_result['usage']['percentage_display']} ({context_result['usage']['current_tokens']}/{context_result['usage']['max_tokens']} tokens)")
-        
-        # Use potentially compressed messages
-        managed_messages = context_result['messages']
-        
-        # If a new session was created, notify
-        if context_result['action'] == 'new_session':
-            logger.warning(f"🔄 Created new session: {context_result['new_session_id']}")
-        elif context_result['action'] == 'compress':
-            logger.info(f"🗜️ Compressed conversation")
-        
-        # Call LLM with thinking-enhanced and context-managed messages
+        # Call LLM with personalized system message
         response = await openrouter_service.chat_completion(
-            messages=managed_messages,
+            messages=messages,
             model=request.model,
-            temperature=0.7  # Balanced creativity and accuracy
+            temperature=0.8  # Higher creativity for natural conversation
         )
         
         assistant_message = response['choices'][0]['message']['content']
-        
-        # Remember this conversation with thinking metadata (disabled)
-        # await memory_service.remember_conversation(
-        #     user_message=request.message,
-        #     assistant_response=assistant_message,
-        #     session_id=session_id,
-        #     important=True
-        # )
-        
-        # Store thinking process in memory (for learning) (disabled)
-        # if thinking_result['confidence'] < 0.7:
-        #     await memory_service.remember_user_fact(
-        #         f"Low confidence topic: {request.message[:100]}. Reasoning: {thinking_result['final_reasoning'][:200]}",
-        #         category="learning",
-        #         importance=0.6
-        #     )
-        
-        # Extract facts periodically (disabled)
-        # if personality['interaction_count'] % 5 == 0:
-        #     all_messages = request.history + [
-        #         {"role": "user", "content": request.message},
-        #         {"role": "assistant", "content": assistant_message}
-        #     ]
-        #     await memory_service.extract_facts_from_conversation(
-        #         all_messages,
-        #         session_id=session_id
-        #     )
         
         return {
             "message": assistant_message,
             "response": assistant_message,
             "cost": response.get('usage', {}),
-            "ai_name": "Chimera AI",  # personality['name']
-            "relationship_status": "collaborative",  # personality['user_relationship']
-            "thinking": {
-                "confidence": thinking_result['confidence'],
-                "process_summary": thinking_result['final_reasoning'][:200],
-                "verified": not thinking_result['needs_verification']
-            },
-            "context_warning": context_result.get('warning', ''),
-            "new_session_id": context_result.get('new_session_id'),
-            "context_usage": context_result['usage']
+            "ai_name": agent_name,
+            "user_name": user_name,
+            "personality": agent_personality
         }
         
     except Exception as e:
