@@ -37,15 +37,16 @@ class LovableBackendTester:
         if details and not success:
             print(f"   Details: {details}")
     
-    def test_generate_code_endpoint(self):
-        """Test POST /api/generate-code endpoint"""
-        print("\n🧪 Testing Code Generation Endpoint...")
+    def test_generate_code_endpoint_critical(self):
+        """Test POST /api/generate-code endpoint - CRITICAL Agent Mode"""
+        print("\n🧪 Testing Code Generation Endpoint - Agent Mode...")
         
-        # Test data
-        test_prompt = "A simple counter app"
+        # Test with simple request as mentioned in review
+        test_prompt = "Create a todo app"
         payload = {
             "prompt": test_prompt,
-            "conversation_history": []
+            "conversation_history": [],
+            "model": "x-ai/grok-code-fast-1"  # Using model mentioned in review
         }
         
         try:
