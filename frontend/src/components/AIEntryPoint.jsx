@@ -15,6 +15,7 @@ const AIEntryPoint = ({ onClose }) => {
   const [runMode, setRunMode] = useState('PAUSED');
   const [accessEnabled, setAccessEnabled] = useState(false);
   const [sessionLink, setSessionLink] = useState('');
+import { automationCreateSession, automationNavigate, automationScreenshot, automationClickCell, automationTypeAtCell, automationHoldDrag, automationScroll, brainNextStep } from '../services/agentApi';
   
   const logsEndRef = useRef(null);
   const pollIntervalRef = useRef(null);
