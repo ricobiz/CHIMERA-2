@@ -3929,6 +3929,39 @@ export default App;""",
                 {"error_type": type(e).__name__}
             )
 
+    def run_critical_tests(self):
+        """Run CRITICAL backend tests based on review request"""
+        print("🚀 Starting CRITICAL Backend API Testing...")
+        print(f"Backend URL: {BACKEND_URL}")
+        print("🎯 Focus: STUCK TASKS and Core Functionality")
+        
+        # PRIORITY 1 - STUCK TASKS (stuck_count >= 1)
+        print("\n" + "="*60)
+        print("PRIORITY 1 - STUCK TASKS (stuck_count >= 1)")
+        print("="*60)
+        
+        # 1. POST /api/chat (stuck_count: 2) - CRITICAL
+        self.test_chat_endpoint_critical_flow()
+        
+        # PRIORITY 2 - Core Functionality
+        print("\n" + "="*60)
+        print("PRIORITY 2 - Core Functionality")
+        print("="*60)
+        
+        # 2. POST /api/generate-code - Agent mode
+        self.test_generate_code_endpoint_critical()
+        
+        # 3. POST /api/generate-design & /api/generate-mockup
+        # This is called from generate_code_endpoint_critical
+        
+        # 4. Proxy status for automation
+        self.test_proxy_status_endpoint()
+        
+        # 5. POST /api/automation/session/create with proxy
+        self.test_browser_automation_create_session_with_proxy()
+        
+        self.print_critical_summary()
+
     def run_all_tests(self):
         """Run all backend tests"""
         print("🚀 Starting Lovable.dev Clone Backend API Tests")
