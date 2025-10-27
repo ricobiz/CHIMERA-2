@@ -15,6 +15,9 @@ class CreateProfileRequest(BaseModel):
 class UseProfileRequest(BaseModel):
     profile_id: str
 
+class CheckProfileRequest(BaseModel):
+    profile_id: str
+
 @router.post("/create")
 async def create_profile(req: CreateProfileRequest):
     try:
@@ -31,6 +34,15 @@ async def use_profile(req: UseProfileRequest):
         return result
     except Exception as e:
         logger.error(f"Profile use error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/check")
+async def check_profile(req: CheckProfileRequest):
+    try:
+        result = await profile_service.check_profile(req.profile_id)
+        return result
+    except Exception as e:
+        logger.error(f"Profile check error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/{profile_id}/status")

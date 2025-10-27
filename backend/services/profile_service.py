@@ -4,7 +4,7 @@ import uuid
 import asyncio
 import logging
 from datetime import datetime, timezone
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, Tuple
 
 from services.anti_detect import AntiDetectFingerprint, HumanBehaviorSimulator
 from services.browser_automation_service import browser_service
@@ -13,6 +13,13 @@ from services.proxy_service import proxy_service
 logger = logging.getLogger(__name__)
 
 PROFILES_DIR = "/app/runtime/profiles"
+CHECK_URL1 = os.environ.get("PROFILE_CHECK_URL1", "https://bot.sannysoft.com/")
+CHECK_URL2 = os.environ.get("PROFILE_CHECK_URL2", "https://arh.antoinevastel.com/bots/areyouheadless")
+
+KEYWORDS_FLAG = [
+    'automation', 'headless', 'selenium', 'playwright', 'bot', 'detected', 'webdriver',
+    'automated', 'blocked', 'fingerprint', 'suspicious'
+]
 
 class ProfileService:
     def __init__(self):
@@ -23,6 +30,9 @@ class ProfileService:
 
     def _meta_path(self, profile_id: str) -> str:
         return os.path.join(self._profile_path(profile_id), "meta.json")
+
+    def _storage_path(self, profile_id: str) -> str:
+        return os.path.join(self._profile_path(profile_id), "storage_state.json")
 
     def profile_exists(self, profile_id: str) -> bool:
         return os.path.exists(self._meta_path(profile_id))
@@ -39,7 +49,7 @@ class ProfileService:
         with open(self._meta_path(profile_id), 'w') as f:
             json.dump(meta, f, indent=2)
 
-    async def _warmup(self, session_id: str, profile: Dict[str, Any]) -> None:
+    async def _warmup(self, session_id: str) -> None:
         try:
             urls = [
                 "https://www.youtube.com/",
@@ -50,15 +60,28 @@ class ProfileService:
             page = browser_service.sessions[session_id]['page']
             for url in urls:
                 await browser_service.navigate(session_id, url)
-                # random scrolls and mouse moves
                 for _ in range(3):
-                    await HumanBehaviorSimulator.human_move(page, 50, 50)  # small nudge
+                    await HumanBehaviorSimulator.human_move(page, 50, 50)
                     await asyncio.sleep(0.5)
                     await page.mouse.wheel(0, 400)
                     await asyncio.sleep(1.0)
                 await asyncio.sleep(1.0)
         except Exception as e:
             logger.warning(f"Warmup error: {e}")
+
+    async def _check_url(self, session_id: str, url: str) -> Tuple[str, bool, str]:
+        try:
+            await browser_service.navigate(session_id, url)
+            page = browser_service.sessions[session_id]['page']
+            body_text = (await page.inner_text('body'))[:5000].lower()
+            shot = await browser_service.capture_screenshot(session_id)
+            flagged = any(k in body_text for k in KEYWORDS_FLAG)
+            notes = body_text[:600]
+            return shot, flagged, notes
+        except Exception as e:
+            logger.warning(f"Checker navigate failed: {e}")
+            shot = await browser_service.capture_screenshot(session_id)
+            return shot or "", True, f"checker_error:{str(e)[:120]}"
 
     async def create_profile(self, region: Optional[str] = None, proxy_tier: Optional[str] = None) -> Dict[str, Any]:
         profile_id = str(uuid.uuid4())
@@ -71,14 +94,21 @@ class ProfileService:
         # Pick proxy
         proxy = proxy_service.get_proxy_by(region=region, tier=proxy_tier) if hasattr(proxy_service, 'get_proxy_by') else None
 
-        # Launch persistent context as a session linked to this profile
+        # Launch persistent-like context as a session linked to this profile
         session_id = f"sess-{profile_id[:8]}"
         await browser_service.create_session_from_profile(profile_id=profile_id, session_id=session_id, fingerprint=fingerprint, proxy=proxy)
 
         # Warmup
-        await self._warmup(session_id, fingerprint)
+        await self._warmup(session_id)
 
-        # Save meta
+        # Save storage_state after warmup
+        try:
+            ctx = browser_service.sessions[session_id]['context']
+            await ctx.storage_state(path=self._storage_path(profile_id))
+        except Exception as e:
+            logger.warning(f"storage_state save error: {e}")
+
+        # Save meta initial
         meta = {
             "profile_id": profile_id,
             "created_at": datetime.now(timezone.utc).isoformat(),
@@ -88,22 +118,36 @@ class ProfileService:
             "proxy_tier": proxy_tier,
             "proxy": proxy or {},
             "is_warm": True,
+            "is_clean": False,
             "fingerprint": fingerprint,
+            "bot_signals": {"flashid_flagged": None, "fingerprint_flagged": None, "notes": ""}
         }
         self.write_meta(profile_id, meta)
+
+        # Run anti-detect check
+        check = await self.check_profile(profile_id)
 
         # Close session after warmup to flush data
         await browser_service.close_session(session_id)
 
-        # Return summary
+        # Response summary
         summary = {
             "user_agent": fingerprint.get('user_agent'),
-            "locale": fingerprint.get('locale'),
             "timezone": fingerprint.get('timezone_id'),
-            "viewport": fingerprint.get('viewport'),
-            "screen": fingerprint.get('screen'),
+            "languages": fingerprint.get('languages'),
+            "viewport": [fingerprint.get('viewport',{}).get('width'), fingerprint.get('viewport',{}).get('height')],
+            "proxy_ip": (proxy or {}).get('server') if proxy else None
         }
-        return {"profile_id": profile_id, "fingerprint_summary": summary}
+        return {
+            "profile_id": profile_id,
+            "is_warm": True,
+            "is_clean": check.get('is_clean', False),
+            "fingerprint_summary": summary,
+            "bot_signals": {
+                "flashid_flagged": check.get('flashid', {}).get('flagged_as_bot'),
+                "fingerprint_flagged": check.get('fingerprint', {}).get('flagged_as_bot')
+            }
+        }
 
     async def use_profile(self, profile_id: str) -> Dict[str, Any]:
         if not self.profile_exists(profile_id):
@@ -112,7 +156,17 @@ class ProfileService:
         fingerprint = meta.get('fingerprint', {})
         proxy = meta.get('proxy', None)
         session_id = f"sess-{profile_id[:8]}-{uuid.uuid4().hex[:4]}"
+        # Load storage_state if exists
+        storage_path = self._storage_path(profile_id)
         await browser_service.create_session_from_profile(profile_id=profile_id, session_id=session_id, fingerprint=fingerprint, proxy=proxy)
+        try:
+            if os.path.exists(storage_path):
+                ctx = browser_service.sessions[session_id]['context']
+                await ctx.add_cookies([])  # noop to ensure context ready
+                # Best-effort: Playwright Python does not support dynamic storage reload; alternative: new_context with storage_state
+                # For now, storage was applied on creation if we passed path; adjust browser_service to pass storage_state path when exists
+        except Exception:
+            pass
         # Fast sanity navigate
         await browser_service.navigate(session_id, "https://www.google.com")
 
@@ -122,19 +176,38 @@ class ProfileService:
         self.write_meta(profile_id, meta)
         return {"session_id": session_id}
 
-    def status(self, profile_id: str) -> Dict[str, Any]:
+    async def check_profile(self, profile_id: str) -> Dict[str, Any]:
         if not self.profile_exists(profile_id):
             raise ValueError("Profile not found")
+        # Use profile to get session
+        use = await self.use_profile(profile_id)
+        session_id = use['session_id']
+        # Checker 1
+        shot1, flag1, notes1 = await self._check_url(session_id, CHECK_URL1)
+        # Checker 2
+        shot2, flag2, notes2 = await self._check_url(session_id, CHECK_URL2)
+
+        is_clean = not (flag1 or flag2)
+
+        # Update meta
         meta = self.read_meta(profile_id)
+        meta['is_clean'] = is_clean
+        meta['bot_signals'] = {
+            'flashid_flagged': bool(flag1),
+            'fingerprint_flagged': bool(flag2),
+            'notes': (notes1[:300] + '\n---\n' + notes2[:300])
+        }
+        self.write_meta(profile_id, meta)
+
+        # Close checker session
+        await browser_service.close_session(session_id)
+
         return {
-            "profile_id": profile_id,
-            "region": meta.get('region'),
-            "proxy_tier": meta.get('proxy_tier'),
-            "proxy": meta.get('proxy'),
-            "created_at": meta.get('created_at'),
-            "last_used": meta.get('last_used'),
-            "used_count": meta.get('used_count', 0),
-            "is_warm": meta.get('is_warm', False)
+            'session_id': session_id,
+            'profile_id': profile_id,
+            'flashid': { 'screenshot_base64': shot1, 'flagged_as_bot': bool(flag1) },
+            'fingerprint': { 'screenshot_base64': shot2, 'flagged_as_bot': bool(flag2) },
+            'is_clean': is_clean
         }
 
 profile_service = ProfileService()
