@@ -120,8 +120,9 @@ async def get_openrouter_balance():
                 logger.error(f"OpenRouter balance error: {resp.status_code} - {resp.text}")
                 raise HTTPException(status_code=resp.status_code, detail="Failed to fetch balance")
             data = resp.json()
-            remaining = data.get('data', {}).get('limit_remaining')
-            currency = data.get('data', {}).get('limit_unit', 'USD')
+            api_data = data.get('data', {})
+            remaining = api_data.get('limit_remaining')
+            currency = api_data.get('limit_unit', 'USD')
             return {"remaining": remaining, "currency": currency}
     except Exception as e:
         logger.error(f"Error fetching OpenRouter balance: {str(e)}")
