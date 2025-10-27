@@ -198,6 +198,43 @@ const AIEntryPoint = ({ onClose }) => {
       const data = await getLogs(true);
       setLogs(data.logs || []);
       setAgentStatus(data.status || 'IDLE');
+            <div className="relative border border-gray-800 rounded bg-black/60 overflow-hidden">
+              <div className="flex items-center justify-between p-2 border-b border-gray-800 bg-black/40">
+                <div className="text-xs text-gray-400">Live Agent View</div>
+                <div className="flex items-center gap-2">
+                  <span className={`text-[10px] px-2 py-0.5 rounded ${agentStatus==='ACTIVE'?'bg-green-900/40 text-green-300':agentStatus==='PAUSED'?'bg-yellow-900/40 text-yellow-300':agentStatus==='WAITING_USER'?'bg-blue-900/40 text-blue-300':agentStatus==='ERROR'?'bg-red-900/40 text-red-300':'bg-gray-900/40 text-gray-300'}`}>{agentStatus}</span>
+                  <button onClick={() => setShowGrid(!showGrid)} className="px-2 py-1 text-xs bg-gray-800/60 hover:bg-gray-700/60 border border-gray-700 rounded text-gray-300">{showGrid ? 'Hide Grid' : 'Show Grid'}</button>
+                  <button onClick={() => setShowFullscreen(true)} className="px-2 py-1 text-xs bg-gray-800/60 hover:bg-gray-700/60 border border-gray-700 rounded text-gray-300">Fullscreen</button>
+                </div>
+              </div>
+              <div ref={viewerRef} className="relative w-full h-72 md:h-[420px] flex items-center justify-center bg-black">
+                {displaySrc ? (
+                  <img src={`data:image/png;base64,${displaySrc}`} alt="screenshot" className="max-w-full max-h-full object-contain" />
+                ) : (
+                  <div className="text-xs text-gray-600">No screenshot</div>
+                )}
+                {/* Grid overlay */}
+                {showGrid && lastAutomation?.grid && (
+                  <div className="absolute inset-0 pointer-events-none">
+                    <div className="w-full h-full" style={{ backgroundImage: `linear-gradient(rgba(200,200,200,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(200,200,200,0.08) 1px, transparent 1px)`, backgroundSize: `${(100/lastAutomation.grid.cols)}% ${(100/lastAutomation.grid.rows)}%`}} />
+                  </div>
+                )}
+                {/* Ghost cursor based on last step */}
+                {(() => {
+                  const last = (logs || []).slice().reverse().find(l => l.action && l.action.startsWith('Step'));
+                  const step = (logs || []).slice().reverse().find(l => l.action && (l.action.includes('CLICK_CELL') || l.action.includes('TYPE_AT_CELL') || l.action.includes('HOLD_DRAG')));
+                  const cell = step?.action?.match(/[A-H][0-9]{1,2}/)?.[0];
+                  const grid = lastAutomation?.grid || { rows: 12, cols: 8 };
+                  const pos = cellToPercent(cell, grid);
+                  return cell ? (
+                    <div className="absolute" style={{ left: `${pos.left}%`, top: `${pos.top}%`, transform: 'translate(-50%, -50%)' }}>
+                      <div className="w-4 h-4 rounded-full bg-white/90 shadow-[0_0_10px_rgba(255,255,255,0.6)] border border-gray-200" />
+                    </div>
+                  ) : null;
+                })()}
+              </div>
+            </div>
+
       alert(`Loaded ${data.logs?.length || 0} log entries`);
     } catch (error) {
       alert(`Error: ${error.message}`);
