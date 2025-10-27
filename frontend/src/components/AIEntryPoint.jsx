@@ -310,6 +310,18 @@ import { automationCreateSession, automationNavigate, automationScreenshot, auto
                     onClick={copyLink}
                     className="px-2 py-1 bg-purple-600/20 hover:bg-purple-600/30 border border-purple-600/50 text-purple-400 rounded text-xs transition-colors"
                   >
+          {/* Controls */}
+          <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-sm text-gray-400 font-medium">Controls</span>
+            </div>
+            <div className="flex gap-2">
+              <button onClick={() => handleControlMode('ACTIVE')} className="px-3 py-1.5 bg-green-600/20 hover:bg-green-600/30 border border-green-600/50 text-green-400 rounded text-xs">Resume</button>
+              <button onClick={() => handleControlMode('PAUSED')} className="px-3 py-1.5 bg-yellow-600/20 hover:bg-yellow-600/30 border border-yellow-600/50 text-yellow-400 rounded text-xs">Pause</button>
+              <button onClick={() => handleControlMode('STOP')} className="px-3 py-1.5 bg-red-600/20 hover:bg-red-600/30 border border-red-600/50 text-red-400 rounded text-xs">Stop</button>
+            </div>
+          </div>
+
                     Copy
                   </button>
                 </div>
