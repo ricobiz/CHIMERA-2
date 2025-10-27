@@ -336,6 +336,38 @@ const AIEntryPoint = ({ onClose }) => {
           </div>
           
           {/* Agent Status */}
+          {/* Profile Health */}
+          <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-4">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm text-gray-400 font-medium">Profile Health</span>
+              <div className="flex gap-2">
+                <button
+                  onClick={async () => {
+                    const profId = window.currentProfileId || prompt('Profile ID to re-check:');
+                    if (!profId) return;
+                    try {
+                      const resp = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/profile/check`, {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ profile_id: profId })
+                      });
+                      const data = await resp.json();
+                      alert(`Re-check done. Clean=${data.is_clean}`);
+                    } catch (e) {
+                      alert('Re-check failed: '+ e.message);
+                    }
+                  }}
+                  className="px-3 py-1.5 bg-purple-600/20 hover:bg-purple-600/30 border border-purple-600/50 text-purple-300 rounded text-xs"
+                >Re-check profile now</button>
+              </div>
+            </div>
+            <div className="text-xs text-gray-400 space-y-1">
+              <div>profile_id: <span className="text-gray-200">{window.currentProfileId || '—'}</span></div>
+              <div>proxy/region: <span className="text-gray-200">{lastProfileHealth?.proxy || '—'}</span></div>
+              <div>warm: <span className="text-gray-200">{lastProfileHealth?.is_warm ? 'yes' : 'no'}</span></div>
+              <div>clean: <span className="text-gray-200">{lastProfileHealth?.is_clean ? '✅' : '❌'}</span></div>
+              <div>last check: <span className="text-gray-200">{lastProfileHealth?.last_check || '—'}</span></div>
+            </div>
+          </div>
+
           <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-4">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm text-gray-400 font-medium">Agent Status</span>
