@@ -4080,10 +4080,70 @@ export default App;""",
                     print(f"   ❌ {result['test']}: {result['message']}")
         
         return passed, failed
+    
+    def print_critical_summary(self):
+        """Print summary of critical test results"""
+        print("\n" + "="*80)
+        print("🎯 CRITICAL BACKEND TESTING SUMMARY")
+        print("="*80)
+        
+        total_tests = len(self.test_results)
+        passed_tests = sum(1 for result in self.test_results if result['success'])
+        failed_tests = total_tests - passed_tests
+        
+        print(f"📊 Total Tests: {total_tests}")
+        print(f"✅ Passed: {passed_tests}")
+        print(f"❌ Failed: {failed_tests}")
+        print(f"📈 Success Rate: {(passed_tests/total_tests)*100:.1f}%")
+        
+        # Group results by category
+        critical_failures = []
+        chat_issues = []
+        automation_issues = []
+        
+        for result in self.test_results:
+            if not result['success']:
+                if 'Chat' in result['test']:
+                    chat_issues.append(result)
+                elif 'Automation' in result['test'] or 'Proxy' in result['test']:
+                    automation_issues.append(result)
+                else:
+                    critical_failures.append(result)
+        
+        # Report critical chat issues (STUCK TASK)
+        if chat_issues:
+            print(f"\n🚨 CRITICAL CHAT ISSUES (STUCK TASK - stuck_count: 2):")
+            for issue in chat_issues:
+                print(f"   ❌ {issue['test']}: {issue['message']}")
+        
+        # Report automation issues
+        if automation_issues:
+            print(f"\n🤖 AUTOMATION ISSUES:")
+            for issue in automation_issues:
+                print(f"   ❌ {issue['test']}: {issue['message']}")
+        
+        # Report other critical failures
+        if critical_failures:
+            print(f"\n⚠️ OTHER CRITICAL FAILURES:")
+            for issue in critical_failures:
+                print(f"   ❌ {issue['test']}: {issue['message']}")
+        
+        # Success summary
+        successful_tests = [result for result in self.test_results if result['success']]
+        if successful_tests:
+            print(f"\n✅ WORKING ENDPOINTS:")
+            for success in successful_tests:
+                print(f"   ✅ {success['test']}")
+        
+        print("\n" + "="*80)
 
 if __name__ == "__main__":
     tester = LovableBackendTester()
-    passed, failed = tester.run_all_tests()
+    
+    # Run critical tests based on review request
+    tester.run_critical_tests()
     
     # Exit with error code if tests failed
-    exit(0 if failed == 0 else 1)
+    total_tests = len(tester.test_results)
+    failed_tests = sum(1 for result in tester.test_results if not result['success'])
+    exit(0 if failed_tests == 0 else 1)
