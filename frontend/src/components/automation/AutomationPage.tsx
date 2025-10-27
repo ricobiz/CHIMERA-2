@@ -35,6 +35,7 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
   // Quick test controls
   const [quickUrl, setQuickUrl] = useState<string>('https://example.com');
   const [quickSessionId, setQuickSessionId] = useState<string | null>(null);
+  const [quickError, setQuickError] = useState<string | null>(null);
 
   const viewerRef = useRef<HTMLDivElement | null>(null);
   const logsEndRef = useRef<HTMLDivElement | null>(null);
