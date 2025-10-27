@@ -137,6 +137,33 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
     const colLetter = cell[0].toUpperCase();
     const rowNum = parseInt(cell.slice(1), 10);
     const colIndex = colLetter.charCodeAt(0) - 'A'.charCodeAt(0);
+  // Quick test: navigate and screenshot
+  const quickCreate = async () => {
+    try {
+      const sid = 'auto-' + Date.now();
+      const resp = await fetch(`${BASE_URL}/api/automation/session/create`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ session_id: sid, use_proxy: false }) });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.detail || 'create failed');
+      setQuickSessionId(sid);
+    } catch (e: any) {
+      alert(e.message || 'Quick create failed');
+    }
+  };
+  const quickNavigate = async () => {
+    if (!quickSessionId) return alert('Create session first');
+    try {
+      const resp = await fetch(`${BASE_URL}/api/automation/navigate`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ session_id: quickSessionId, url: quickUrl }) });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.detail || 'navigate failed');
+      // pull screenshot
+      const shot = await fetch(`${BASE_URL}/api/automation/screenshot`, { method: 'GET', headers: { 'Content-Type':'application/json' },  });
+      const js = await shot.json();
+      if (js.screenshot_base64) setPendingSrc(js.screenshot_base64);
+    } catch (e: any) {
+      alert(e.message || 'Quick navigate failed');
+    }
+  };
+
     const rowIndex = rowNum - 1;
     const left = ((colIndex + 0.5) / (grid.cols || 8)) * 100;
     const top = ((rowIndex + 0.5) / (grid.rows || 12)) * 100;
