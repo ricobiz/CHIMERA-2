@@ -100,6 +100,36 @@ class BrowserAutomationService:
                     'username': proxy['username'],
                     'password': proxy['password']
                 }
+    async def create_session_from_profile(self, profile_id: str, session_id: str, fingerprint: Dict[str, Any], proxy: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        await self.initialize()
+        user_agent = fingerprint.get('user_agent')
+        viewport = fingerprint.get('viewport', {'width': 1366, 'height': 768})
+        context_options = {
+            'viewport': viewport,
+            'user_agent': user_agent,
+            'locale': fingerprint.get('locale', 'en-US'),
+            'timezone_id': fingerprint.get('timezone_id', 'America/New_York'),
+            'record_video_dir': None,
+            'storage_state': None,
+        }
+        # Apply proxy if provided
+        if proxy:
+            context_options['proxy'] = {
+                'server': proxy['server'],
+                'username': proxy.get('username'),
+                'password': proxy.get('password')
+            }
+        # Persistent dir
+        user_data_dir = f"/app/runtime/profiles/{profile_id}"
+        os.makedirs(user_data_dir, exist_ok=True)
+        # Create context
+        context = await self.browser.new_context(**context_options)
+        await AntiDetectFingerprint.apply_profile(context, fingerprint)
+        page = await context.new_page()
+        self.sessions[session_id] = {'context': context, 'page': page, 'history': [], 'use_proxy': bool(proxy), 'profile_id': profile_id}
+        logger.info(f"✅ Session from profile created: {session_id} (profile={profile_id})")
+        return {'session_id': session_id, 'status': 'ready', 'profile_id': profile_id}
+
                 logger.info(f"✅ Session using proxy: {proxy['server']} ({proxy['country']})")
             else:
                 logger.warning("Proxy requested but none available, using direct connection")
