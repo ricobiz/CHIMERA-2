@@ -228,6 +228,11 @@ const AIEntryPoint = ({ onClose }) => {
               <span className="text-sm text-gray-400 font-medium">Live Preview</span>
               <button
                 onClick={async () => {
+            <div className="flex items-center gap-2">
+              <button onClick={() => setShowGrid(!showGrid)} className="px-2 py-1 text-xs bg-gray-800/60 hover:bg-gray-700/60 border border-gray-700 rounded text-gray-300">{showGrid ? 'Hide Grid' : 'Show Grid'}</button>
+              <button onClick={() => setShowFullscreen(true)} className="px-2 py-1 text-xs bg-gray-800/60 hover:bg-gray-700/60 border border-gray-700 rounded text-gray-300">Fullscreen</button>
+            </div>
+
                   try {
                     const sessionId = 'auto-'+(Date.now());
                     await automationCreateSession(sessionId, true);
