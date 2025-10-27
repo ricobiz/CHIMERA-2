@@ -54,7 +54,7 @@ class LocalVisionService:
                viewport_w: int,
                viewport_h: int,
                dom_clickables: Optional[List[Dict]] = None,
-               model_path: Optional[str] = None) -> List[Dict]:
+               model_path: Optional[str] = MODEL_PATH) -> List[Dict]:
         """
         Returns list of {cell, bbox:{x,y,w,h}, label, type, confidence}
         """
