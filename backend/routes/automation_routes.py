@@ -314,6 +314,31 @@ async def hold_drag(req: HoldDragRequest):
             "status": "idle",
             "dom_event": {"type": "drag", "from": req.from_cell, "to": req.to_cell}
         }
+
+class ScrollRequest(BaseModel):
+    session_id: str
+    dx: int = 0
+    dy: int = 400
+
+class WaitMsRequest(BaseModel):
+    ms: int = 500
+
+@router.post("/scroll")
+async def do_scroll(req: ScrollRequest):
+    try:
+        result = await browser_service.scroll(req.session_id, req.dx, req.dy)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/wait")
+async def do_wait(req: WaitMsRequest):
+    try:
+        await browser_service.wait(req.ms)
+        return {"ok": True}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
