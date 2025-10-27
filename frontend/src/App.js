@@ -732,9 +732,44 @@ function App() {
       setAnnotateImageUrl(img);
       setShowAnnotator(true);
     };
-    window.onApproveDesign = () => {
+    window.onApproveDesign = async () => {
       setAwaitingDesignApproval(false);
       toast({ title: 'Design Approved', description: 'Proceeding to code generation.' });
+      // Auto-continue to code generation using saved prompt and design spec
+      const prompt = pendingPrompt;
+      const designSpec = pendingDesign;
+      if (!prompt || !designSpec) return;
+      try {
+        setIsGenerating(true);
+        setGenerationStatus('generating');
+        const enhancedPrompt = `${pendingPrompt}\n\n**Design Specification to Follow:**\n${pendingDesign}`;
+        const response = await generateCode(enhancedPrompt, messages, selectedModel);
+        const aiMessage = { role: 'assistant', content: response.message, cost: response.cost };
+        const updatedMessages = [...messages, aiMessage];
+        setMessages(updatedMessages);
+        setGeneratedCode(response.code);
+        let newTotalCost = totalCost;
+        if (response.cost) {
+          newTotalCost = totalCost + response.cost.total_cost;
+          setTotalCost(newTotalCost);
+        }
+        if (currentSessionId) {
+          await updateSession(currentSessionId, { messages: updatedMessages, generated_code: response.code, total_cost: newTotalCost });
+        } else {
+          const session = await createSession({ name: prompt.substring(0, 50), messages: updatedMessages, generated_code: response.code, total_cost: newTotalCost });
+          setCurrentSessionId(session.id);
+        }
+        if (window.innerWidth < 768) setShowPreview(true);
+        setGenerationStatus('success');
+        setTimeout(() => setGenerationStatus('idle'), 3000);
+      } catch (e) {
+        console.error('Code gen after approval failed:', e);
+        setGenerationStatus('error');
+        toast({ title: 'Error', description: 'Failed to generate code after approval.', variant: 'destructive' });
+        setTimeout(() => setGenerationStatus('idle'), 5000);
+      } finally {
+        setIsGenerating(false);
+      }
     };
     return () => {
       window.onAnnotateMockup = null;
