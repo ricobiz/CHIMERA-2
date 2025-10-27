@@ -379,13 +379,86 @@ class AntiDetectFingerprint:
         """
     
     @staticmethod
-    async def apply_fingerprinting_evasion(context: BrowserContext):
-        """Apply anti-detect script to browser context"""
+    def generate_profile(region: str = None) -> dict:
+        import random
+        # Very simple fingerprint generator; can be replaced by richer presets
+        viewport = {
+            "width": random.randint(1280, 1440),
+            "height": random.randint(720, 900)
+        }
+        screen = {
+            "width": viewport["width"],
+            "height": viewport["height"]
+        }
+        profile = {
+            "user_agent": proxy_service.get_random_user_agent() if 'proxy_service' in globals() else "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0 Safari/537.36",
+            "locale": "en-US",
+            "languages": ["en-US", "en"],
+            "timezone_id": "America/New_York",
+            "viewport": viewport,
+            "screen": screen,
+            "platform": "Win32",
+            "hardwareConcurrency": 8,
+            "deviceMemory": 8,
+            "webgl_vendor": "Google Inc.",
+            "webgl_renderer": "ANGLE (Intel, Intel(R) UHD Graphics Direct3D11 vs_5_0 ps_5_0)"
+        }
+        return profile
+
+    @staticmethod
+    async def apply_profile(context, profile: dict) -> bool:
         try:
-            await context.add_init_script(AntiDetectFingerprint.get_anti_detect_script())
-            logger.info("✅ Advanced anti-detect fingerprinting applied")
+            # Viewport and user agent
+            await context.set_extra_http_headers({
+                'Accept-Language': ','.join(profile.get('languages', ['en-US', 'en']))
+            })
+            # Inject JS to override navigator properties + screen
+            js = f"""
+            Object.defineProperty(navigator, 'webdriver', {{ get: () => undefined }});
+            Object.defineProperty(navigator, 'platform', {{ get: () => '{profile.get('platform','Win32')}' }});
+            Object.defineProperty(navigator, 'hardwareConcurrency', {{ get: () => {profile.get('hardwareConcurrency', 8)} }});
+            Object.defineProperty(navigator, 'deviceMemory', {{ get: () => {profile.get('deviceMemory', 8)} }});
+            Object.defineProperty(navigator, 'languages', {{ get: () => {profile.get('languages', ['en-US','en'])} }});
+            Object.defineProperty(navigator, 'language', {{ get: () => '{profile.get('languages', ['en-US'])[0]}' }});
+            // Screen override (best-effort)
+            try {{
+              screen = {{ width: {profile['screen']['width']}, height: {profile['screen']['height']}, availWidth: {profile['screen']['width']}, availHeight: {profile['screen']['height']}, colorDepth: 24, pixelDepth: 24 }};
+            }} catch (e) {{}}
+            // WebGL spoof
+            const getParameter = WebGLRenderingContext.prototype.getParameter;
+            WebGLRenderingContext.prototype.getParameter = function(parameter) {{
+              if (parameter === 37445) return '{profile.get('webgl_vendor','Google Inc.')}';
+              if (parameter === 37446) return '{profile.get('webgl_renderer','ANGLE (Google Inc., Vulkan 1.1)')}';
+              return getParameter(parameter);
+            }};
+            """
+            await context.add_init_script(js)
+            return True
         except Exception as e:
-            logger.error(f"Failed to apply fingerprinting evasion: {e}")
+            logger.error(f"Error applying profile: {e}")
+            return False
+
+    @staticmethod
+    async def apply_fingerprinting_evasion(context):
+        """Apply advanced fingerprinting evasion to browser context"""
+        try:
+            await context.add_init_script(
+                """
+                Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+                window.chrome = { runtime: {} };
+                Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3, 4, 5] });
+                Object.defineProperty(navigator, 'languages', { get: () => ['en-US', 'en'] });
+                const originalQuery = window.navigator.permissions.query;
+                window.navigator.permissions.query = (parameters) => (
+                    parameters.name === 'notifications' ?
+                        Promise.resolve({ state: Notification.permission }) : originalQuery(parameters)
+                );
+                """
+            )
+            return True
+        except Exception as e:
+            logger.error(f"Error applying fingerprinting evasion: {str(e)}")
+            return False
 
 
 class CaptchaSolver:
