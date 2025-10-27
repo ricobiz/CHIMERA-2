@@ -555,32 +555,44 @@ function App() {
   };
 
   const handleDeleteMessage = (index) => {
+    console.log(`🗑️ Deleting message at index ${index} and all after it`);
+    console.log('Before delete - messages count:', messages.length);
+    
     // Delete message at index and all messages after it
-    setMessages(prev => prev.slice(0, index));
+    const newMessages = messages.slice(0, index);
+    setMessages(newMessages);
+    
+    console.log('After delete - messages count:', newMessages.length);
     
     // If we deleted code generation messages, clear generated code
-    const remainingMessages = messages.slice(0, index);
-    const hasCodeGeneration = remainingMessages.some(m => 
+    const hasCodeGeneration = newMessages.some(m => 
       m.role === 'assistant' && m.content.includes('```')
     );
     
     if (!hasCodeGeneration) {
       setGeneratedCode('');
       setShowPreview(false);
+      console.log('🧹 Cleared generated code and preview');
     }
   };
 
   const handleEditMessage = (index, newContent) => {
+    console.log(`✏️ Editing message at index ${index}`);
+    
     // Update message content
     setMessages(prev => {
       const updated = [...prev];
       updated[index] = { ...updated[index], content: newContent };
+      console.log('Updated message:', updated[index]);
       return updated;
     });
     
     // Delete all messages after the edited one (will regenerate)
     setTimeout(() => {
-      setMessages(prev => prev.slice(0, index + 1));
+      const newMessages = messages.slice(0, index + 1);
+      newMessages[index] = { ...newMessages[index], content: newContent };
+      setMessages(newMessages);
+      console.log('After edit - kept messages up to index:', index);
     }, 100);
   };
 
