@@ -137,6 +137,18 @@ Just be {agent_name} - natural, genuine, and conversational."""
         )
         
         assistant_message = response['choices'][0]['message']['content']
+        if is_empty_text(assistant_message):
+            logger.warning("Empty assistant response received; retrying once with lower temperature")
+            # Retry once with lower temperature and short max_tokens
+            response = await openrouter_service.chat_completion(
+                messages=messages,
+                model=request.model,
+                temperature=0.3,
+                max_tokens=512
+            )
+            assistant_message = response['choices'][0]['message']['content'] or ""
+        if is_empty_text(assistant_message):
+            assistant_message = "[No content returned by model]"
         
         return {
             "message": assistant_message,
