@@ -170,6 +170,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ VERIFIED: Chat endpoint working perfectly. Tested sequential messages: (1) 'Hi' - responded naturally (32.6s), (2) 'What is 2+2?' with history - correctly answered '4' (17.8s), (3) 'Tell me a joke' with extended history - provided proper joke (21.2s). All responses unique, no stub messages detected. Model x-ai/grok-code-fast-1 working correctly. User issue appears to be resolved."
+      - working: true
+        agent: "testing"
+        comment: "✅ RE-VERIFIED: User reported issues testing confirmed chat working. Tested 4 sequential messages with openai/gpt-5 model. 3/4 responses valid (one was very short but correct). No stub responses detected. Latency: 4-13 seconds. Resolves user's 'chat not functioning' issue on mobile."
 
   - task: "POST /api/generate-code endpoint - Agent Mode Code Generation"
     implemented: true
