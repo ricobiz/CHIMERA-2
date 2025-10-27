@@ -143,6 +143,16 @@ export default App;
                 resp.raise_for_status()
                 data = resp.json()
             return {
+        except httpx.HTTPStatusError as http_err:
+            try:
+                data = http_err.response.json()
+                logger.error(f"Chat completion HTTP error {http_err.response.status_code}: {data}")
+                # If rate limited or empty content, return safe fallback
+                msg = data.get('error', {}).get('message') if isinstance(data, dict) else str(data)
+            except Exception:
+                msg = str(http_err)
+            raise Exception(f"OpenRouter HTTP error: {msg}")
+
                 'choices': [{
                     'message': {
                         'content': data['choices'][0]['message']['content'] if data.get('choices') else ''
