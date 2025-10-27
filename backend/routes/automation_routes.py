@@ -360,6 +360,14 @@ async def wait_for_element(request: WaitRequest):
 
 
 @router.get("/screenshot/{session_id}")
+async def get_screenshot_endpoint(session_id: str):
+    """Get current page screenshot"""
+    try:
+        result = await browser_service.capture_screenshot(session_id)
+        return {"screenshot_base64": result}
+    except Exception as e:
+        logger.error(f"Error capturing screenshot: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 # ============= Supervisor (Step Brain) =============
 from services.supervisor_service import supervisor_service
