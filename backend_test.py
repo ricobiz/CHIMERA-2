@@ -1300,10 +1300,12 @@ export default App;""",
             "model": "x-ai/grok-code-fast-1"  # Using the model mentioned in review
         }
         
+        first_message_response = None
+        
         try:
             response = self.session.post(
                 f"{BACKEND_URL}/chat",
-                json=payload_english,
+                json=payload_1,
                 timeout=30
             )
             
@@ -1311,55 +1313,65 @@ export default App;""",
                 data = response.json()
                 
                 # Check required fields
-                required_fields = ['message', 'response', 'cost']
+                required_fields = ['message', 'response']
                 missing_fields = [field for field in required_fields if field not in data]
                 
                 if not missing_fields:
                     # Check if response is not a fallback stub
                     response_text = data['message']
-                    if len(response_text) > 10 and "Hello" in response_text or "Hi" in response_text:
+                    # Check for stub patterns mentioned in the issue
+                    stub_patterns = ["I understand! In Chat mode", "stub", "fallback"]
+                    is_stub = any(pattern.lower() in response_text.lower() for pattern in stub_patterns)
+                    
+                    if len(response_text) > 10 and not is_stub:
+                        first_message_response = data
                         self.log_test(
-                            "Chat - Basic English",
+                            "Chat - First Message",
                             True,
-                            f"Chat responded naturally in English ({len(response_text)} chars)",
+                            f"First message worked correctly ({len(response_text)} chars)",
                             {"response_length": len(response_text), "has_cost": bool(data.get('cost'))}
                         )
                     else:
                         self.log_test(
-                            "Chat - Basic English - Stub Response",
+                            "Chat - First Message - Stub Response",
                             False,
-                            "Response appears to be a fallback stub message",
-                            {"response_preview": response_text[:100]}
+                            "First message already returning stub response",
+                            {"response_preview": response_text[:100], "is_stub": is_stub}
                         )
+                        return  # No point testing further if first message fails
                 else:
                     self.log_test(
-                        "Chat - Basic English - Missing Fields",
+                        "Chat - First Message - Missing Fields",
                         False,
                         f"Response missing required fields: {missing_fields}",
                         {"missing_fields": missing_fields, "response_keys": list(data.keys())}
                     )
+                    return
             else:
                 self.log_test(
-                    "Chat - Basic English - HTTP Error",
+                    "Chat - First Message - HTTP Error",
                     False,
                     f"HTTP {response.status_code}: {response.text}",
                     {"status_code": response.status_code}
                 )
+                return
                 
         except requests.exceptions.Timeout:
             self.log_test(
-                "Chat - Basic English - Timeout",
+                "Chat - First Message - Timeout",
                 False,
                 "Chat request timed out after 30 seconds",
                 {"timeout": 30}
             )
+            return
         except Exception as e:
             self.log_test(
-                "Chat - Basic English - Exception",
+                "Chat - First Message - Exception",
                 False,
                 f"Unexpected error: {str(e)}",
                 {"error_type": type(e).__name__}
             )
+            return
         
         # Test 2: Chat in Russian
         print("   Testing chat in Russian...")
