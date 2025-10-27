@@ -114,7 +114,6 @@ async def auto_solve_captcha(session_id: str) -> bool:
             await browser_service.wait(600)
             await observe(session_id)
             log_step(f"CAPTCHA checkbox clicked at {target['cell']}")
-            "profile_id": current_profile_id,
 
             return True
 
