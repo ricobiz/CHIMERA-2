@@ -16,6 +16,42 @@ const AIEntryPoint = ({ onClose }) => {
 
   const [result, setResult] = useState(null);
   const [autoRefresh, setAutoRefresh] = useState(true);
+  const [goal, setGoal] = useState('Register a new Gmail and return login/password');
+  const [logs, setLogs] = useState([]);
+  const [agentStatus, setAgentStatus] = useState('IDLE');
+  const [jobId, setJobId] = useState(null);
+  const [sessionId, setSessionId] = useState(null);
+  const [observation, setObservation] = useState(null);
+  const [askUser, setAskUser] = useState(null);
+  const viewerRef = useRef(null);
+  const [displaySrc, setDisplaySrc] = useState(null);
+  const [pendingSrc, setPendingSrc] = useState(null);
+  const lastUpdateRef = useRef(0);
+  const pollRef = useRef(null);
+
+  // Helper to convert cell (e.g., C7) to percentage within container
+  const cellToPercent = (cell, grid) => {
+    if (!cell || !grid) return { left: 50, top: 50 };
+    const colLetter = cell[0].toUpperCase();
+    const rowNum = parseInt(cell.slice(1), 10);
+    const colIndex = colLetter.charCodeAt(0) - 'A'.charCodeAt(0);
+    const rowIndex = rowNum - 1;
+    const left = ((colIndex + 0.5) / (grid.cols || 8)) * 100;
+    const top = ((rowIndex + 0.5) / (grid.rows || 12)) * 100;
+    return { left, top };
+  };
+
+  // Preload pending screenshot and swap to displaySrc on load for smoothness
+  useEffect(() => {
+    if (!pendingSrc) return;
+    const img = new Image();
+    img.onload = () => {
+      setDisplaySrc(pendingSrc);
+    };
+    img.src = `data:image/png;base64,${pendingSrc}`;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingSrc]);
+
   const [lastAutomation, setLastAutomation] = useState(null);
   const [runMode, setRunMode] = useState('PAUSED');
   const [accessEnabled, setAccessEnabled] = useState(false);
