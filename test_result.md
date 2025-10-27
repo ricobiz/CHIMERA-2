@@ -1236,6 +1236,8 @@ test_plan:
     - ✅ Usage tracking and cost calculation operational
     - ✅ Backend logs show no errors during testing
     
+  - agent: "main"
+    message: "Restored Document Verification access inside Settings: added quick action card that opens the Doc Verification panel. This was not a duplicate and is now back as requested."
     **CONCLUSION:** All Phase 2 backend flows are unaffected and healthy. Image/design endpoints working correctly with google/gemini-2.5-flash-image model. No issues detected."
 
 agent_communication:
