@@ -664,6 +664,27 @@ const Settings = ({ selectedModel, onModelChange, chatModel, onChatModelChange, 
                                 )}
                               </div>
                               <p className="text-[10px] text-gray-600 mb-1.5">{model.id}</p>
+          {/* Document Verification Quick Access */}
+          <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-5">
+            <div className="flex items-start justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <h3 className="text-gray-300 font-semibold text-base">Document Verification</h3>
+              </div>
+              <button
+                onClick={() => onOpenDocVerification && onOpenDocVerification()}
+                className="text-xs px-3 py-1.5 bg-green-700/30 hover:bg-green-700/40 border border-green-600/40 text-green-200 rounded"
+              >
+                Open
+              </button>
+            </div>
+            <p className="text-gray-500 text-sm">
+              Run multi-model verification (GPT‑4o, Claude 3.5 Sonnet, Gemini 2.5 Flash). Upload document images and get official report.
+            </p>
+          </div>
+
                               <div className="flex items-center gap-2">
                                 <span className="text-[10px] text-gray-600 font-mono">
                                   {isFree ? 'No cost' : `$${(model.pricing.prompt * 1000000).toFixed(2)}/M`}
