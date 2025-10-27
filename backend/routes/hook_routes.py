@@ -243,7 +243,6 @@ async def run_task_loop(job_id: str, goal_text: str):
             # Handle needs_user_input only for phone/2FA
             if decision.get('needs_user_input'):
                 ask = (decision.get('ask_user') or '').lower()
-            "history_steps": history_steps,
 
                 if any(k in ask for k in ['phone', 'sms', '2fa', 'code', 'номер', 'смс']):
                     agent_status = "WAITING_USER"
