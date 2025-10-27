@@ -132,6 +132,7 @@ Just be {agent_name} - natural, genuine, and conversational."""
         return {
             "message": assistant_message,
             "response": assistant_message,
+            "usage": response.get('usage', {}),
             "cost": response.get('usage', {}),
             "ai_name": agent_name,
             "user_name": user_name,
