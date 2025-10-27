@@ -122,6 +122,10 @@ class BrowserAutomationService:
         # Persistent dir
         user_data_dir = f"/app/runtime/profiles/{profile_id}"
         os.makedirs(user_data_dir, exist_ok=True)
+        # Load storage_state if exists
+        storage_path = f"/app/runtime/profiles/{profile_id}/storage_state.json"
+        if os.path.exists(storage_path):
+            context_options['storage_state'] = storage_path
         # Create context
         context = await self.browser.new_context(**context_options)
         await AntiDetectFingerprint.apply_profile(context, fingerprint)
