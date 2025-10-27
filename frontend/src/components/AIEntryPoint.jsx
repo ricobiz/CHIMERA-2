@@ -484,6 +484,9 @@ Example: Register new Gmail account, bypass CAPTCHA, return login/password and c
                 )}
                 <button
                   onClick={loadResult}
+      {/* Needs user input modal (phone/2FA only) - placeholder wiring; will show when backend sets WAITING_USER */}
+      {/* This can be conditionally rendered based on a new flag from /api/hook/log that indicates needs_user_input=true */}
+
                   className="w-full px-3 py-2 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-600/50 text-blue-400 rounded text-sm font-medium transition-colors"
                 >
                   Refresh Result
