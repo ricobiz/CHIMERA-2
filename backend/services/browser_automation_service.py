@@ -110,7 +110,7 @@ class BrowserAutomationService:
             'locale': fingerprint.get('locale', 'en-US'),
             'timezone_id': fingerprint.get('timezone_id', 'America/New_York'),
             'record_video_dir': None,
-            'storage_state': None,
+            'storage_state': None,  # will be overridden by profile storage_state if exists
         }
         # Apply proxy if provided
         if proxy:
