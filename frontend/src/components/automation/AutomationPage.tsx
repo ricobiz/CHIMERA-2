@@ -221,6 +221,10 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
             <button onClick={quickNavigate} className="px-2 py-1 text-xs bg-blue-800/60 hover:bg-blue-700/60 border border-blue-700 rounded text-blue-300">Go</button>
           </div>
 
+        {quickError && (
+          <div className="absolute bottom-2 left-2 right-2 text-[11px] text-red-300 bg-red-900/30 border border-red-800 rounded px-2 py-1">{quickError}</div>
+        )}
+
           {displaySrc ? (
             <img src={`data:image/png;base64,${displaySrc}`} alt="screenshot" className="max-w-full max-h-full object-contain" />
           ) : (
