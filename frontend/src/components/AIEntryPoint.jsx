@@ -217,6 +217,57 @@ const AIEntryPoint = ({ onClose }) => {
               <p className="text-xs md:text-sm text-gray-400">Universal gateway between orchestrator AI and execution agent</p>
             </div>
           </div>
+          {/* Live Preview + Vision */}
+          <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-4">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm text-gray-400 font-medium">Live Preview</span>
+              <button
+                onClick={async () => {
+                  try {
+                    const sessionId = 'auto-'+(Date.now());
+                    await automationCreateSession(sessionId, true);
+                    await automationNavigate(sessionId, 'https://accounts.google.com/signup');
+                    const shot = await automationScreenshot(sessionId);
+                    setLogs(prev => [...prev, { ts: Date.now(), step: prev.length+1, action: 'Session initialized & navigated', status: 'ok' }]);
+                    setLastAutomation({ sessionId, ...shot });
+                  } catch (e) {
+                    alert('Automation init failed: '+ e.message);
+                  }
+                }}
+                className="px-3 py-1.5 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-600/40 text-blue-400 rounded text-xs"
+              >Start Session</button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="border border-gray-800 rounded p-2 bg-black/50">
+                {lastAutomation?.screenshot_base64 ? (
+                  <img
+                    src={`data:image/png;base64,${lastAutomation.screenshot_base64}`}
+                    alt="screenshot"
+                    className="w-full object-contain rounded"
+                  />
+                ) : (
+                  <div className="text-xs text-gray-600 text-center py-8">No screenshot</div>
+                )}
+              </div>
+              <div className="border border-gray-800 rounded p-2">
+                <div className="text-xs text-gray-500 mb-2">Vision Elements</div>
+                <div className="max-h-64 overflow-y-auto">
+                  {(lastAutomation?.vision || []).map((v, idx) => (
+                    <div key={idx} className="text-xs text-gray-300 flex gap-2 py-1 border-b border-gray-800/50">
+                      <span className="text-gray-500 w-10">{v.cell}</span>
+                      <span className="flex-1 truncate">{v.label}</span>
+                      <span className="text-gray-400 w-20">{v.type}</span>
+                      <span className="text-gray-500 w-12">{(v.confidence*100|0)}%</span>
+                    </div>
+                  ))}
+                  {(!lastAutomation?.vision || lastAutomation.vision.length===0) && (
+                    <div className="text-xs text-gray-600 text-center py-6">No vision data</div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
 
