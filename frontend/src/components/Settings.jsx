@@ -9,7 +9,7 @@ import { toast } from '../hooks/use-toast';
 import { CodeIcon, EyeIcon } from './Icons';
 import KnowledgeBase from './KnowledgeBase';
 
-const Settings = ({ selectedModel, onModelChange, chatModel, onChatModelChange, onClose, visualValidatorEnabled, onVisualValidatorToggle, visualValidatorModel, onVisualValidatorModelChange, researchPlannerEnabled, onResearchPlannerToggle, researchPlannerModel, onResearchPlannerModelChange }) => {
+const Settings = ({ selectedModel, onModelChange, chatModel, onChatModelChange, onClose, onOpenDocVerification, visualValidatorEnabled, onVisualValidatorToggle, visualValidatorModel, onVisualValidatorModelChange, researchPlannerEnabled, onResearchPlannerToggle, researchPlannerModel, onResearchPlannerModelChange }) => {
   const [models, setModels] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
