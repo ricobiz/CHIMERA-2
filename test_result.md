@@ -1214,6 +1214,8 @@ test_plan:
     - ✅ Model: google/gemini-2.5-flash-image working correctly  
     - ✅ Generated mockup data (125 chars, text_description type)
     - ✅ Properly uses design_spec from generate-design endpoint
+  - agent: "main"
+    message: "Removed duplicate Quick Functions menu from the header. All quick functions are now consolidated under the Settings menu to avoid duplication with the square button UI."
     - ✅ Complete design-first workflow functional
     
     **✅ POST /api/revise-design - WORKING PERFECTLY:**
