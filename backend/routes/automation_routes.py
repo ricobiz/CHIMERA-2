@@ -361,10 +361,22 @@ async def wait_for_element(request: WaitRequest):
 
 @router.get("/screenshot/{session_id}")
 async def get_screenshot_endpoint(session_id: str):
-    """Get current page screenshot"""
+    """Get current page screenshot with vision data"""
     try:
-        result = await browser_service.capture_screenshot(session_id)
-        return {"screenshot_base64": result}
+        if session_id not in browser_service.sessions:
+            raise HTTPException(status_code=404, detail=f"Session {session_id} not found")
+        
+        page = browser_service.sessions[session_id]['page']
+        await browser_service._inject_grid_overlay(page)
+        dom_data = await browser_service._collect_dom_clickables(page)
+        screenshot_b64 = await browser_service.capture_screenshot(session_id)
+        vision = await browser_service._augment_with_vision(screenshot_b64, dom_data)
+        
+        return {
+            "screenshot_base64": screenshot_b64,
+            "vision": vision,
+            "grid": {"rows": browser_service.grid_rows, "cols": browser_service.grid_cols}
+        }
     except Exception as e:
         logger.error(f"Error capturing screenshot: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
