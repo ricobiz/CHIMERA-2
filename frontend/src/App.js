@@ -743,6 +743,8 @@ function App() {
         <Settings 
           selectedModel={selectedModel}
           onModelChange={setSelectedModel}
+          chatModel={chatModel}
+          onChatModelChange={setChatModel}
           onClose={() => setShowSettings(false)}
           visualValidatorEnabled={visualValidatorEnabled}
           onVisualValidatorToggle={setVisualValidatorEnabled}
