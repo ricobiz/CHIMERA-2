@@ -186,6 +186,114 @@ async def smart_type_text(request: SmartTypeRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+
+@router.get("/screenshot")
+async def screenshot_query(session_id: str):
+    try:
+        # get screenshot + dom clickables and vision mapping
+        if session_id not in browser_service.sessions:
+            raise HTTPException(status_code=404, detail=f"Session {session_id} not found")
+        page = browser_service.sessions[session_id]['page']
+        # ensure overlay
+        await browser_service._inject_grid_overlay(page)
+        dom_data = await browser_service._collect_dom_clickables(page)
+        screenshot_b64 = await browser_service.capture_screenshot(session_id)
+        vision = await browser_service._augment_with_vision(screenshot_b64, dom_data)
+        return {
+            "screenshot_base64": screenshot_b64,
+            "grid": {"rows": browser_service.grid_rows, "cols": browser_service.grid_cols},
+            "vision": vision,
+            "status": "idle"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/click-cell")
+async def click_cell(req: ClickCellRequest):
+    try:
+        if req.session_id not in browser_service.sessions:
+            raise HTTPException(status_code=404, detail=f"Session {req.session_id} not found")
+        session = browser_service.sessions[req.session_id]
+        page = session['page']
+        await browser_service._inject_grid_overlay(page)
+        # compute coordinates
+        dom_data = await browser_service._collect_dom_clickables(page)
+        vw, vh = dom_data.get('vw', 1280), dom_data.get('vh', 800)
+        from services.grid_service import GridConfig
+        grid = GridConfig(rows=browser_service.grid_rows, cols=browser_service.grid_cols)
+        x, y = grid.cell_to_xy(req.cell, vw, vh)
+        # human-like move+click
+        from services.anti_detect import HumanBehaviorSimulator
+        await HumanBehaviorSimulator.human_click(page, x, y)
+        screenshot_b64 = await browser_service.capture_screenshot(req.session_id)
+        vision = await browser_service._augment_with_vision(screenshot_b64, dom_data)
+        return {
+            "screenshot_base64": screenshot_b64,
+            "grid": {"rows": browser_service.grid_rows, "cols": browser_service.grid_cols},
+            "vision": vision,
+            "status": "idle",
+            "dom_event": {"type": "click", "x": x, "y": y, "cell": req.cell}
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/type-at-cell")
+async def type_at_cell(req: TypeAtCellRequest):
+    try:
+        if req.session_id not in browser_service.sessions:
+            raise HTTPException(status_code=404, detail=f"Session {req.session_id} not found")
+        session = browser_service.sessions[req.session_id]
+        page = session['page']
+        await browser_service._inject_grid_overlay(page)
+        dom_data = await browser_service._collect_dom_clickables(page)
+        vw, vh = dom_data.get('vw', 1280), dom_data.get('vh', 800)
+        from services.grid_service import GridConfig
+        grid = GridConfig(rows=browser_service.grid_rows, cols=browser_service.grid_cols)
+        x, y = grid.cell_to_xy(req.cell, vw, vh)
+        from services.anti_detect import HumanBehaviorSimulator
+        await HumanBehaviorSimulator.human_move(page, x, y)
+        await page.mouse.click(x, y)
+        await page.keyboard.type(req.text, delay=50)
+        screenshot_b64 = await browser_service.capture_screenshot(req.session_id)
+        vision = await browser_service._augment_with_vision(screenshot_b64, dom_data)
+        return {
+            "screenshot_base64": screenshot_b64,
+            "grid": {"rows": browser_service.grid_rows, "cols": browser_service.grid_cols},
+            "vision": vision,
+            "status": "idle",
+            "dom_event": {"type": "type", "x": x, "y": y, "cell": req.cell, "text": req.text[:20]}
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/hold-drag")
+async def hold_drag(req: HoldDragRequest):
+    try:
+        if req.session_id not in browser_service.sessions:
+            raise HTTPException(status_code=404, detail=f"Session {req.session_id} not found")
+        session = browser_service.sessions[req.session_id]
+        page = session['page']
+        await browser_service._inject_grid_overlay(page)
+        dom_data = await browser_service._collect_dom_clickables(page)
+        vw, vh = dom_data.get('vw', 1280), dom_data.get('vh', 800)
+        from services.grid_service import GridConfig
+        grid = GridConfig(rows=browser_service.grid_rows, cols=browser_service.grid_cols)
+        sx, sy = grid.cell_to_xy(req.from_cell, vw, vh)
+        ex, ey = grid.cell_to_xy(req.to_cell, vw, vh)
+        from services.anti_detect import HumanBehaviorSimulator
+        await HumanBehaviorSimulator.human_drag(page, sx, sy, ex, ey)
+        screenshot_b64 = await browser_service.capture_screenshot(req.session_id)
+        vision = await browser_service._augment_with_vision(screenshot_b64, dom_data)
+        return {
+            "screenshot_base64": screenshot_b64,
+            "grid": {"rows": browser_service.grid_rows, "cols": browser_service.grid_cols},
+            "vision": vision,
+            "status": "idle",
+            "dom_event": {"type": "drag", "from": req.from_cell, "to": req.to_cell}
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.post("/wait")
 async def wait_for_element(request: WaitRequest):
     """Wait for element to appear"""
