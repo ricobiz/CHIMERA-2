@@ -12,6 +12,7 @@ const AIEntryPoint = ({ onClose }) => {
   const [currentTask, setCurrentTask] = useState('');
   const [result, setResult] = useState(null);
   const [autoRefresh, setAutoRefresh] = useState(true);
+  const [lastAutomation, setLastAutomation] = useState(null);
   const [runMode, setRunMode] = useState('PAUSED');
   const [accessEnabled, setAccessEnabled] = useState(false);
   const [sessionLink, setSessionLink] = useState('');
