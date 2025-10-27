@@ -21,11 +21,13 @@ class SimpleMemoryService:
         self.db = None
         
     async def initialize(self):
-        """Initialize MongoDB connection"""
+        """Initialize MongoDB connection using shared client"""
         if not self.client:
-            self.client = AsyncIOMotorClient(self.mongo_url)
-            self.db = self.client[self.db_name]
-            logger.info("✅ Simple memory service initialized (MongoDB only)")
+            # Use shared MongoDB connection from server
+            from server import client as shared_client, db as shared_db
+            self.client = shared_client
+            self.db = shared_db
+            logger.info("✅ Simple memory service initialized (using shared MongoDB client)")
     
     async def store_conversation(self, session_id: str, user_message: str, 
                                  assistant_message: str, metadata: Dict = None):
