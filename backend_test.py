@@ -1285,16 +1285,19 @@ export default App;""",
                 {"error_type": type(e).__name__}
             )
     
-    def test_chat_endpoint(self):
-        """Test POST /api/chat endpoint - Chat conversation mode"""
-        print("\n🧪 Testing Chat Endpoint...")
+    def test_chat_endpoint_critical_flow(self):
+        """Test POST /api/chat endpoint - CRITICAL STUCK TASK (stuck_count: 2)"""
+        print("\n🧪 Testing Chat Endpoint - CRITICAL SEQUENTIAL MESSAGES...")
         
-        # Test 1: Basic chat in English
-        print("   Testing basic chat in English...")
-        payload_english = {
+        # Test the specific issue: Only first message works, subsequent return stub
+        # This is the CRITICAL issue mentioned in review request
+        
+        # Test 1: First message
+        print("   Testing first chat message...")
+        payload_1 = {
             "message": "Hello, how are you?",
             "history": [],
-            "model": "anthropic/claude-3.5-sonnet"
+            "model": "x-ai/grok-code-fast-1"  # Using the model mentioned in review
         }
         
         try:
