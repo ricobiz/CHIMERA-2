@@ -1,136 +1,90 @@
 <analysis>
-The previous AI engineer successfully brought the Chimera AIOS application from an MVP state to a more robust, feature-rich version. Key achievements include implementing multilingual support (English/Russian) and knowledge base integration, thoroughly resolving memory leaks in , and fixing critical compilation errors in . A significant portion of the work involved making the application production-ready by refactoring  to remove unscalable ML dependencies (Torch, ChromaDB) and adjusting backend components accordingly.
+The AI engineer successfully enhanced the Chimera AIOS from MVP by implementing multilingual support, resolving memory leaks, and refactoring the  for production readiness. A major focus was the Browser Automation system, introducing a , , and vision-based / actions, alongside anti-detect measures. Extensive UI/UX refinements for mobile responsiveness were applied across multiple frontend components.
 
-The engineer then embarked on a major overhaul of the Browser Automation system based on a detailed technical specification. This included introducing a , defining a , implementing post-action validation, expanding mission statuses (, , ), generating , incorporating  measures in Playwright, and creating / actions for vision-based element interaction. The work also involved substantial UI/UX refinements for mobile responsiveness across several pages like , , , , and , particularly addressing scrolling, overflow, and keyboard adaptability. The current focus is on refining the  layout.
+Throughout the trajectory, the engineer addressed critical bugs, including fixing Document Verification's backend JSON parsing, re-integrating a multi-model approach, and implementing Webshare.io proxy and advanced anti-detect features for automation. Significant effort was also put into fixing frontend chat message persistence, regeneration, and correcting model assignments. The work was iterative, often requiring re-evaluation due to user feedback and discovering unintended breaks in existing functionality, such as the complete removal of essential memory services and MongoDB client issues. The ongoing task involves developing a proper design-first workflow and granular model assignment.
 </analysis>
 
 <product_requirements>
-The Chimera AIOS is an AI code generation tool with a dark theme, OpenRouter integration, live preview, and mobile responsiveness. It features a minimalist UI, dynamic inputs, and a stop button.
-Core functionalities include:
-- A floating Preview button, Chat/Agent mode toggle, auto development plan, and visual validation.
-- Backend differentiation of chat/agent modes and state preservation.
-- Settings for API keys.
-Implemented features:
-- **Research Planner, Browser Automation**: Uses Playwright, AI memory, and thinking service. Recently updated with vision-based /, anti-detect, and a Supervisor/Mission Orchestrator.
-- **Dynamic Context Management**: Manages OpenRouter model limits.
-- **Document Verification**: Validates authenticity and AI generation using various LLMs (GPT-5, Claude 4.5 Sonnet, Google Vision).
-- **Self-Improvement System**: Views, modifies, optimizes code using advanced LLMs; includes automated model selection.
-- **Branding**: Chimera AIOS with an animated logo, Chimera AI text in chat.
-- **Mobile UI**: Fixed chat overflow, Automation page scroll, back buttons, and input field adaptability to keyboard.
-- **AI Entry Point**: Universal gateway for task input, real-time execution logs, agent control, and live status indicator, now with external access link generation.
-- **Personalized Chat**: AI introduction, user name input, natural language.
-- **Content Folder**: Icon for session-specific generated content.
-- **Platform Capabilities**: Expandable descriptions replacing chat examples.
-- **Knowledge Base**: Detailed functional documentation, now integrated with multilingual support.
-- **Internationalization**: Full support for English and Russian languages, integrated into Settings and Knowledge Base.
-- **Deployment Readiness**: Removed ML-heavy RAG memory (ChromaDB, Torch, Transformers) to enable deployment, maintaining core task state in MongoDB.
+The Chimera AIOS is an AI code generation tool with a dark theme, OpenRouter integration, live preview, and mobile responsiveness. It features a minimalist UI, dynamic inputs, and a stop button. Key functionalities include a floating Preview button, Chat/Agent mode toggle, auto development plan, and visual validation. Backend differentiates chat/agent modes and preserves state. Settings manage API keys.
+Implemented features include: Research Planner, Browser Automation (now with vision-based /, anti-detect, Webshare proxies, and a Supervisor/Mission Orchestrator), Dynamic Context Management, Document Verification (now with multi-model analysis and official report UX), Self-Improvement System, Branding, comprehensive Mobile UI fixes, AI Entry Point (with external access link generation), Personalized Chat (AI introduction, user name input, natural language), Content Folder, Platform Capabilities, Knowledge Base with multilingual support (English/Russian), and deployment readiness by removing ML-heavy RAG memory. Users also requested auto-testing for all systems.
 </product_requirements>
 
 <key_technical_concepts>
-- **Full-stack:** React (frontend), FastAPI (backend), MongoDB (database).
-- **LLM Integration:** OpenRouter API (gpt-5-turbo-pro-max, Claude 3.5/4.5 Sonnet, gemini-2.5-flash-image, gemini-2.5-nano-banana, Grok 1 code fast), Gemini Vision.
+- **Full-stack:** React, FastAPI, MongoDB.
+- **LLM Integration:** OpenRouter API (GPT-4o, Claude 3.5 Sonnet/4.5, Gemini 2.5 Flash Image, Grok Code Fast 1).
 - **UI/Styling:** Tailwind CSS, Shadcn UI, Dynamic Viewport Height (dvh).
 - **API Interaction:** Axios (frontend), httpx (backend).
-- **Browser Automation:** Playwright (backend), , , , , .
-- **Vision Models:** Local vision model (removed for deployment), Gemini Vision (integrated via OpenRouter for smart actions).
-- **AI Memory:** Vector database (Qdrant, removed ChromaDB, state in MongoDB).
-- **Internationalization:** i18next (config, locale files).
+- **Browser Automation:** Playwright, , , , , , .
+- **Internationalization:** i18next.
+- **Session Management:** LocalStorage, UUIDs for sessions.
 </key_technical_concepts>
 
 <code_architecture>
 
--   ****: Added  and  Pydantic models for structured logging of automation missions.
--   ****: Removed , usage: transformers <command> [<args>]
-
-positional arguments:
-  {chat,convert,download,env,run,serve,add-new-model-like,add-fast-image-processor}
-                        transformers command helpers
-    convert             CLI tool to run convert model from original author
-                        checkpoints to Transformers PyTorch checkpoints.
-    run                 Run a pipeline through the CLI
-
-options:
-  -h, --help            show this help message and exit, ,  to eliminate ML dependencies.
--   ****: Added a direct endpoint  for navigation validation and ensured proper router inclusion.
--   ****: Expanded with new Pydantic models and endpoints for  and , allowing vision-based interaction.
--   ****: Modified to comment out usage of .
--   ****: Updated to integrate with , return  in  endpoint, and added  endpoint for .
--   ****: Entirely commented out to disable semantic RAG memory.
--   ****: File content was commented out/removed.
--   ****: Added  and  methods (with random delays and post-checks) and incorporated Playwright anti-detect flags in . Usage of  was commented out.
--   ****: Modified to comment out usage of  and fixed an indentation error.
--   ****: File content was commented out/removed.
--   ** (NEW)**: Created as the Mission Orchestrator layer to manage mission goals, retries, status, and reporting.
--   ****: Modified to comment out usage of .
--   ****: Removed  and related meta tags after they caused global UI issues, reverting to a standard viewport configuration.
--   ****: Increased  timeout. Integrated  and passed . Fixed memory leaks by introducing  and / for / calls. Updated main container to use  for keyboard adaptability. Added logic to hide the floating Preview button when settings are open.
--   ****: Updated to support new action types: , , .
--   ****: Expanded  enum to include , , , and updated interfaces for the unified step result contract.
--   ****: Modified to return a comprehensive unified validation response (including , , ) instead of a simple boolean, replacing  with backend vision API calls for navigation validation.
--   ****: Enhanced for scrolling, Back button, and generation/toggle of external access links. Applied  for keyboard adaptability. Added .
--   ****: Adjusted  and  to resolve nested scrolling issues.
--   ****: Updated for mobile responsiveness, correct scrolling, and dynamic viewport units ().  was removed and replaced with more adaptive CSS. Added . Currently undergoing further restructuring for viewport-first layout.
--   ****: Adjusted  to resolve nested scrolling issues.
--   ****: Fixed duplicate declaration of . Adjusted input area for keyboard adaptability using .
--   ****: Adjusted Back button size for better mobile adaptation.
--   ** (NEW)**: Created for detailed functional documentation, now supports multilingual content.
--   ****: Adjusted button sizes for better mobile adaptation.
--   ****: Added Language tab and Knowledge Base button with language switching functionality. Fixed horizontal overflow by adding  and making tabs scrollable. Applied  for keyboard adaptability.
--   ** (NEW)**: Configuration file for i18n.
--   ** (NEW)**: English translation file.
--   ** (NEW)**: Russian translation file.
--   ****: Added global CSS for safe areas () and scrollbar hiding for tabs, then reverted global safe-area CSS to be more targeted.
--   ****: Updated to import and configure i18n.
--   ****: Fixed hardcoded  reference.
--   ****: Added  API call.
+-   ****: Added .
+-   ****: Added , , , , .
+-   ****: Ensures single MongoDB client instance for all services. Registered , , .
+-   ****: Expanded  with  flag; added  endpoint; included session re-creation logic to prevent loss on backend reload.
+-   ****: Fixed  parsing error (was string, expected dict). Filtered messages to only send  and  to backend. Updated chat model to . Integrated  for customization.
+-   ****: Rewritten to support multi-model (GPT-4o, Claude 3.5 Sonnet, Gemini Vision) analysis; robust JSON parsing, unified  format for vision models, and single MongoDB client.
+-   ****: Added endpoints for  and  for a design-first workflow.
+-   ****: Re-enabled (was commented out) with a simple memory service.
+-   ****: Model list dynamically retrieved from OpenRouter. Grok model name updated to .
+-   ** (NEW)**: Created for agent name generation and user personalization data, using a single MongoDB client.
+-   ** (NEW)**: Endpoint to check and rotate proxy status.
+-   ****: Ensured correct registration in  and correct API path. Removed problematic MongoDB client instantiation.
+-   ** (NEW)**: Started for automated system testing.
+-   ** (NEW)**: Module implementing modern anti-detect techniques (browser fingerprinting, human-like mouse/keyboard).
+-   ****: Integrated  (User-Agent rotation, proxy usage),  features, human-like / methods, and a  method.
+-   ** (NEW)**: Replaced previous RAG-heavy  with a basic, MongoDB-backed memory without ML dependencies, using a single MongoDB client.
+-   ****: Refined  to filter message data for backend. Added  for persistent message history and session ID. Implemented , ,  handlers. Added state for . Fixed  error by checking . Default chat model was using  (Grok); needs to be separated.
+-   ****: Added , ,  props. Fixed syntax error ( redeclaration).
+-   ****: Updated UI to show a simple verdict indicator initially, with detailed analysis on click. Implemented an official report view.
 </code_architecture>
 
 <pending_tasks>
 - Full implementation and re-integration of code export.
 - Full implementation of the Visual Validator (beyond navigation validation).
-- Robust session saving and loading.
 - Complete  context compression logic testing.
 - Implement the core logic for Self-Improvement code modification.
 - Verify context window, cost, and OpenRouter balance display.
-- Complete comprehensive automation testing.
+- Complete comprehensive automation testing (as per user's detailed request).
 - Implement the UI flag .
 - Implement  collection in Mongo for  persistence and .
 - Refine the  UI to prioritize the viewport and compact controls.
+- Implement UI for agent personalization (agent name generation, user name input).
+- Implement UI for design workflow (showing mockup images, Approve/Request Changes buttons).
+- Implement UI for IP Reputation Check in Automation page.
+- Implement photo recognition for generated images with metadata extraction for Document Verification.
 </pending_tasks>
 
 <current_work>
-Immediately before this summary, the AI engineer was engaged in a multi-faceted UI/UX refinement cycle, specifically addressing mobile responsiveness issues that emerged after significant feature additions. The most recent task involved correcting persistent layout and scrolling problems on the , , , , and  components.
+Immediately before this summary, the AI engineer was engaged in a multi-faceted debugging and feature implementation cycle driven by extensive user feedback.
 
-Specifically, the engineer:
-1.  **Resolved a critical build error** in  ().
-2.  **Implemented multilingual support** for Russian and English, integrating it into , , and providing / translation files.
-3.  **Fixed several memory leaks** in  related to  and  by ensuring proper cleanup using  and .
-4.  **Addressed deployment blockers** by removing ML-heavy semantic RAG components (, usage: transformers <command> [<args>]
+The most recent work focused on addressing critical system failures and implementing new user-requested features:
 
-positional arguments:
-  {chat,convert,download,env,run,serve,add-new-model-like,add-fast-image-processor}
-                        transformers command helpers
-    convert             CLI tool to run convert model from original author
-                        checkpoints to Transformers PyTorch checkpoints.
-    run                 Run a pipeline through the CLI
+1.  **Resolved Model Assignment Issues:** The user reported that the chat model and code generation model were incorrectly assigned and often defaulted to . The engineer identified that  was using a single  for both.
+    *   **Action:** Updated  to use  as requested for the chat (planner) model, separating it from the code generation model.
+    *   **Problem:** The frontend  still uses  for both. This requires a new state and logic for a dedicated chat model selection on the frontend.
 
-options:
-  -h, --help            show this help message and exit, , ) and commenting out related backend services (, , , and their usages in , , ), making the application ready for deployment on Emergent's infrastructure.
-5.  **Initiated a major overhaul of the automation system** based on a detailed specification, including:
-    *   Creating  as a mission orchestrator.
-    *   Adding  features and random delays to Playwright in .
-    *   Defining  and  models in .
-    *   Updating  to expose  and a  endpoint.
-    *   Extending , , , and  to support new vision-based / actions and a .
-6.  **Addressed multiple UI/UX issues** reported by the user regarding mobile responsiveness, including:
-    *   Attempting to fix  scrolling (multiple iterations), , and .
-    *   Adjusting the chat input field to adapt to the on-screen keyboard using  and  units in , , , , and .
-    *   Fixing horizontal overflow in  by adding  and making tabs scrollable.
-    *   Adjusting button sizes in  and  for mobile.
-    *   Hiding the floating Preview button in  when the  panel is open to prevent horizontal overflow.
-The current work specifically addresses the user's latest feedback on the  having a static top half, overly large input fields, and controls. The engineer has begun to re-structure  to make the viewport the primary element with compact controls and is currently examining the  component.
+2.  **Addressing Automated Test Suite Request:** The user requested a comprehensive automated test for all core functionalities.
+    *   **Action:** Started creating a  file to house endpoints for triggering these automated tests. This is currently an empty file that has just been created and registered.
+
+3.  **Chat Functionality Fixes:** The chat system repeatedly broke, showing only a fallback message or failing to persist.
+    *   **Actions:** Implemented  for message persistence and session ID generation in . Fixed  error in  by validating API responses. Corrected message payload filtering in  to ensure only  and  are sent to the backend, matching  expectations. Fixed a bug where  was a string instead of a dict in .
+
+4.  **System Instability and MongoDB:** The system suffered from frequent context loss and timeouts, eventually diagnosed as multiple MongoDB client instantiations.
+    *   **Action:**  identified multiple MongoDB clients. The engineer refactored , , and  to use a single MongoDB client from , resolving the instability.
+
+5.  **Memory Restoration:** The user highlighted that all memory, not just RAG, was removed.
+    *   **Action:** Restored basic, non-ML-heavy memory functionality by creating  and re-enabling .
+
+6.  **Automation Service Stability:** Automation sessions were lost on backend reloads.
+    *   **Action:** Added session re-creation logic in  to handle cases where an in-memory session might be lost.
+
+The very last action in the trajectory was creating  and registering it, as part of setting up the automated test suite and addressing the model assignment for chat/code generation.
 </current_work>
 
 <optional_next_step>
-Continue restructuring  to make the browser viewport the main interactive area and compact the controls section as per the user's request.
+Define a separate state in  for the chat model, distinct from the code generation model, and update  to reflect this.
 </optional_next_step>

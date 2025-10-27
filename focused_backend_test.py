@@ -10,7 +10,7 @@ import time
 from datetime import datetime
 
 # Backend URL from frontend/.env
-BACKEND_URL = "https://smart-browser-5.preview.emergentagent.com/api"
+BACKEND_URL = "https://chimera-aios.preview.emergentagent.com/api"
 
 class FocusedBackendTester:
     def __init__(self):
