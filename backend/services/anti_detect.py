@@ -391,7 +391,7 @@ class AntiDetectFingerprint:
             "height": viewport["height"]
         }
         profile = {
-            "user_agent": proxy_service.get_random_user_agent() if 'proxy_service' in globals() else "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0 Safari/537.36",
+            "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0 Safari/537.36",
             "locale": "en-US",
             "languages": ["en-US", "en"],
             "timezone_id": "America/New_York",
