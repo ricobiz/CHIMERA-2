@@ -153,15 +153,8 @@ async def save_personalization(request: SavePersonalizationRequest):
 async def get_personalization(user_id: str):
     """Get personalization data for a user"""
     try:
-        # Import here to avoid circular import
-        import sys
-        import os
-        sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-        
-        from motor.motor_asyncio import AsyncIOMotorClient
-        mongo_url = os.environ['MONGO_URL']
-        client = AsyncIOMotorClient(mongo_url)
-        db = client[os.environ['DB_NAME']]
+        # Use shared DB connection from server
+        from server import db
         
         personalization = await db.personalizations.find_one({"user_id": user_id})
         
