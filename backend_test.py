@@ -1659,10 +1659,10 @@ export default App;""",
                     if data['session_id'] == session_id and data['status'] == 'ready':
                         self.created_automation_session_id = session_id
                         self.log_test(
-                            "Browser Automation - Create Session",
+                            "Browser Automation - Create Session with Proxy",
                             True,
-                            f"Session created successfully: {session_id}",
-                            {"session_id": session_id, "status": data['status']}
+                            f"Session with proxy created successfully: {session_id}",
+                            {"session_id": session_id, "status": data['status'], "proxy_enabled": True}
                         )
                     else:
                         self.log_test(
