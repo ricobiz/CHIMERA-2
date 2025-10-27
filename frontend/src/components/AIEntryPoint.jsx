@@ -253,6 +253,13 @@ const AIEntryPoint = ({ onClose }) => {
                   <img
                     src={`data:image/png;base64,${lastAutomation.screenshot_base64}`}
                     alt="screenshot"
+                {showGrid && (
+                  <div className="absolute inset-0 pointer-events-none">
+                    {/* simple CSS grid overlay */}
+                    <div className="w-full h-full" style={{ backgroundImage: `linear-gradient(rgba(200,200,200,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(200,200,200,0.08) 1px, transparent 1px)`, backgroundSize: `${(lastAutomation?.grid?.cols ? 100/lastAutomation.grid.cols : 12.5)}% ${(lastAutomation?.grid?.rows ? 100/lastAutomation.grid.rows : 8.333)}%`}} />
+                  </div>
+                )}
+
                     className="w-full object-contain rounded"
                   />
                 ) : (
