@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
-const BASE_URL: string = (import.meta as any)?.env?.REACT_APP_BACKEND_URL || (process as any)?.env?.REACT_APP_BACKEND_URL || '';
+const BASE_URL: string = (import.meta as any)?.env?.REACT_APP_BACKEND_URL || '';
 
 type LogEntry = { ts: number; step: number; action: string; status?: 'ok'|'error'|'warning'|'info'; error?: string };
 
