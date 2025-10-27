@@ -330,6 +330,34 @@ async def wait_for_element(request: WaitRequest):
 
 
 @router.get("/screenshot/{session_id}")
+
+# ============= Supervisor (Step Brain) =============
+from services.supervisor_service import supervisor_service
+from pydantic import BaseModel
+from typing import List
+
+class NextStepRequest(BaseModel):
+    goal: str
+    history: List[Dict[str, Any]] = []
+    screenshot_base64: str
+    vision: List[Dict[str, Any]] = []
+    model: Optional[str] = None
+
+@router.post("/brain/next-step")
+async def brain_next_step(req: NextStepRequest):
+    try:
+        result = await supervisor_service.next_step(
+            goal=req.goal,
+            history=req.history,
+            screenshot_base64=req.screenshot_base64,
+            vision=req.vision,
+            model=req.model or 'qwen/qwen2.5-vl'
+        )
+        return result
+    except Exception as e:
+        logger.error(f"Error getting next step: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 async def get_screenshot(session_id: str):
     """Get current page screenshot"""
     try:
