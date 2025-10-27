@@ -67,6 +67,16 @@ export const getModels = async () => {
   }
 };
 
+export const getOpenRouterOverview = async () => {
+  try {
+    const response = await axios.get(`${API}/openrouter/overview`);
+    return response.data; // { models, balance }
+  } catch (error) {
+    console.error('Error fetching OpenRouter overview:', error);
+    throw error;
+  }
+};
+
 export const exportProject = async (code, projectName) => {
   try {
     const response = await axios.post(`${API}/export`, 
@@ -295,7 +305,7 @@ export const getActiveMCPServers = async () => {
   }
 };
 
-// OpenRouter Balance
+// OpenRouter Balance (kept for compatibility; Settings may use overview)
 export const getOpenRouterBalance = async () => {
   try {
     const response = await axios.get(`${API}/openrouter/balance`);
@@ -474,7 +484,7 @@ export const generatePlan = async (goal, model = 'openai/gpt-5') => {
 
 
 // Task Classification API
-export const classifyTask = async (message, model = 'anthropic/claude-3.5-sonnet') => {
+export const classifyTask = async (message, model = 'openai/gpt-5') => {
   try {
     console.log(`[API] classifyTask called with message: "${message.substring(0, 100)}..."`);
     const response = await axios.post(`${API}/classify-task`, {
