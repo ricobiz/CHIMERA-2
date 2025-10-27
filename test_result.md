@@ -118,6 +118,18 @@ user_problem_statement: "Chimera AIOS - AI code generation tool. Test full funct
       - working: true
         agent: "testing"
         comment: "✅ VERIFIED: OpenRouter overview endpoint working perfectly. Retrieved 348 models (>50 as expected). All models have required fields: id, name, pricing (prompt/completion), capabilities (vision boolean). Balance field correctly returns number or null. Fixed httpx.gather issue by using asyncio.gather. Endpoint fully functional for frontend model selection."
+  - task: "Frontend - Design-first workflow (mockup → annotate → approve → code)"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/App.js, /app/frontend/src/components/AnnotatorModal.jsx, /app/backend/services/design_generator_service.py, /app/backend/routes/lovable_routes.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added mockup generation and annotation modal. On approval or annotated feedback, we revise design via backend and require approval before code proceeds. Verify Preview loads, edit/delete/regenerate work, and Google-based mockup generation via OpenRouter responds correctly."
+
 
   - task: "GET /api/openrouter/balance (openrouter_models)"
     implemented: true
