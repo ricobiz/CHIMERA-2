@@ -116,7 +116,15 @@ Be authentic and unique!"""
 async def save_personalization(request: SavePersonalizationRequest):
     """Save user and agent personalization data to MongoDB"""
     try:
-        from server import db
+        # Import here to avoid circular import
+        import sys
+        import os
+        sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+        
+        from motor.motor_asyncio import AsyncIOMotorClient
+        mongo_url = os.environ['MONGO_URL']
+        client = AsyncIOMotorClient(mongo_url)
+        db = client[os.environ['DB_NAME']]
         
         personalization_data = {
             "user_id": request.user_id,
