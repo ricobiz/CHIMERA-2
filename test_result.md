@@ -1276,6 +1276,8 @@ agent_communication:
     
     **Test Scenario: Calculator with Blue Theme (Russian Prompt)**
     
+  - agent: "main"
+    message: "Phase 2 (UI) partial: AI Entry Point now shows Live Preview (screenshot_base64), table of vision (cell/label/type/confidence), control buttons, and can start a session to Gmail signup. Next: wire full exec loop in /api/hook/exec with brain/next-step and automatic CAPTCHA solving before any user prompt for phone/2FA."
     **CRITICAL ISSUES DISCOVERED:**
     
     **❌ JavaScript Runtime Errors in Preview Panel:**
