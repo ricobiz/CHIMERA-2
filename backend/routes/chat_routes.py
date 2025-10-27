@@ -120,6 +120,15 @@ Just be {agent_name} - natural, genuine, and conversational."""
         # Add current message
         messages.append({"role": "user", "content": request.message})
         
+        # Guard: ensure non-empty response from model; retry once if empty
+        def is_empty_text(t: str) -> bool:
+            if t is None:
+                return True
+            s = str(t).strip()
+            if s == "" or s.lower() in ["null", "none", "undefined"]:
+                return True
+            return False
+
         # Call LLM with personalized system message
         response = await openrouter_service.chat_completion(
             messages=messages,
