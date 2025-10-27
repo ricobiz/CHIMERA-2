@@ -1296,6 +1296,8 @@ agent_communication:
     - Visual Validator: ENABLED and configured
     - Research Planner: ENABLED and configured  
     - Cost tracking: WORKING (visible in sidebar with $X.XXXXXX format)
+  - agent: "main"
+    message: "Implemented Profile Checker (TZ#3): /api/profile/check with two external anti-bot checkers, parsing for bot flags, storing is_clean & bot_signals in meta, and gating /api/hook/exec to refuse dirty profiles. Added Profile Health block in AI Entry Point with Re-check button. Next: wire storage_state persistence load/unload cleanly across sessions."
     - Session management: WORKING
     - Basic UI navigation: WORKING
     - Mode switching (Chat/Agent): WORKING
