@@ -129,25 +129,26 @@ export default App;
             
             logger.info(f"Chat completion request to OpenRouter with model: {selected_model}")
             
-            response = self.client.chat.completions.create(
-                model=selected_model,
-                messages=messages,
-                temperature=temperature,
-                max_tokens=max_tokens
-            )
-            
-            # Format response to match expected structure
+            async with httpx.AsyncClient(timeout=60.0) as client:
+                resp = await client.post(
+                    f"{OR_BASE}/chat/completions",
+                    headers=self.http_headers,
+                    json={
+                        "model": selected_model,
+                        "messages": messages,
+                        "temperature": temperature,
+                        "max_tokens": max_tokens
+                    }
+                )
+                resp.raise_for_status()
+                data = resp.json()
             return {
                 'choices': [{
                     'message': {
-                        'content': response.choices[0].message.content
+                        'content': data['choices'][0]['message']['content'] if data.get('choices') else ''
                     }
                 }],
-                'usage': {
-                    'prompt_tokens': response.usage.prompt_tokens if response.usage else 0,
-                    'completion_tokens': response.usage.completion_tokens if response.usage else 0,
-                    'total_tokens': response.usage.total_tokens if response.usage else 0
-                }
+                'usage': data.get('usage', {})
             }
             
         except Exception as e:
