@@ -194,6 +194,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ VERIFIED: Design generation working perfectly. Tested with 'Design a fitness tracker app' using google/gemini-2.5-flash-image model. Generated comprehensive design specification with detailed visual guidelines (33.6s response time). Design-first workflow fully functional."
+      - working: true
+        agent: "testing"
+        comment: "✅ RE-VERIFIED: Phase 2 design generation confirmed working. Tested with 'Design a modern fitness tracker dashboard with dark theme' using google/gemini-2.5-flash-image model. Generated detailed design spec (6117 chars) with all expected elements (color, layout, theme, dark). OpenRouter integration operational, usage tracking included."
 
   - task: "POST /api/generate-mockup endpoint - Visual Mockup Generation"
     implemented: true
