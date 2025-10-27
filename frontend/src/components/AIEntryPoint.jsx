@@ -281,6 +281,22 @@ const AIEntryPoint = ({ onClose }) => {
                     <div className="text-xs text-gray-600 text-center py-6">No vision data</div>
                   )}
                 </div>
+            {showFullscreen && (
+              <div className="fixed inset-0 bg-black/90 z-[100] p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="text-sm text-gray-400">Fullscreen Viewer</div>
+                  <button onClick={() => setShowFullscreen(false)} className="px-3 py-1 text-xs bg-gray-800/60 hover:bg-gray-700/60 border border-gray-700 rounded text-gray-300">Close</button>
+                </div>
+                <div className="w-full h-[calc(100%-40px)] border border-gray-800 rounded bg-black flex items-center justify-center">
+                  {lastAutomation?.screenshot_base64 ? (
+                    <img src={`data:image/png;base64,${lastAutomation.screenshot_base64}`} alt="screenshot-full" className="max-w-full max-h-full object-contain" />
+                  ) : (
+                    <div className="text-xs text-gray-600">No screenshot</div>
+                  )}
+                </div>
+              </div>
+            )}
+
               </div>
             </div>
           </div>
