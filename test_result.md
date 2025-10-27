@@ -1256,6 +1256,8 @@ agent_communication:
     - ✅ History handling working properly
     
     **✅ CORE FUNCTIONALITY VERIFIED:**
+  - agent: "main"
+    message: "Implemented core of 3-layer automation: Grid service, Local Vision service (CPU ONNX-ready fallback via DOM), Supervisor VLM endpoint, and REST endpoints for click-cell/type-at-cell/hold-drag/screenshot returning screenshot+vision every time. Next: wire AI Entry Point UI with mini preview and step logs, then iterate with real tiny ONNX model."
     - ✅ POST /api/generate-code: Agent mode working, generates valid React todo app code (9.0s)
     - ✅ POST /api/generate-design: Design generation working, comprehensive fitness app spec (33.6s)
     - ✅ GET /api/proxy/status: 10 US/GB proxies available, service enabled
