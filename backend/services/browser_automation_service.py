@@ -39,18 +39,33 @@ class BrowserAutomationService:
         """Initialize Playwright and browser with anti-detect"""
         if not self.playwright:
             self.playwright = await async_playwright().start()
-            self.browser = await self.playwright.chromium.launch(
-                headless=False,
-                args=[
-                    '--no-sandbox',
-                    '--disable-setuid-sandbox',
-                    '--disable-dev-shm-usage',
-                    '--disable-blink-features=AutomationControlled',
-                    '--disable-web-security',  # For some anti-detect scenarios
-                    '--disable-features=IsolateOrigins,site-per-process'
-                ]
-            )
-            logger.info("✅ Browser launched with advanced anti-detect")
+            try:
+                self.browser = await self.playwright.chromium.launch(
+                    headless=False,
+                    args=[
+                        '--no-sandbox',
+                        '--disable-setuid-sandbox',
+                        '--disable-dev-shm-usage',
+                        '--disable-blink-features=AutomationControlled',
+                        '--disable-web-security',
+                        '--disable-features=IsolateOrigins,site-per-process'
+                    ]
+                )
+                logger.info("✅ Browser launched headful with anti-detect")
+            except Exception as e:
+                logger.warning(f"Headful launch failed ({e}); falling back to headless")
+                self.browser = await self.playwright.chromium.launch(
+                    headless=True,
+                    args=[
+                        '--no-sandbox',
+                        '--disable-setuid-sandbox',
+                        '--disable-dev-shm-usage',
+                        '--disable-blink-features=AutomationControlled',
+                        '--disable-web-security',
+                        '--disable-features=IsolateOrigins,site-per-process'
+                    ]
+                )
+                logger.info("✅ Browser launched headless with anti-detect fallback")
             
             # Initialize CAPTCHA solver
             try:
