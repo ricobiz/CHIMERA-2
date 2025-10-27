@@ -66,14 +66,21 @@ export default App;
             
             logger.info(f"Sending request to OpenRouter with model: {selected_model}")
             
-            response = self.client.chat.completions.create(
-                model=selected_model,
-                messages=messages,
-                temperature=0.7,
-                max_tokens=4000
-            )
+            async with httpx.AsyncClient(timeout=60.0) as client:
+                resp = await client.post(
+                    f"{OR_BASE}/chat/completions",
+                    headers=self.http_headers,
+                    json={
+                        "model": selected_model,
+                        "messages": messages,
+                        "temperature": 0.7,
+                        "max_tokens": 4000
+                    }
+                )
+                resp.raise_for_status()
+                response = resp.json()
             
-            generated_content = response.choices[0].message.content
+            generated_content = response['choices'][0]['message']['content']
             
             # Extract code from markdown code blocks if present
             code = self._extract_code(generated_content)
