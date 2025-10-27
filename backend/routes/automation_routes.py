@@ -94,8 +94,14 @@ async def navigate(request: NavigateRequest):
 async def click_element(request: ClickRequest):
     """Click element by selector"""
     try:
+        # Check if session exists
+        if request.session_id not in browser_service.sessions:
+            raise HTTPException(status_code=404, detail=f"Session {request.session_id} not found. Create session first.")
+        
         result = await browser_service.click_element(request.session_id, request.selector)
         return result
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error clicking: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
