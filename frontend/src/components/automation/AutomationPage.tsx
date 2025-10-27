@@ -1,281 +1,311 @@
-import React, { useState, useEffect } from 'react';
-import BrowserViewport from './BrowserViewport.tsx';
-import AgentLog from './AgentLog.tsx';
-import Controls from './Controls.tsx';
-import { AutomationSession, BrowserState, AgentLogEntry } from '../../agent/types.ts';
-import { executionAgent } from '../../agent/executionAgent.ts';
-import { toast } from '../../hooks/use-toast';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+
+const BASE_URL: string = (import.meta as any)?.env?.REACT_APP_BACKEND_URL || (process as any)?.env?.REACT_APP_BACKEND_URL || '';
+
+type LogEntry = { ts: number; step: number; action: string; status?: 'ok'|'error'|'warning'|'info'; error?: string };
+
+type Observation = {
+  screenshot_base64?: string;
+  grid?: { rows: number; cols: number };
+  vision?: Array<{ cell: string; label: string; type: string; confidence: number }>;
+  status?: string;
+  url?: string;
+};
 
 const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
-  const [session, setSession] = useState<AutomationSession>({
-    sessionId: `session-${Date.now()}`,
-    goal: '',
-    plan: null,
-    browserState: {
-      currentUrl: '',
-      screenshot: '',
-      highlightBoxes: [],
-      pageTitle: '',
-      timestamp: Date.now()
-    },
-    logEntries: [],
-    status: 'idle',
-    currentStepIndex: -1,
-    blockInput: false,
-    requiresUserInput: null,
-    result: null
-  });
+  // Core state
+  const [taskText, setTaskText] = useState<string>('Register a new Gmail and return login/password');
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [jobId, setJobId] = useState<string | null>(null);
+  const [logs, setLogs] = useState<LogEntry[]>([]);
+  const [agentStatus, setAgentStatus] = useState<string>('IDLE');
+  const [runMode, setRunMode] = useState<'ACTIVE'|'PAUSED'|'STOP'>('PAUSED');
+  const [observation, setObservation] = useState<Observation | null>(null);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [askUser, setAskUser] = useState<string | null>(null);
+  const [profileId, setProfileId] = useState<string | null>(null);
+  const [profileClean, setProfileClean] = useState<boolean | null>(null);
+  const [profileWarm, setProfileWarm] = useState<boolean>(false);
 
-  const [isPaused, setIsPaused] = useState(false);
+  // Viewer state
+  const [showGrid, setShowGrid] = useState<boolean>(true);
+  const [showFullscreen, setShowFullscreen] = useState<boolean>(false);
+  const [displaySrc, setDisplaySrc] = useState<string | null>(null);
+  const [pendingSrc, setPendingSrc] = useState<string | null>(null);
+
+  const viewerRef = useRef<HTMLDivElement | null>(null);
+  const logsEndRef = useRef<HTMLDivElement | null>(null);
+  const pollRef = useRef<any>(null);
+
+  // Smooth screenshot swapping
+  useEffect(() => {
+    if (!pendingSrc) return;
+    const img = new Image();
+    img.onload = () => setDisplaySrc(pendingSrc);
+    img.src = `data:image/png;base64,${pendingSrc}`;
+  }, [pendingSrc]);
+
+  const scrollToBottom = () => {
+    try { logsEndRef.current?.scrollIntoView({ behavior: 'smooth' }); } catch {}
+  };
+  useEffect(() => { scrollToBottom(); }, [logs]);
+
+  // Poll logs from backend hook
+  const loadLogs = async () => {
+    try {
+      const resp = await fetch(`${BASE_URL}/api/hook/log`);
+      const data = await resp.json();
+      setLogs(data.logs || []);
+      setAgentStatus(data.status || 'IDLE');
+      setObservation(data.observation || null);
+      setSessionId(data.session_id || null);
+      if (data.ask_user) setAskUser(data.ask_user); else setAskUser(null);
+      if (data.profile_id) setProfileId(data.profile_id);
+      if (data.observation?.screenshot_base64) setPendingSrc(data.observation.screenshot_base64);
+    } catch (e) {
+      // silent
+    }
+  };
 
   useEffect(() => {
-    // Set up state callback for execution agent
-    executionAgent.setStateCallback((updates) => {
-      setSession(prev => {
-        const newSession = { ...prev };
-
-        // Handle log entries specially (append, don't replace)
-        if (updates.logEntries && updates.logEntries.length > 0) {
-          const newEntry = updates.logEntries[0];
-          
-          // Check if this is an update to existing entry (has partial data)
-          if (newEntry.id && !newEntry.timestamp) {
-            // Update last entry
-            const lastIndex = newSession.logEntries.length - 1;
-            if (lastIndex >= 0) {
-              newSession.logEntries[lastIndex] = {
-                ...newSession.logEntries[lastIndex],
-                ...newEntry
-              };
-            }
-          } else {
-            // Add new entry
-            newSession.logEntries = [...newSession.logEntries, newEntry];
-          }
-          
-          delete updates.logEntries; // Don't merge this
-        }
-
-        // Merge other updates
-        return { ...newSession, ...updates };
-      });
-    });
+    pollRef.current = setInterval(loadLogs, 1500);
+    return () => clearInterval(pollRef.current);
   }, []);
 
-  const handleStart = async () => {
-    if (!session.goal.trim()) {
-      toast({
-        title: 'Goal Required',
-        description: 'Please enter an automation goal',
-        variant: 'destructive'
-      });
-      return;
-    }
-
-    // Reset session
-    const newSession: AutomationSession = {
-      sessionId: `session-${Date.now()}`,
-      goal: session.goal,
-      plan: null,
-      browserState: {
-        currentUrl: '',
-        screenshot: '',
-        highlightBoxes: [],
-        pageTitle: '',
-        timestamp: Date.now()
-      },
-      logEntries: [],
-      status: 'planning',
-      currentStepIndex: -1,
-      blockInput: session.blockInput,
-      requiresUserInput: null,
-      result: null,
-      startTime: Date.now()
-    };
-
-    setSession(newSession);
-    setIsPaused(false);
-
-    toast({
-      title: 'Automation Started',
-      description: `Starting automation: "${session.goal.substring(0, 50)}..."`,
-    });
-
-    // Start execution
+  const startTask = async () => {
+    if (!taskText.trim()) return;
+    setIsSubmitting(true);
     try {
-      await executionAgent.startAutomation(session.goal, newSession);
-    } catch (error: any) {
-      toast({
-        title: 'Automation Error',
-        description: error.message,
-        variant: 'destructive'
+      const resp = await fetch(`${BASE_URL}/api/hook/exec`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: taskText, timestamp: Date.now(), nocache: true })
       });
+      const data = await resp.json();
+      if (resp.ok) {
+        setJobId(data.job_id);
+        setLogs([]);
+        setAgentStatus('ACTIVE');
+      } else {
+        alert(data.detail || 'Failed to start');
+      }
+    } catch (e: any) {
+      alert(e.message || 'Failed to start');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const handleAbort = () => {
-    executionAgent.abort();
-    setSession(prev => ({
-      ...prev,
-      status: 'failed',
-      endTime: Date.now()
-    }));
-    setIsPaused(false);
-
-    toast({
-      title: 'Automation Aborted',
-      description: 'The automation has been stopped',
-      variant: 'destructive'
-    });
-  };
-
-  const handlePauseResume = () => {
-    if (isPaused) {
-      executionAgent.resume();
-      setIsPaused(false);
-      setSession(prev => ({ ...prev, status: 'executing' }));
-      toast({
-        title: 'Automation Resumed',
-        description: 'Agent is continuing execution',
+  const control = async (mode: 'ACTIVE'|'PAUSED'|'STOP') => {
+    try {
+      const resp = await fetch(`${BASE_URL}/api/hook/control`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mode })
       });
-    } else {
-      executionAgent.pause();
-      setIsPaused(true);
-      setSession(prev => ({ ...prev, status: 'paused' }));
-      toast({
-        title: 'Automation Paused',
-        description: 'Agent execution paused',
-      });
+      const data = await resp.json();
+      setRunMode(data.run_mode);
+      setAgentStatus(data.agent_status);
+    } catch (e) {
+      // ignore
     }
   };
 
-  const handleGoalChange = (newGoal: string) => {
-    setSession(prev => ({ ...prev, goal: newGoal }));
+  const recheckProfile = async () => {
+    const id = profileId || prompt('Profile ID to re-check');
+    if (!id) return;
+    try {
+      const resp = await fetch(`${BASE_URL}/api/profile/check`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ profile_id: id }) });
+      const data = await resp.json();
+      setProfileClean(!!data.is_clean);
+      alert(`Profile re-check done. Clean=${data.is_clean ? 'true' : 'false'}`);
+    } catch (e: any) {
+      alert(e.message || 'Re-check failed');
+    }
   };
 
-  const handleBlockInputToggle = (enabled: boolean) => {
-    setSession(prev => ({ ...prev, blockInput: enabled }));
+  // Ghost cursor position from last action
+  const ghostCell = useMemo(() => {
+    const step = [...(logs||[])].reverse().find(l => l?.action?.includes('CLICK_CELL') || l?.action?.includes('TYPE_AT_CELL') || l?.action?.includes('HOLD_DRAG'));
+    const match = step?.action?.match(/[A-H][0-9]{1,2}/)?.[0];
+    return match || null;
+  }, [logs]);
+
+  const cellToPercent = (cell: string | null, grid?: {rows:number; cols:number}) => {
+    if (!cell || !grid) return { left: 50, top: 50 };
+    const colLetter = cell[0].toUpperCase();
+    const rowNum = parseInt(cell.slice(1), 10);
+    const colIndex = colLetter.charCodeAt(0) - 'A'.charCodeAt(0);
+    const rowIndex = rowNum - 1;
+    const left = ((colIndex + 0.5) / (grid.cols || 8)) * 100;
+    const top = ((rowIndex + 0.5) / (grid.rows || 12)) * 100;
+    return { left, top };
   };
 
-  const sessionActive = ['planning', 'executing', 'paused'].includes(session.status);
+  const ghostPos = useMemo(() => cellToPercent(ghostCell, observation?.grid), [ghostCell, observation?.grid]);
+
+  const statusPill = (status: string) => {
+    switch (status) {
+      case 'ACTIVE': return 'bg-green-900/40 text-green-300';
+      case 'PAUSED': return 'bg-yellow-900/40 text-yellow-300';
+      case 'WAITING_USER': return 'bg-blue-900/40 text-blue-300';
+      case 'ERROR': return 'bg-red-900/40 text-red-300';
+      default: return 'bg-gray-900/40 text-gray-300';
+    }
+  };
 
   return (
-    <div className="flex flex-col w-full bg-[#0f0f10] overflow-x-hidden" style={{ height: '100dvh' }}>
-      {/* Page Header - Fixed */}
+    <div className="flex flex-col bg-[#0f0f10] text-gray-100 overflow-x-hidden" style={{ height: '100dvh' }}>
+      {/* Header */}
       <div className="px-4 md:px-6 py-3 md:py-4 border-b border-gray-800 flex-shrink-0 bg-[#0f0f10] sticky top-0 z-10">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 md:gap-4">
+          <div className="flex items-center gap-3">
             {onClose && (
-              <button
-                onClick={onClose}
-                className="px-2 md:px-4 py-1.5 md:py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors flex items-center gap-1 md:gap-2 text-sm md:text-base"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                </svg>
-                <span className="hidden sm:inline">Back</span>
+              <button onClick={onClose} className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors flex items-center gap-2 text-sm">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+                Back
               </button>
             )}
             <div>
-              <h1 className="text-base md:text-xl font-bold text-gray-200">Browser Automation</h1>
-              <p className="text-xs md:text-sm text-gray-500 mt-0.5 md:mt-1 hidden sm:block">AI-powered browser automation</p>
+              <h1 className="text-xl md:text-2xl font-bold text-white">Browser Automation</h1>
+              <p className="text-xs md:text-sm text-gray-400">Agent live view, steps and controls</p>
             </div>
           </div>
-          {session.result && (
-            <div className={`px-4 py-2 rounded-lg border ${
-              session.result.success
-                ? 'bg-green-900/20 border-green-700 text-green-400'
-                : 'bg-red-900/20 border-red-700 text-red-400'
-            }`}>
-              <p className="text-sm font-medium">{session.result.message}</p>
-              {session.result.payload && (
-                <p className="text-xs mt-1 opacity-75">
-                  {session.result.completedSteps} / {session.result.totalSteps} steps completed
-                </p>
-              )}
+          <div className="flex items-center gap-2">
+            <span className={`text-[10px] px-2 py-0.5 rounded ${statusPill(agentStatus)}`}>{agentStatus}</span>
+            <button onClick={() => setShowGrid(s => !s)} className="px-2 py-1 text-xs bg-gray-800/60 hover:bg-gray-700/60 border border-gray-700 rounded text-gray-300">{showGrid ? 'Hide Grid' : 'Show Grid'}</button>
+            <button onClick={() => setShowFullscreen(true)} className="px-2 py-1 text-xs bg-gray-800/60 hover:bg-gray-700/60 border border-gray-700 rounded text-gray-300">Fullscreen</button>
+          </div>
+        </div>
+      </div>
+
+      {/* Top: Live Viewer */}
+      <div className="px-4 md:px-6 py-3 md:py-4 border-b border-gray-800 flex-shrink-0">
+        <div className="relative w-full h-72 md:h-[420px] border border-gray-800 rounded bg-black/60 overflow-hidden flex items-center justify-center">
+          {displaySrc ? (
+            <img src={`data:image/png;base64,${displaySrc}`} alt="screenshot" className="max-w-full max-h-full object-contain" />
+          ) : (
+            <div className="text-xs text-gray-600">No screenshot</div>
+          )}
+          {showGrid && observation?.grid && (
+            <div className="absolute inset-0 pointer-events-none">
+              <div className="w-full h-full" style={{ backgroundImage: `linear-gradient(rgba(200,200,200,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(200,200,200,0.08) 1px, transparent 1px)`, backgroundSize: `${(100/(observation.grid.cols||8))}% ${(100/(observation.grid.rows||12))}%` }} />
+            </div>
+          )}
+          {ghostCell && (
+            <div className="absolute transition-all duration-300" style={{ left: `${ghostPos.left}%`, top: `${ghostPos.top}%`, transform: 'translate(-50%, -50%)' }}>
+              <div className="w-4 h-4 rounded-full bg-white/90 shadow-[0_0_10px_rgba(255,255,255,0.6)] border border-gray-200" />
             </div>
           )}
         </div>
       </div>
 
-      {/* Controls */}
-      <div className="px-4 md:px-6 py-3 md:py-4 border-b border-gray-800 flex-shrink-0">
-        <Controls
-          goal={session.goal}
-          onGoalChange={handleGoalChange}
-          onStart={handleStart}
-          onAbort={handleAbort}
-          onPauseResume={handlePauseResume}
-          sessionActive={sessionActive}
-          blockInput={session.blockInput}
-          onBlockInputToggle={handleBlockInputToggle}
-          status={session.status}
-          isPaused={isPaused}
-        />
-      </div>
-
-      {/* Main Content Area: Viewport + Log - Scrollable */}
-      <div className="flex-1 w-full px-4 md:px-6 py-4 md:py-6 overflow-y-auto">
-        <div className="flex flex-col lg:flex-row gap-3 md:gap-4 w-full">
-          {/* Browser Viewport (Full width on mobile, 60% on desktop) */}
-          <div className="w-full lg:flex-1 min-h-[300px] md:min-h-[400px] lg:min-h-[500px]">
-            <BrowserViewport
-              browserState={session.browserState}
-              status={session.status}
-            />
+      {/* Main Content */}
+      <div className="flex-1 overflow-y-auto flex flex-col lg:flex-row gap-4 p-4 md:p-6">
+        {/* Left Column */}
+        <div className="lg:w-1/3 space-y-4">
+          {/* Controls */}
+          <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-4">
+            <div className="text-sm text-gray-400 font-medium mb-2">Controls</div>
+            <div className="flex gap-2">
+              <button onClick={() => control('ACTIVE')} className="px-3 py-1.5 bg-green-600/20 hover:bg-green-600/30 border border-green-600/50 text-green-400 rounded text-xs">Resume</button>
+              <button onClick={() => control('PAUSED')} className="px-3 py-1.5 bg-yellow-600/20 hover:bg-yellow-600/30 border border-yellow-600/50 text-yellow-400 rounded text-xs">Pause</button>
+              <button onClick={() => control('STOP')} className="px-3 py-1.5 bg-red-600/20 hover:bg-red-600/30 border border-red-600/50 text-red-400 rounded text-xs">Stop</button>
+            </div>
           </div>
 
-          {/* Agent Log (Full width on mobile, 40% on desktop) */}
-          <div className="w-full lg:w-2/5 min-h-[350px] md:min-h-[450px] lg:min-h-[500px]">
-            <AgentLog
-              steps={session.logEntries}
-              goal={session.goal}
-              currentSubtask={
-                session.plan && session.currentStepIndex >= 0
-                  ? session.plan.steps[session.currentStepIndex]?.targetDescription
-                  : undefined
-              }
-            />
+          {/* Step Timeline */}
+          <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-4">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm text-gray-400 font-medium">Step Timeline</span>
+            </div>
+            <div className="max-h-64 overflow-y-auto space-y-1">
+              {(logs || []).map((l, idx) => (
+                <div key={idx} className="text-xs text-gray-300 flex items-center gap-2">
+                  <span className="text-gray-500 w-16">Step {l.step}</span>
+                  <span className="flex-1 truncate">{l.action}</span>
+                  <span className={`w-12 text-right ${l.status==='ok'?'text-green-400':l.status==='error'?'text-red-400':'text-gray-400'}`}>{l.status || ''}</span>
+                </div>
+              ))}
+              <div ref={logsEndRef} />
+            </div>
+          </div>
+
+          {/* Profile Health */}
+          <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-4">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm text-gray-400 font-medium">Profile Health</span>
+              <button onClick={recheckProfile} className="px-3 py-1.5 bg-purple-600/20 hover:bg-purple-600/30 border border-purple-600/50 text-purple-300 rounded text-xs">Re-check</button>
+            </div>
+            <div className="text-xs text-gray-400 space-y-1">
+              <div>profile_id: <span className="text-gray-200">{profileId || '—'}</span></div>
+              <div>warm: <span className="text-gray-200">{profileWarm ? 'yes' : 'no'}</span></div>
+              <div>clean: <span className="text-gray-200">{profileClean === null ? '—' : profileClean ? '✅' : '❌'}</span></div>
+            </div>
+          </div>
+
+          {/* Task Input */}
+          <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-4">
+            <label className="block text-sm text-gray-400 font-medium mb-2">Task</label>
+            <textarea className="w-full h-24 bg-gray-950 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500 resize-none" value={taskText} onChange={(e) => setTaskText(e.target.value)} />
+            <button onClick={startTask} disabled={isSubmitting || !taskText.trim()} className="mt-3 w-full px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all">{isSubmitting ? 'Starting...' : 'Run Task'}</button>
+          </div>
+        </div>
+
+        {/* Right Column: Execution Logs Raw */}
+        <div className="lg:w-2/3">
+          <div className="bg-black border border-gray-800 rounded-lg h-full flex flex-col">
+            <div className="px-4 py-3 border-b border-gray-800 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-green-400 font-mono">EXECUTION LOG</span>
+              </div>
+              <span className="text-xs text-gray-600">{logs.length} entries</span>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4 font-mono text-sm">
+              {logs.length === 0 ? (
+                <div className="text-gray-600 text-center py-12">No logs yet. Run a task to see execution steps...</div>
+              ) : (
+                <div className="space-y-1">
+                  {logs.map((log, idx) => (
+                    <div key={idx} className={`flex gap-3 ${log.status === 'error' ? 'text-red-400' : log.status === 'warning' ? 'text-yellow-400' : log.status === 'ok' ? 'text-green-400' : 'text-gray-400' }`}>
+                      <span className="text-gray-600">[{new Date(log.ts).toLocaleTimeString()}]</span>
+                      <span className="text-gray-500">Step {log.step}:</span>
+                      <span>{log.action}</span>
+                      {log.error && (<span className="text-red-500">→ ERROR: {log.error}</span>)}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* User Input Request Modal (if needed) */}
-      {session.requiresUserInput && (
-        <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 max-w-md w-full mx-4">
-            <h3 className="text-lg font-semibold text-gray-200 mb-3">
-              User Input Required
-            </h3>
-            <p className="text-sm text-gray-400 mb-4">
-              {session.requiresUserInput.question}
-            </p>
-            {session.requiresUserInput.inputType === 'text' && (
-              <input
-                type="text"
-                className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded text-gray-300 focus:border-purple-500 focus:outline-none"
-                placeholder="Enter your response..."
-              />
+      {/* Fullscreen modal */}
+      {showFullscreen && (
+        <div className="fixed inset-0 bg-black/90 z-[100] p-4">
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-sm text-gray-400">Fullscreen Viewer</div>
+            <button onClick={() => setShowFullscreen(false)} className="px-3 py-1 text-xs bg-gray-800/60 hover:bg-gray-700/60 border border-gray-700 rounded text-gray-300">Close</button>
+          </div>
+          <div className="w-full h-[calc(100%-40px)] border border-gray-800 rounded bg-black flex items-center justify-center">
+            {displaySrc ? (
+              <img src={`data:image/png;base64,${displaySrc}`} alt="screenshot-full" className="max-w-full max-h-full object-contain" />
+            ) : (
+              <div className="text-xs text-gray-600">No screenshot</div>
             )}
-            {session.requiresUserInput.inputType === 'choice' && (
-              <div className="space-y-2">
-                {session.requiresUserInput.choices?.map((choice, index) => (
-                  <button
-                    key={index}
-                    className="w-full px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded text-gray-300 text-left"
-                  >
-                    {choice}
-                  </button>
-                ))}
-              </div>
-            )}
-            <div className="flex gap-2 mt-4">
-              <button className="flex-1 px-4 py-2 bg-purple-600 hover:bg-purple-500 rounded text-white">
-                Submit
-              </button>
-              <button className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded text-gray-300">
-                Cancel
-              </button>
+          </div>
+        </div>
+      )}
+
+      {/* Waiting User modal */}
+      {askUser && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+          <div className="bg-[#0f0f10] border border-gray-800 rounded-lg w-full max-w-md p-4">
+            <div className="text-sm text-gray-300 mb-2">Agent needs your input</div>
+            <div className="text-xs text-gray-400 mb-3">{askUser}</div>
+            <div className="flex items-center gap-2">
+              <input id="user_input_field" className="flex-1 px-2 py-1 text-xs bg-gray-900 border border-gray-700 rounded text-gray-300" placeholder="Enter value (phone/code)" />
+              <button onClick={async() => { const val = (document.getElementById('user_input_field') as HTMLInputElement).value; if (!jobId) return; await fetch(`${BASE_URL}/api/hook/user_input`, { method: 'POST', headers: { 'Content-Type':'application/json' }, body: JSON.stringify({ job_id: jobId, field: 'code', value: val })}); setAskUser(null); }} className="px-3 py-1.5 text-xs bg-blue-600/20 hover:bg-blue-600/30 border border-blue-600/50 text-blue-300 rounded">Submit</button>
+              <button onClick={() => setAskUser(null)} className="px-3 py-1.5 text-xs bg-gray-800/20 hover:bg-gray-800/30 border border-gray-700 text-gray-300 rounded">Cancel</button>
             </div>
           </div>
         </div>
