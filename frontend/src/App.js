@@ -302,6 +302,11 @@ function App() {
           })
         });
         
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`API error ${response.status}: ${errorText}`);
+        }
+        
         const data = await response.json();
         
         console.log('✅ Chat API response:', data);
