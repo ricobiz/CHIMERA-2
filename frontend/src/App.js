@@ -718,6 +718,22 @@ function App() {
         title: "Error",
         description: "Failed to save.",
         variant: "destructive"
+  // Wire annotator callbacks for ChatInterface
+  useEffect(() => {
+    window.onAnnotateMockup = (img) => {
+      setAnnotateImageUrl(img);
+      setShowAnnotator(true);
+    };
+    window.onApproveDesign = () => {
+      setAwaitingDesignApproval(false);
+      toast({ title: 'Design Approved', description: 'Proceeding to code generation.' });
+    };
+    return () => {
+      window.onAnnotateMockup = null;
+      window.onApproveDesign = null;
+    };
+  }, []);
+
       });
     }
   };
