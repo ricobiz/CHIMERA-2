@@ -133,9 +133,10 @@ function App() {
   
   // Auto-save messages to localStorage
   useEffect(() => {
-    if (messages.length > 0 && currentSessionId) {
-      localStorage.setItem(`session_${currentSessionId}_messages`, JSON.stringify(messages));
-      console.log(`💾 Auto-saved ${messages.length} messages for session ${currentSessionId}`);
+    if (messages.length > 0) {
+      const sessionKey = currentSessionId || 'default_session';
+      localStorage.setItem(`session_${sessionKey}_messages`, JSON.stringify(messages));
+      console.log(`💾 Auto-saved ${messages.length} messages for ${sessionKey}`);
     }
   }, [messages, currentSessionId]);
   
