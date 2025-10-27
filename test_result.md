@@ -191,6 +191,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ RE-VERIFIED: Phase 2 regression test passed. Tested with 'Create a simple calculator with basic operations' using x-ai/grok-code-fast-1 model. Generated valid React code (4546 chars) with all 5/5 React patterns (useState, function, return, className, onClick). OpenRouter integration stable, no regressions detected."
+      - working: true
+        agent: "testing"
+        comment: "✅ FIXED & VERIFIED: Fixed critical bug in openrouter_service.py where response.usage was accessed as attribute instead of dict key. Code generation now working properly with x-ai/grok-code-fast-1 model. Generated 1000+ char React counter app with proper useState, functions, and styling. Usage tracking working correctly."
 
   - task: "POST /api/generate-design endpoint - Design Generation"
     implemented: true
