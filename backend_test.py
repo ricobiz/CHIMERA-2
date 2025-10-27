@@ -1373,13 +1373,20 @@ export default App;""",
             )
             return
         
-        # Test 2: Chat in Russian
-        print("   Testing chat in Russian...")
-        payload_russian = {
-            "message": "Привет! Как дела?",
-            "history": [],
-            "model": "anthropic/claude-3.5-sonnet"
-        }
+        # Test 2: Second message with history (CRITICAL TEST)
+        print("   Testing second chat message with history...")
+        if first_message_response:
+            # Build history from first message
+            history = [
+                {"role": "user", "content": "Hello, how are you?"},
+                {"role": "assistant", "content": first_message_response['message']}
+            ]
+            
+            payload_2 = {
+                "message": "What's 2+2?",
+                "history": history,
+                "model": "x-ai/grok-code-fast-1"
+            }
         
         try:
             response = self.session.post(
