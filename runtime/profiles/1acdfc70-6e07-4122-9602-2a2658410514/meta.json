@@ -1,0 +1,38 @@
+{
+  "profile_id": "1acdfc70-6e07-4122-9602-2a2658410514",
+  "created_at": "2025-10-27T18:17:17.369963+00:00",
+  "last_used": "2025-10-27T18:17:21.182256+00:00",
+  "used_count": 2,
+  "region": null,
+  "proxy_tier": null,
+  "proxy": {},
+  "is_warm": true,
+  "is_clean": false,
+  "fingerprint": {
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0 Safari/537.36",
+    "locale": "en-US",
+    "languages": [
+      "en-US",
+      "en"
+    ],
+    "timezone_id": "America/New_York",
+    "viewport": {
+      "width": 1341,
+      "height": 853
+    },
+    "screen": {
+      "width": 1341,
+      "height": 853
+    },
+    "platform": "Win32",
+    "hardwareConcurrency": 8,
+    "deviceMemory": 8,
+    "webgl_vendor": "Google Inc.",
+    "webgl_renderer": "ANGLE (Intel, Intel(R) UHD Graphics Direct3D11 vs_5_0 ps_5_0)"
+  },
+  "bot_signals": {
+    "flashid_flagged": true,
+    "fingerprint_flagged": true,
+    "notes": "intoli.com tests + additions\ntest name\tresult\nuser agent\n(old)\n\tmozilla/5.0 (windows nt 10.0; win64; x64) applewebkit/537.36 (khtml, like gecko) chrome/121.0 safari/537.36\nwebdriver\n(new)\n\tpresent (failed)\nwebdriver advanced\tpassed\nchrome\n(new)\n\tmissing (failed)\npermissions\n(new)\n\tprompt\nplugins len\n---\nantoine vastel\nstatistics browser fingerprinting\nsee your fingerprint\nbots ips api doc\ntest an ip address\nare you chrome headless?\n\nlooking for a more recent fingerprinting and bot detection online test? have a look at fingerprint-scan.com.\n\nyou are not chrome headless\n\nthis page runs a simple test "
+  }
+}
