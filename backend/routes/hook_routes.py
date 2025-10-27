@@ -11,11 +11,11 @@ from datetime import datetime
 import logging
 import asyncio
 import random
+import os
 
 from services.browser_automation_service import browser_service
 from services.supervisor_service import supervisor_service
-
-import os
+from services.anti_detect import HumanBehaviorSimulator
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +30,10 @@ last_result: Dict[str, Any] = {"screenshot": None, "credentials": None, "complet
 last_observation: Dict[str, Any] = {"screenshot_base64": None, "vision": [], "grid": {"rows": 12, "cols": 8}, "status": "idle"}
 current_session_id: Optional[str] = None
 history_steps: List[Dict[str, Any]] = []
+# Pending user input (phone/2FA only)
+pending_user_prompt: Optional[str] = None
+pending_user_field: Optional[str] = None
+pending_user_value: Optional[str] = None
 
 class TaskRequest(BaseModel):
     text: str
@@ -79,7 +83,7 @@ async def observe(session_id: str):
         last_observation = {"screenshot_base64": None, "vision": [], "grid": {"rows": 12, "cols": 8}, "status": "error"}
         return last_observation
 
-async def auto_solve_captcha(session_id: str):
+async def auto_solve_captcha(session_id: str) -> bool:
     """Attempt automatic CAPTCHA solving without user involvement.
        Heuristics: try checkbox/slider/puzzle via grid moves; fallback to VLM solver.
     """
@@ -87,7 +91,7 @@ async def auto_solve_captcha(session_id: str):
         obs = await observe(session_id)
         vision = obs.get('vision', [])
         # Simple heuristic: look for captcha keywords
-        keywords = ['captcha', "i'm not a robot", 'robot', 'пожалуйста подтвердите', 'verify']
+        keywords = ['captcha', "i'm not a robot", 'robot', 'verify', 'challenge']
         slider_types = ['slider']
         checkbox_types = ['checkbox']
         found_keyword = any(any(k in (v.get('label','').lower()) for k in keywords) for v in vision)
@@ -99,9 +103,7 @@ async def auto_solve_captcha(session_id: str):
             target = next(v for v in vision if v.get('type') in checkbox_types)
             from services.grid_service import GridConfig
             grid = GridConfig(rows=browser_service.grid_rows, cols=browser_service.grid_cols)
-            # Click at cell
             await browser_service.wait(300)
-            from services.anti_detect import HumanBehaviorSimulator
             page = browser_service.sessions[session_id]['page']
             dom_data = await browser_service._collect_dom_clickables(page)
             vw, vh = dom_data.get('vw', 1280), dom_data.get('vh', 800)
@@ -120,7 +122,6 @@ async def auto_solve_captcha(session_id: str):
             cell = target['cell']
             col_letter = cell[0]
             row_num = int(cell[1:])
-            # move 2 columns to the right within bounds
             to_col_index = min(ord(col_letter) - ord('A') + 2, browser_service.grid_cols - 1)
             to_cell = f"{chr(ord('A') + to_col_index)}{row_num}"
             page = browser_service.sessions[session_id]['page']
@@ -128,7 +129,6 @@ async def auto_solve_captcha(session_id: str):
             vw, vh = dom_data.get('vw', 1280), dom_data.get('vh', 800)
             sx, sy = grid.cell_to_xy(cell, vw, vh)
             ex, ey = grid.cell_to_xy(to_cell, vw, vh)
-            from services.anti_detect import HumanBehaviorSimulator
             await HumanBehaviorSimulator.human_drag(page, sx, sy, ex, ey)
             await browser_service.wait(800)
             await observe(session_id)
@@ -150,7 +150,7 @@ async def auto_solve_captcha(session_id: str):
     return False
 
 async def run_task_loop(job_id: str, goal_text: str):
-    global agent_status, last_result, current_session_id, history_steps
+    global agent_status, last_result, current_session_id, history_steps, pending_user_prompt, pending_user_field, pending_user_value
     try:
         agent_status = "ACTIVE"
         control_state["run_mode"] = "ACTIVE"
@@ -171,6 +171,10 @@ async def run_task_loop(job_id: str, goal_text: str):
         await observe(session_id)
 
         history_steps = []
+        pending_user_prompt = None
+        pending_user_field = None
+        pending_user_value = None
+
         # Main loop
         while True:
             # Respect control state
@@ -182,6 +186,17 @@ async def run_task_loop(job_id: str, goal_text: str):
                 log_step("Stopped by user", status="info")
                 return
 
+            # Handle WAITING_USER resume
+            if agent_status == "WAITING_USER":
+                if pending_user_value:
+                    agent_status = "ACTIVE"
+                    # Include user input into next brain prompt
+                    history_steps.append({"action": "USER_INPUT", "field": pending_user_field, "value": pending_user_value})
+                    log_step(f"User provided {pending_user_field}: ******", status="ok")
+                else:
+                    await asyncio.sleep(0.5)
+                    continue
+
             # Try solve CAPTCHA opportunistically
             await auto_solve_captcha(session_id)
 
@@ -189,9 +204,17 @@ async def run_task_loop(job_id: str, goal_text: str):
             screenshot_b64 = obs.get('screenshot_base64')
             vision = obs.get('vision', [])
 
-            # Ask brain for next step
+            # Build goal with any known creds + user input (masked)
+            extra = ""
+            if pending_user_value:
+                extra += f"\nUser provided {pending_user_field}: AVAILABLE."
+                # clear after injecting once
+                pending_user_prompt = None
+                pending_user_field = None
+                pending_user_value = None
+
             decision = await supervisor_service.next_step(
-                goal=goal_text + f"\nUse prepared credentials: username={credentials['login']}, password={credentials['password']}.",
+                goal=goal_text + f"\nUse prepared credentials: username={credentials['login']}, password={credentials['password']}." + extra,
                 history=history_steps,
                 screenshot_base64=screenshot_b64,
                 vision=vision,
@@ -208,12 +231,14 @@ async def run_task_loop(job_id: str, goal_text: str):
                 ask = (decision.get('ask_user') or '').lower()
                 if any(k in ask for k in ['phone', 'sms', '2fa', 'code', 'номер', 'смс']):
                     agent_status = "WAITING_USER"
-                    log_step(f"WAITING_USER: {decision.get('ask_user')}", status="info")
-                    # Pause loop until resumed with provided data (future endpoint)
-                    await asyncio.sleep(2.0)
+                    pending_user_prompt = decision.get('ask_user') or 'Provide required input'
+                    # Try infer field type
+                    pending_user_field = 'phone' if 'phone' in ask or 'номер' in ask else 'code'
+                    log_step(f"WAITING_USER: {pending_user_prompt}", status="info")
+                    await asyncio.sleep(0.5)
                     continue
                 else:
-                    # Try continue automatically; do not block on captchas
+                    # Do not block on captchas — continue
                     log_step("Brain requested user input, ignored (non-2FA)", status="warning")
 
             action = (decision.get('next_action') or '').upper()
@@ -222,11 +247,8 @@ async def run_task_loop(job_id: str, goal_text: str):
             direction = decision.get('direction', 'down')
             amount = int(decision.get('amount', 400) or 400)
 
-            ok = True
             try:
                 if action == 'CLICK_CELL' and target_cell:
-                    res = await browser_service.wait(200)
-                    res = await router.dependency_overrides.get if False else None  # no-op to keep linter calm
                     # use anti-detect human click
                     from services.grid_service import GridConfig
                     page = browser_service.sessions[session_id]['page']
@@ -234,25 +256,22 @@ async def run_task_loop(job_id: str, goal_text: str):
                     vw, vh = dom_data.get('vw', 1280), dom_data.get('vh', 800)
                     grid = GridConfig(rows=browser_service.grid_rows, cols=browser_service.grid_cols)
                     x, y = grid.cell_to_xy(target_cell, vw, vh)
-                    await HumanBehaviorSimulator.human_click(page, x, y)  # type: ignore
+                    await HumanBehaviorSimulator.human_click(page, x, y)
                 elif action == 'TYPE_AT_CELL' and target_cell:
                     # Fill with prepared creds if text hints empty
                     if not text:
-                        # Heuristic: decide based on vision label
                         label = next((v.get('label','').lower() for v in vision if v.get('cell') == target_cell), '')
                         if any(k in label for k in ['user', 'email', 'gmail', 'логин']):
                             text = credentials['login']
                         elif any(k in label for k in ['pass', 'парол']):
                             text = credentials['password']
-                    await browser_service.wait(200)
-                    # Move and type
                     from services.grid_service import GridConfig
                     page = browser_service.sessions[session_id]['page']
                     dom_data = await browser_service._collect_dom_clickables(page)
                     vw, vh = dom_data.get('vw', 1280), dom_data.get('vh', 800)
                     grid = GridConfig(rows=browser_service.grid_rows, cols=browser_service.grid_cols)
                     x, y = grid.cell_to_xy(target_cell, vw, vh)
-                    await HumanBehaviorSimulator.human_move(page, x, y)  # type: ignore
+                    await HumanBehaviorSimulator.human_move(page, x, y)
                     await page.mouse.click(x, y)
                     await page.keyboard.type(text or "test", delay=50)
                 elif action == 'HOLD_DRAG' and target_cell and isinstance(decision.get('to_cell', None), str):
@@ -265,7 +284,7 @@ async def run_task_loop(job_id: str, goal_text: str):
                     grid = GridConfig(rows=browser_service.grid_rows, cols=browser_service.grid_cols)
                     sx, sy = grid.cell_to_xy(from_cell, vw, vh)
                     ex, ey = grid.cell_to_xy(to_cell, vw, vh)
-                    await HumanBehaviorSimulator.human_drag(page, sx, sy, ex, ey)  # type: ignore
+                    await HumanBehaviorSimulator.human_drag(page, sx, sy, ex, ey)
                 elif action == 'SCROLL':
                     dy = amount if direction == 'down' else -abs(amount)
                     await browser_service.scroll(session_id, 0, dy)
@@ -277,22 +296,21 @@ async def run_task_loop(job_id: str, goal_text: str):
                     break
                 else:
                     log_step(f"Unknown action: {action}", status="warning")
+
                 # After action, observe again and record
-                obs2 = await observe(session_id)
+                await observe(session_id)
                 history_steps.append({"action": action, "cell": target_cell, "text": (text[:20] if text else '')})
-                log_step(f"Step {len(execution_logs)+1}: {action} {target_cell or ''} {('\\"'+text+'\\"') if text else ''} → ok")
+                log_step(f"Step {len(execution_logs)+1}: {action} {target_cell or ''} {('\"'+text+'\"') if text else ''} → ok")
             except Exception as e:
-                ok = False
                 log_step(f"Step error: {action} {target_cell or ''}", status="error", error=str(e))
-                # retry slight wait
                 await asyncio.sleep(0.5)
 
-        # Finalize result (heuristic success if reached DONE)
+        # Finalize result
         last_result["completed"] = (agent_status == "DONE")
         last_result["credentials"] = {"login": f"{credentials['login']}@gmail.com", "password": credentials['password']}
         last_result["screenshot"] = last_observation.get('screenshot_base64')
-
-        agent_status = "IDLE" if agent_status != "WAITING_USER" else agent_status
+        if agent_status == "DONE":
+            agent_status = "IDLE"
 
     except Exception as e:
         agent_status = "ERROR"
@@ -310,7 +328,6 @@ async def execute_task(request: TaskRequest):
         execution_logs = []
         history_steps = []
         agent_status = "ACTIVE"
-        # Start background task
         asyncio.create_task(run_task_loop(job_id, request.text))
         log_step(f"Task accepted: {request.text[:80]}...")
         return {"status": "accepted", "job_id": job_id, "message": "Task accepted for execution"}
@@ -329,7 +346,8 @@ async def get_logs(nocache: int = 1, ts: Optional[int] = None, read: bool = Fals
             "total_steps": len(execution_logs),
             "timestamp": datetime.now().isoformat(),
             "observation": last_observation,
-            "session_id": current_session_id
+            "session_id": current_session_id,
+            "ask_user": pending_user_prompt if agent_status == "WAITING_USER" else None
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -337,7 +355,6 @@ async def get_logs(nocache: int = 1, ts: Optional[int] = None, read: bool = Fals
 @router.get("/refresh")
 async def refresh_agent(target: str = "main", nocache: int = 1, timestamp: Optional[int] = None):
     try:
-        # Soft reset state
         return {"status": "refresh_ok", "target": target}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -384,8 +401,22 @@ async def control_agent(request: ControlRequest):
             agent_status = "IDLE"
         elif request.mode == "STOP":
             agent_status = "IDLE"
-            # No force close session — can be added
         return {"success": True, "run_mode": control_state["run_mode"], "agent_status": agent_status}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/user_input")
+async def provide_user_input(req: UserInputRequest):
+    """Provide user input (phone/2FA) when agent is WAITING_USER"""
+    global pending_user_prompt, pending_user_field, pending_user_value, agent_status
+    try:
+        if current_task.get('job_id') != req.job_id:
+            raise HTTPException(status_code=400, detail="Job mismatch")
+        pending_user_field = req.field
+        pending_user_value = req.value
+        # Do not flip status here; loop will resume and switch to ACTIVE
+        log_step(f"User input received for {req.field}", status="ok")
+        return {"success": True}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
