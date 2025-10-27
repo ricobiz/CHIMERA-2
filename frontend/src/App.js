@@ -827,6 +827,7 @@ function App() {
           onModelChange={setSelectedModel}
           chatModel={chatModel}
           onChatModelChange={setChatModel}
+          onOpenDocVerification={() => setShowDocVerification(true)}
           onClose={() => setShowSettings(false)}
           visualValidatorEnabled={visualValidatorEnabled}
           onVisualValidatorToggle={setVisualValidatorEnabled}
