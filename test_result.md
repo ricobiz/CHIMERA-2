@@ -121,15 +121,18 @@ user_problem_statement: "Chimera AIOS - AI code generation tool. Test full funct
 
   - task: "GET /api/openrouter/balance (openrouter_models)"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/routes/openrouter_models.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Added lightweight balance endpoint that hits https://openrouter.ai/api/v1/auth/key and returns {remaining, currency}."
+      - working: true
+        agent: "testing"
+        comment: "✅ VERIFIED: OpenRouter balance endpoint working correctly. Returns proper format with remaining (number or null) and currency (string, e.g., USD). Fixed route precedence issue by updating lovable_routes.py balance endpoint to include currency field. Endpoint returns remaining=-1 for unlimited accounts, currency=USD as expected."
 
 backend:
   - task: "POST /api/chat endpoint - Chat Mode"
