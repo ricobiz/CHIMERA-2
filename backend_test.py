@@ -111,6 +111,116 @@ class LovableBackendTester:
                 {"error_type": type(e).__name__}
             )
     
+    def test_design_generation_flow(self):
+        """Test POST /api/generate-design and /api/generate-mockup endpoints"""
+        print("\n🧪 Testing Design Generation Flow...")
+        
+        # Test 1: Generate Design Specification
+        print("   Testing design specification generation...")
+        design_payload = {
+            "user_request": "Design a fitness tracker app",
+            "model": "google/gemini-2.5-flash-image"  # Model mentioned in review
+        }
+        
+        design_spec = None
+        
+        try:
+            response = self.session.post(
+                f"{BACKEND_URL}/generate-design",
+                json=design_payload,
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'design_spec' in data:
+                    design_spec = data['design_spec']
+                    self.log_test(
+                        "Generate Design - Success",
+                        True,
+                        f"Design specification generated ({len(design_spec)} chars)",
+                        {"design_length": len(design_spec), "has_usage": bool(data.get('usage'))}
+                    )
+                    
+                    # Test 2: Generate Mockup from Design
+                    if design_spec:
+                        self.test_generate_mockup(design_spec, design_payload["user_request"])
+                        
+                else:
+                    self.log_test(
+                        "Generate Design - Missing Design Spec",
+                        False,
+                        "Response missing 'design_spec' field",
+                        {"response_keys": list(data.keys())}
+                    )
+            else:
+                self.log_test(
+                    "Generate Design - HTTP Error",
+                    False,
+                    f"HTTP {response.status_code}: {response.text}",
+                    {"status_code": response.status_code}
+                )
+                
+        except Exception as e:
+            self.log_test(
+                "Generate Design - Exception",
+                False,
+                f"Unexpected error: {str(e)}",
+                {"error_type": type(e).__name__}
+            )
+    
+    def test_generate_mockup(self, design_spec, user_request):
+        """Test POST /api/generate-mockup endpoint"""
+        print("   Testing visual mockup generation...")
+        
+        mockup_payload = {
+            "design_spec": design_spec,
+            "user_request": user_request,
+            "model": "google/gemini-2.5-flash-image-preview"  # Model mentioned in review
+        }
+        
+        try:
+            response = self.session.post(
+                f"{BACKEND_URL}/generate-mockup",
+                json=mockup_payload,
+                timeout=45  # Longer timeout for image generation
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'mockup_data' in data:
+                    mockup_data = data['mockup_data']
+                    self.log_test(
+                        "Generate Mockup - Success",
+                        True,
+                        f"Visual mockup generated ({len(str(mockup_data))} chars)",
+                        {"mockup_size": len(str(mockup_data)), "has_usage": bool(data.get('usage'))}
+                    )
+                else:
+                    self.log_test(
+                        "Generate Mockup - Missing Mockup Data",
+                        False,
+                        "Response missing 'mockup_data' field",
+                        {"response_keys": list(data.keys())}
+                    )
+            else:
+                self.log_test(
+                    "Generate Mockup - HTTP Error",
+                    False,
+                    f"HTTP {response.status_code}: {response.text}",
+                    {"status_code": response.status_code}
+                )
+                
+        except Exception as e:
+            self.log_test(
+                "Generate Mockup - Exception",
+                False,
+                f"Unexpected error: {str(e)}",
+                {"error_type": type(e).__name__}
+            )
+    
     def test_generate_code_with_history(self):
         """Test code generation with conversation history"""
         payload = {
