@@ -130,6 +130,19 @@ const Settings = ({ selectedModel, onModelChange, chatModel, onChatModelChange, 
       description: "Research planner model changed.",
     });
   };
+  // Chat model state (separate from code model)
+  const [localChatModel, setLocalChatModel] = useState(chatModel || 'openai/gpt-5');
+
+  const handleChatModelSelect = (modelId) => {
+    setLocalChatModel(modelId);
+    onChatModelChange(modelId);
+    localStorage.setItem('chatModel', modelId);
+    toast({
+      title: "Chat Model Updated",
+      description: `Chat model set to ${modelId}`,
+    });
+  };
+
 
   // Secrets management functions
   const handleAddSecret = () => {
