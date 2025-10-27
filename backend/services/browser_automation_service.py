@@ -161,13 +161,6 @@ class BrowserAutomationService:
         except Exception as e:
             logger.error(f"Close session error: {e}")
             return False
-
-                logger.info(f"✅ Session using proxy: {proxy['server']} ({proxy['country']})")
-            else:
-                logger.warning("Proxy requested but none available, using direct connection")
-        
-        # Create new context with anti-detection settings
-        context = await self.browser.new_context(**context_options)
         
         # Apply advanced fingerprinting evasion
         await AntiDetectFingerprint.apply_fingerprinting_evasion(context)
