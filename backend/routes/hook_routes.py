@@ -159,11 +159,21 @@ async def run_task_loop(job_id: str, goal_text: str):
         password = f"{uuid.uuid4().hex[:6]}A!{random.randint(1000,9999)}"
         credentials = {"login": f"{base_user}", "password": password}
 
-        # Create session
-        session_id = f"sess-{job_id[:8]}"
+        # Ensure we have a clean profile
+        from services.profile_service import profile_service
+        # For MVP: always create a new profile; later we can reuse existing good ones
+        prof = await profile_service.create_profile(region=None, proxy_tier=None)
+        if not prof.get('is_clean', False):
+            agent_status = "ERROR"
+            log_step("Profile flagged as bot; aborting task. Create a new profile.", status="error")
+            return
+        # Use profile for this run
+        status_meta = prof
+        # Spin session from the profile
+        use = await profile_service.use_profile(prof['profile_id'])
+        session_id = use['session_id']
         current_session_id = session_id
-        await browser_service.create_session(session_id, use_proxy=True)
-        log_step("Session created")
+        log_step(f"Session from profile {prof['profile_id']} created")
 
         # Navigate to Gmail signup
         await browser_service.navigate(session_id, "https://accounts.google.com/signup")
