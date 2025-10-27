@@ -840,6 +840,18 @@ agent_communication:
     stuck_count: 0
     priority: "high"
     needs_retesting: false
+  - task: "Separate Chat vs Code models in Settings + Frontend wiring"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/App.js, /app/frontend/src/components/Settings.jsx, /app/frontend/src/services/api.js"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Introduced chatModel state (default openai/gpt-5) separate from code selectedModel (default x-ai/grok-code-fast-1). Settings updated to select Chat and Code models independently. Chat endpoint now uses chatModel."
+
     status_history:
       - working: "NA"
         agent: "main"
