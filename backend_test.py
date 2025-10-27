@@ -71,8 +71,8 @@ class LovableBackendTester:
                             {"prompt": test_prompt, "code_length": len(code)}
                         )
                         
-                        # Test with conversation history
-                        self.test_generate_code_with_history()
+                        # Test design generation flow
+                        self.test_design_generation_flow()
                         
                     else:
                         self.log_test(
