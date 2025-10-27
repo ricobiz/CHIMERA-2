@@ -1008,6 +1008,8 @@ frontend:
     needs_retesting: false
     status_history:
       - working: true
+  - agent: "main"
+    message: "Locked the flow: code generation in Agent mode now strictly waits for mockup approval. Added Annotate/Approve buttons in chat. After approval, code auto-generates with the approved design spec."
         agent: "main"
         comment: "✅ Added small settings gear icon next to model indicators (code & eye icons). Removed large menu button. Settings icon opens Settings page on click. Tested and working on desktop."
 
