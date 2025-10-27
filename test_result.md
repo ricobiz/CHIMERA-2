@@ -179,6 +179,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ VERIFIED: Code generation working perfectly. Tested with 'Create a todo app' using x-ai/grok-code-fast-1 model. Generated valid React code with useState, functions, JSX (9.0s response time). Code includes proper todo functionality with add/delete features. Agent mode fully functional."
+      - working: true
+        agent: "testing"
+        comment: "✅ RE-VERIFIED: Phase 2 regression test passed. Tested with 'Create a simple calculator with basic operations' using x-ai/grok-code-fast-1 model. Generated valid React code (4546 chars) with all 5/5 React patterns (useState, function, return, className, onClick). OpenRouter integration stable, no regressions detected."
 
   - task: "POST /api/generate-design endpoint - Design Generation"
     implemented: true
