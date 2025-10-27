@@ -447,6 +447,25 @@ function App() {
             content: `## 🎨 Design Specification Generated\n\n${designSpec.substring(0, 800)}...\n\n*Full design will be applied to generated code*`,
             isDesign: true
           };
+          // Optionally generate a mockup image and request approval before code
+          try {
+            const { generateMockup } = await import('./services/api');
+            const mockup = await generateMockup(designSpec, prompt, visualValidatorModel);
+            const mockupData = mockup?.mockup_data;
+            if (mockupData) {
+              const aiMockupMsg = {
+                role: 'assistant',
+                content: '🖼️ Mockup generated. Please review and annotate any changes needed.',
+                image: mockupData,
+                type: 'mockup'
+              };
+              setMessages(prev => [...prev, aiMockupMsg]);
+              setAwaitingDesignApproval(true);
+            }
+          } catch (e) {
+            console.warn('Mockup generation skipped or failed:', e?.message || e);
+          }
+
           setMessages(prev => [...prev, designMessage]);
           
           console.log('✅ Design generated:', designSpec.substring(0, 100) + '...');
