@@ -84,6 +84,7 @@ from routes.self_improvement_routes import router as self_improve_router
 from routes.hook_routes import router as hook_router
 from routes.proxy_routes import router as proxy_router
 from routes.personalization_routes import router as personalization_router
+from routes.test_routes import router as test_router
 app.include_router(lovable_router)
 app.include_router(models_router)
 app.include_router(session_router)
