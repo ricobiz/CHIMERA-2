@@ -420,6 +420,7 @@ class AntiDetectFingerprint:
             Object.defineProperty(navigator, 'deviceMemory', {{ get: () => {profile.get('deviceMemory', 8)} }});
             Object.defineProperty(navigator, 'languages', {{ get: () => {profile.get('languages', ['en-US','en'])} }});
             Object.defineProperty(navigator, 'language', {{ get: () => '{profile.get('languages', ['en-US'])[0]}' }});
+            Object.defineProperty(navigator, 'userAgent', {{ get: () => '{profile.get('user_agent','Mozilla/5.0')}' }});
             // Screen override (best-effort)
             try {{
               screen = {{ width: {profile['screen']['width']}, height: {profile['screen']['height']}, availWidth: {profile['screen']['width']}, availHeight: {profile['screen']['height']}, colorDepth: 24, pixelDepth: 24 }};
