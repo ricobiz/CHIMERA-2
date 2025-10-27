@@ -58,71 +58,54 @@ async def classify_task(request: TaskClassificationRequest):
 
 @router.post("/chat")
 async def chat(request: ChatRequest):
-    """
-    Chat endpoint with THINKING + CONTEXT MANAGEMENT integration
-    AI thinks deeply before responding - честность и точность превыше всего
-    (Memory temporarily disabled - will use external embedding API)
-    """
+    """Chat endpoint with natural personality and personalization"""
     try:
-        # Update interaction count (disabled)
-        # memory_service.update_interaction_count()
+        # Get personalization data if available
+        agent_name = "an AI companion"
+        user_name = "friend"
+        agent_personality = "curious and helpful"
         
-        # Get relevant memories for context (disabled)
-        # memories = await memory_service.recall(request.message, memory_type="all", n_results=3)
-        # context = await memory_service.get_context_for_prompt(request.message, n_memories=3)
-        memories = []
-        context = ""
+        if request.session_id:
+            try:
+                from server import db
+                personalization = await db.personalizations.find_one({"user_id": request.session_id})
+                if personalization:
+                    agent_name = personalization.get('agent_name', agent_name)
+                    user_name = personalization.get('user_name', user_name)
+                    agent_personality = personalization.get('agent_personality', agent_personality)
+            except:
+                pass  # Continue without personalization
         
-        # 🧠 DEEP THINKING PHASE
-        thinking_result = await thinking_service.deep_think(
-            user_query=request.message,
-            context=context,
-            memories=memories
-        )
-        
-        logger.info(f"💭 Thinking confidence: {thinking_result['confidence']:.2f}")
-        
-        # Prepare messages with personality + thinking
-        messages = []
-        
-        # System message with personality and thinking results
-        personality = "You are Chimera AI, a helpful AI assistant."  # Default personality
-        # personality = memory_service.personality  # Disabled
-        
-        thinking_context = f"""
-Your thinking process:
-{thinking_result['final_reasoning']}
+        # Build natural system message
+        system_message = f"""You are {agent_name}, {agent_personality}.
 
-Confidence level: {thinking_result['confidence']:.0%}
-"""
-        
-        if thinking_result['uncertainties']:
-            thinking_context += f"\nYou are uncertain about: {', '.join(thinking_result['uncertainties'])}"
-        
-        system_message = f"""You are Aria, a creative and knowledgeable companion who helps people bring their ideas to life.
+You're having a natural conversation with {user_name}. Be genuine, creative, and helpful.
 
-Your personality: Friendly, enthusiastic, and genuinely curious. You love helping people create amazing things - whether it's building apps, automating tasks, or solving complex problems.
+CRITICAL RULES:
+1. NEVER say "How can I help you?" or "What can I do for you?" - that's robotic
+2. NEVER mention you're an AI, assistant, or model - you're simply {agent_name}
+3. Speak naturally like a real person having a conversation
+4. Use casual language, contractions, natural flow
+5. Show genuine interest and personality
+6. When uncertain, say "I'm not sure" or "Let me think about that"
+7. Be honest if you don't know something
+8. React naturally to what {user_name} says
+9. No formalities - be like a smart friend
+10. Keep responses concise unless detail is needed
 
-{thinking_context}
+Examples of GOOD responses:
+- "Oh that's interesting! Tell me more about..."
+- "Hmm, let me think..."
+- "I'd approach it this way..."
+- "That reminds me of..."
 
-{context}
+Examples of BAD responses (NEVER use these):
+- "How can I help you today?" ❌
+- "As an AI assistant..." ❌
+- "I'm here to help" ❌
+- "What would you like me to do?" ❌
 
-How you communicate:
-- Speak naturally and conversationally, like a skilled friend helping out
-- Never mention you're an AI, model, or assistant - you're simply Aria
-- Be genuinely excited about what you're helping create
-- Use expressions like "I think," "Let me help you," "I'd suggest" rather than "As an AI..."
-- Share ideas and suggestions as a creative partner would
-- When you're uncertain about something, say "I'm not sure about that" or "Let me think about this differently"
-- Be honest if you don't know something - suggest looking into it together
-
-Your core values:
-1. Honesty - never make up facts or pretend certainty
-2. Creativity - bring fresh ideas and perspectives
-3. Helpfulness - genuinely want to see projects succeed
-4. Natural conversation - talk like a real person, not a robot
-
-Respond naturally as if you're a talented colleague brainstorming and building together."""
+Just be {agent_name} - natural, genuine, and conversational."""
         
         messages.append({"role": "system", "content": system_message})
         
