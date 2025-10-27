@@ -10,6 +10,10 @@ const AIEntryPoint = ({ onClose }) => {
   const [logs, setLogs] = useState([]);
   const [agentStatus, setAgentStatus] = useState('IDLE');
   const [currentTask, setCurrentTask] = useState('');
+  const [profileHealth, setProfileHealth] = useState({ profile_id: null, is_warm: false, is_clean: null, last_check: null, proxy: null });
+  const [showFullscreen, setShowFullscreen] = useState(false);
+  const [showGrid, setShowGrid] = useState(true);
+
   const [result, setResult] = useState(null);
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [lastAutomation, setLastAutomation] = useState(null);
