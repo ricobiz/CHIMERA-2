@@ -1458,58 +1458,62 @@ export default App;""",
                 "model": "x-ai/grok-code-fast-1"
             }
         
-        try:
-            response = self.session.post(
-                f"{BACKEND_URL}/chat",
-                json=payload_with_history,
-                timeout=30
-            )
-            
-            if response.status_code == 200:
-                data = response.json()
+            try:
+                response = self.session.post(
+                    f"{BACKEND_URL}/chat",
+                    json=payload_3,
+                    timeout=30
+                )
                 
-                if 'message' in data and 'response' in data:
-                    response_text = data['message']
-                    # Check if response is contextual (mentions fitness, app, or colors)
-                    contextual_keywords = ['fitness', 'app', 'color', 'blue', 'green', 'red', 'design']
-                    has_context = any(keyword.lower() in response_text.lower() for keyword in contextual_keywords)
+                if response.status_code == 200:
+                    data = response.json()
                     
-                    if has_context and len(response_text) > 20:
-                        self.log_test(
-                            "Chat - With History Context",
-                            True,
-                            f"Chat provided contextual response about fitness app colors ({len(response_text)} chars)",
-                            {"response_length": len(response_text), "contextual": has_context}
-                        )
+                    if 'message' in data and 'response' in data:
+                        response_text = data['message']
+                        # Check for stub patterns mentioned in the issue
+                        stub_patterns = ["I understand! In Chat mode", "stub", "fallback"]
+                        is_stub = any(pattern.lower() in response_text.lower() for pattern in stub_patterns)
+                        
+                        # Check if it's a joke (contains humor indicators)
+                        joke_indicators = ["why", "what do you call", "knock knock", "funny", "laugh", "haha"]
+                        has_joke = any(indicator.lower() in response_text.lower() for indicator in joke_indicators)
+                        
+                        if len(response_text) > 10 and not is_stub:
+                            self.log_test(
+                                "Chat - Third Message with Extended History",
+                                True,
+                                f"Third message worked correctly ({len(response_text)} chars)",
+                                {"response_length": len(response_text), "appears_to_be_joke": has_joke}
+                            )
+                        else:
+                            self.log_test(
+                                "Chat - Third Message - CRITICAL FAILURE",
+                                False,
+                                "Third message returning stub response - CONFIRMS SEQUENTIAL ISSUE",
+                                {"response_preview": response_text[:100], "is_stub": is_stub}
+                            )
                     else:
                         self.log_test(
-                            "Chat - With History Context - No Context",
+                            "Chat - Third Message - Missing Fields",
                             False,
-                            "Response doesn't appear contextual to fitness app discussion",
-                            {"response_preview": response_text[:150], "contextual": has_context}
+                            "Response missing required fields",
+                            {"response_keys": list(data.keys())}
                         )
                 else:
                     self.log_test(
-                        "Chat - With History Context - Missing Fields",
+                        "Chat - Third Message - HTTP Error",
                         False,
-                        "Response missing required fields",
-                        {"response_keys": list(data.keys())}
+                        f"HTTP {response.status_code}: {response.text}",
+                        {"status_code": response.status_code}
                     )
-            else:
+                    
+            except Exception as e:
                 self.log_test(
-                    "Chat - With History Context - HTTP Error",
+                    "Chat - Third Message - Exception",
                     False,
-                    f"HTTP {response.status_code}: {response.text}",
-                    {"status_code": response.status_code}
+                    f"Unexpected error: {str(e)}",
+                    {"error_type": type(e).__name__}
                 )
-                
-        except Exception as e:
-            self.log_test(
-                "Chat - With History Context - Exception",
-                False,
-                f"Unexpected error: {str(e)}",
-                {"error_type": type(e).__name__}
-            )
 
     # ============= BROWSER AUTOMATION TESTS =============
     
