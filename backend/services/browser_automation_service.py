@@ -40,7 +40,7 @@ class BrowserAutomationService:
         if not self.playwright:
             self.playwright = await async_playwright().start()
             self.browser = await self.playwright.chromium.launch(
-                headless=True,
+                headless=False,
                 args=[
                     '--no-sandbox',
                     '--disable-setuid-sandbox',
