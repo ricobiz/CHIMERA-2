@@ -5,6 +5,13 @@ from typing import List, Dict, Optional
 # Optional ONNX runtime (if available)
 try:
     import onnxruntime as ort  # type: ignore
+from .grid_service import GridConfig
+
+MODEL_PATH = "/app/backend/models/ui-detector.onnx"
+
+# Simple lazy downloader for a tiny onnx model (placeholder URL)
+MODEL_URL = os.environ.get("UI_DETECTOR_MODEL_URL", "https://huggingface.co/onnx/models/resolve/main/tiny_detectors/ui-detector.onnx")
+
 except Exception:  # pragma: no cover
     ort = None
 
