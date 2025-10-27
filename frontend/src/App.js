@@ -19,8 +19,12 @@ function App() {
   const [messages, setMessages] = useState([]);
   const [generatedCode, setGeneratedCode] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+  // Separate models: code vs chat
   const [selectedModel, setSelectedModel] = useState(
-    localStorage.getItem('selectedModel') || 'x-ai/grok-code-fast-1'  // Grok Code Fast 1 for code generation
+    localStorage.getItem('selectedModel') || 'x-ai/grok-code-fast-1'  // Code Generation: Grok Code Fast 1 by default
+  );
+  const [chatModel, setChatModel] = useState(
+    localStorage.getItem('chatModel') || 'openai/gpt-5' // Chat: GPT-5 by default via OpenRouter
   );
   const [totalCost, setTotalCost] = useState(0);
   const [sidebarOpen, setSidebarOpen] = useState(false);
