@@ -152,7 +152,8 @@ async def get_openrouter_overview():
                 headers={"Authorization": f"Bearer {api_key}"},
                 timeout=15.0
             )
-            models_resp, balance_resp = await httpx.gather(models_req, balance_req)
+            import asyncio
+            models_resp, balance_resp = await asyncio.gather(models_req, balance_req)
 
             if models_resp.status_code != 200:
                 logger.error(f"OpenRouter models error: {models_resp.status_code} - {models_resp.text}")
