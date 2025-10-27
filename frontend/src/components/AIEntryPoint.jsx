@@ -368,6 +368,22 @@ const AIEntryPoint = ({ onClose }) => {
           </div>
           
           {/* Agent Status */}
+          {/* Step Timeline */}
+          <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-4">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm text-gray-400 font-medium">Step Timeline</span>
+            </div>
+            <div className="max-h-64 overflow-y-auto space-y-1">
+              {(logs || []).map((l, idx) => (
+                <div key={idx} className="text-xs text-gray-300 flex items-center gap-2">
+                  <span className="text-gray-500 w-16">Step {l.step}</span>
+                  <span className="flex-1 truncate">{l.action}</span>
+                  <span className={`w-12 text-right ${l.status==='ok'?'text-green-400':l.status==='error'?'text-red-400':'text-gray-400'}`}>{l.status}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
           {/* Profile Health */}
           <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-4">
             <div className="flex items-center justify-between mb-3">
