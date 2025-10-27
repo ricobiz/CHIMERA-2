@@ -104,6 +104,30 @@
 
 user_problem_statement: "Chimera AIOS - AI code generation tool. Test full functionality: Chat mode (conversation), Agent mode (code generation with design), Document Verification (3 AI models), Browser Automation (with proxy and anti-detect), Message management (edit/delete/regenerate), Session persistence, Preview display, and Design workflow (clarification → mockup → approval → code)."
 
+  - task: "GET /api/openrouter/overview - Models + Balance"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/routes/openrouter_models.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added combined endpoint to fetch OpenRouter models (with pricing/capabilities) and account balance in one call. Uses official OpenRouter API with referer/title headers."
+
+  - task: "GET /api/openrouter/balance (openrouter_models)"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/routes/openrouter_models.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added lightweight balance endpoint that hits https://openrouter.ai/api/v1/auth/key and returns {remaining, currency}."
+
 backend:
   - task: "POST /api/chat endpoint - Chat Mode"
     implemented: true
