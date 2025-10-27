@@ -291,12 +291,25 @@ function App() {
     if (chatMode === 'chat') {
       try {
         // Simple chat response without code generation
+        
+        // Clean history - keep only role and content
+        const cleanHistory = messages.map(m => ({
+          role: m.role,
+          content: m.content
+        }));
+        
+        console.log('📤 Sending to chat API:', {
+          message: prompt,
+          historyLength: cleanHistory.length,
+          model: selectedModel
+        });
+        
         const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/chat`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             message: prompt,
-            history: messages,
+            history: cleanHistory, // Send clean history
             model: selectedModel,
             session_id: currentSessionId // Include session ID for context management
           })
