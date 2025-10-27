@@ -170,7 +170,8 @@ async def run_task_loop(job_id: str, goal_text: str):
             log_step("Profile flagged as bot; aborting task. Create a new profile.", status="error")
             return
         # Use profile for this run
-        status_meta = prof
+        global current_profile_id
+        current_profile_id = prof['profile_id']
         # Spin session from the profile
         use = await profile_service.use_profile(prof['profile_id'])
         session_id = use['session_id']
