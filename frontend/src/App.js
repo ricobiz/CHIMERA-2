@@ -314,7 +314,7 @@ function App() {
           body: JSON.stringify({
             message: prompt,
             history: cleanHistory, // Send clean history
-            model: selectedModel,
+            model: chatModel,
             session_id: currentSessionId // Include session ID for context management
           })
         });
