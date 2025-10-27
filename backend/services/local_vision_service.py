@@ -29,6 +29,8 @@ except Exception:  # pragma: no cover
 
 from .grid_service import GridConfig
 
+ensure_model()
+
 class LocalVisionService:
     """
     Local visual detector (Eyes):
