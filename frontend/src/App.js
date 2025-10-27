@@ -905,33 +905,6 @@ function App() {
         {/* Preview Panel - HIDDEN BY DEFAULT on mobile */}
         <div className={`${showPreview ? 'flex' : 'hidden'} md:flex flex-1 flex-col overflow-hidden relative`}>
           <PreviewPanel 
-      {showAnnotator && (
-        <AnnotatorModal
-          imageUrl={annotateImageUrl}
-          onClose={() => setShowAnnotator(false)}
-          onSubmit={async ({ annotations, summary, annotatedImageDataUrl }) => {
-            setShowAnnotator(false);
-            // Store feedback as a message and trigger design revision
-            const feedbackMsg = { role: 'user', content: `Design feedback:\n${summary}`, image: annotatedImageDataUrl };
-            setMessages(prev => [...prev, feedbackMsg]);
-
-            try {
-              const { reviseDesign } = await import('./services/api');
-              // Find last design spec in messages
-              const lastDesign = messages.slice().reverse().find(m => m.isDesign);
-              const currentDesignSpec = lastDesign ? lastDesign.content : '';
-              const revision = await reviseDesign(currentDesignSpec, summary, visualValidatorModel);
-              const revisedSpec = revision?.design_spec || '';
-              setMessages(prev => [...prev, { role: 'assistant', content: `🛠️ Revised Design Spec:\n\n${revisedSpec.substring(0, 800)}...` }]);
-              setAwaitingDesignApproval(true);
-            } catch (e) {
-              console.error('Design revision failed:', e);
-              toast({ title: 'Revision failed', description: 'Could not revise design.', variant: 'destructive' });
-            }
-          }}
-        />
-      )}
-
             generatedCode={generatedCode} 
             isGenerating={isGenerating} 
           />
