@@ -67,7 +67,13 @@ async def chat(request: ChatRequest):
         
         if request.session_id:
             try:
-                from server import db
+                # Import MongoDB connection locally to avoid issues
+                from motor.motor_asyncio import AsyncIOMotorClient
+                import os
+                mongo_url = os.environ['MONGO_URL']
+                client = AsyncIOMotorClient(mongo_url)
+                db = client[os.environ['DB_NAME']]
+                
                 personalization = await db.personalizations.find_one({"user_id": request.session_id})
                 if personalization:
                     agent_name = personalization.get('agent_name', agent_name)
