@@ -73,7 +73,7 @@ async def chat(request: ChatRequest):
                     agent_name = personalization.get('agent_name', agent_name)
                     user_name = personalization.get('user_name', user_name)
                     agent_personality = personalization.get('agent_personality', agent_personality)
-            except:
+            except Exception:
                 pass  # Continue without personalization
         
         # Build natural system message
