@@ -305,7 +305,7 @@ function App() {
         console.log('📤 Sending to chat API:', {
           message: prompt,
           historyLength: cleanHistory.length,
-          model: selectedModel
+          model: chatModel
         });
         
         const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/chat`, {
