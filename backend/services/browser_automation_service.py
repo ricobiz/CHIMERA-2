@@ -118,91 +118,6 @@ class BrowserAutomationService:
             'history': [],
             'use_proxy': use_proxy
         }
-    async def _inject_grid_overlay(self, page: Page) -> None:
-        """Inject a lightweight grid overlay and DOM clickables collector."""
-        js = """
-        (() => {
-          if (window.__chimeraGrid) return;
-          const style = document.createElement('style');
-          style.textContent = `
-            .chimera-grid-cell { position: fixed; border: 1px dashed rgba(150,150,150,0.15); pointer-events: none; z-index: 2147483646; }
-            .chimera-grid-label { position: fixed; font: 10px monospace; color: rgba(200,200,200,0.35); background: rgba(0,0,0,0.2); padding: 1px 2px; border-radius: 2px; z-index: 2147483647; pointer-events: none; }
-          `;
-          document.head.appendChild(style);
-          const overlay = document.createElement('div');
-          overlay.id = 'chimera-grid-overlay';
-          overlay.style.position = 'fixed';
-          overlay.style.top = '0';
-          overlay.style.left = '0';
-          overlay.style.right = '0';
-          overlay.style.bottom = '0';
-          overlay.style.pointerEvents = 'none';
-          overlay.style.display = 'none';
-          overlay.style.zIndex = '2147483645';
-          document.body.appendChild(overlay);
-
-          function layoutGrid(rows, cols) {
-            overlay.innerHTML = '';
-            const vw = window.innerWidth, vh = window.innerHeight;
-            const cw = vw / cols, ch = vh / rows;
-            const A = 'A'.charCodeAt(0);
-            for (let r = 0; r < rows; r++) {
-              for (let c = 0; c < cols; c++) {
-                const cell = document.createElement('div');
-                cell.className = 'chimera-grid-cell';
-                cell.style.left = (c * cw) + 'px';
-                cell.style.top = (r * ch) + 'px';
-                cell.style.width = cw + 'px';
-                cell.style.height = ch + 'px';
-                overlay.appendChild(cell);
-                const label = document.createElement('div');
-                label.className = 'chimera-grid-label';
-                label.style.left = (c * cw + 3) + 'px';
-                label.style.top = (r * ch + 2) + 'px';
-                label.textContent = String.fromCharCode(A + c) + (r + 1);
-                overlay.appendChild(label);
-              }
-            }
-          }
-
-          window.__chimeraGrid = {
-            show: (rows, cols) => { layoutGrid(rows, cols); overlay.style.display = 'block'; },
-            hide: () => { overlay.style.display = 'none'; },
-            collect: () => {
-              const vw = window.innerWidth, vh = window.innerHeight;
-              const clickables = [];
-              const candidates = Array.from(document.querySelectorAll('a,button,input,textarea,select,[role="button"], [onclick]'));
-              for (const el of candidates) {
-                const rect = el.getBoundingClientRect();
-                if (!rect || rect.width < 6 || rect.height < 6) continue;
-                const style = window.getComputedStyle(el);
-                if (style.visibility === 'hidden' || style.display === 'none') continue;
-                const label = (el.innerText || el.value || el.getAttribute('aria-label') || el.name || '').slice(0, 64);
-                const type = (el.tagName || 'button').toLowerCase();
-                clickables.push({
-                  bbox: { x: Math.max(0, Math.floor(rect.left)), y: Math.max(0, Math.floor(rect.top)), w: Math.floor(rect.width), h: Math.floor(rect.height) },
-                  label,
-                  type,
-                  confidence: 0.8
-                });
-              }
-              return { vw, vh, clickables };
-            }
-          };
-        })();
-        """
-        await page.add_init_script(js)
-
-    async def _collect_dom_clickables(self, page: Page) -> Dict[str, Any]:
-        try:
-            data = await page.evaluate("window.__chimeraGrid ? window.__chimeraGrid.collect() : null")
-            if not data:
-                await self._inject_grid_overlay(page)
-                data = await page.evaluate("window.__chimeraGrid.collect()")
-            return data
-        except Exception:
-            return {"vw": 1280, "vh": 800, "clickables": []}
-
         
         logger.info(f"✅ Created session: {session_id} (proxy={use_proxy})")
         return {'session_id': session_id, 'status': 'ready', 'proxy_enabled': use_proxy}
@@ -284,12 +199,6 @@ class BrowserAutomationService:
             
             # Get element bounding box
             element = await page.query_selector(selector)
-    async def _augment_with_vision(self, screenshot_base64: str, dom_data: Dict[str, Any]) -> List[Dict[str, Any]]:
-        from .local_vision_service import local_vision_service
-        vw, vh = dom_data.get('vw', 1280), dom_data.get('vh', 800)
-        dom_clickables = dom_data.get('clickables', [])
-        return local_vision_service.detect(screenshot_base64, vw, vh, dom_clickables=dom_clickables, model_path=os.path.join('/app/backend/models/', 'ui-detector.onnx'))
-
             if element:
                 box = await element.bounding_box()
                 
@@ -378,7 +287,7 @@ class BrowserAutomationService:
             }
     
     async def capture_screenshot(self, session_id: str) -> str:
-        """Capture page screenshot as base64"""
+        """Capture page screenshot as base64 (no data: prefix)"""
         if session_id not in self.sessions:
             raise ValueError(f"Session {session_id} not found")
         
@@ -408,7 +317,7 @@ class BrowserAutomationService:
     async def find_elements_with_vision(self, session_id: str, description: str) -> List[Dict[str, Any]]:
         """
         Use LOCAL vision model to find elements matching description
-        NO API CALLS - uses Hugging Face Florence-2 model locally
+        NO API CALLS - uses fallback DOM heuristics currently
         """
         if session_id not in self.sessions:
             raise ValueError(f"Session {session_id} not found")
@@ -418,13 +327,6 @@ class BrowserAutomationService:
         try:
             # Capture screenshot
             screenshot = await self.capture_screenshot(session_id)
-            
-            # Vision service disabled for MVP - using basic selector matching
-            # elements = await vision_service.find_element(
-            #     screenshot=screenshot,
-            #     description=description,
-            #     return_multiple=True
-            # )
             
             # Fallback: Try basic text search instead of vision
             results = []
@@ -446,369 +348,126 @@ class BrowserAutomationService:
             except Exception as e:
                 logger.warning(f"Basic text search failed: {e}")
             
-            # Original vision-based code (disabled):
-            # # Convert vision model results to selectors
-            # results = []
-            # for elem in elements:
-            #     box = elem.get('box', {})
-            #     text = elem.get('text', '')
-            #     confidence = elem.get('confidence', 0)
-            #     
-            #     # Try to match with actual DOM elements
-            #     # Get element at coordinates
-            #     center_x = box.get('x', 0) + box.get('width', 0) / 2
-            #     center_y = box.get('y', 0) + box.get('height', 0) / 2
-            #     
-            #     try:
-            #     try:
-            #         # Get element at point
-            #         element_handle = await page.evaluate(f"""
-            #             document.elementFromPoint({center_x}, {center_y})
-            #         """)
-            #         
-            #         # Get selector for this element
-            #         tag = await page.evaluate("""
-            #             (el) => el ? el.tagName.toLowerCase() : null
-            #         """, element_handle)
-            #         
-            #         results.append({
-            #             'selector': tag or 'unknown',
-            #             'text': text,
-            #             'box': box,
-            #             'confidence': confidence
-            #         })
-            #     except:
-            #         # Fallback if DOM query fails
-            #         results.append({
-            #             'selector': f"element_at_{int(center_x)}_{int(center_y)}",
-            #             'text': text,
-            #             'box': box,
-            #             'confidence': confidence
-            #         })
-            
             logger.info(f"Found {len(results)} elements for '{description}' (vision disabled, using text search)")
             return results
             
         except Exception as e:
             logger.error(f"Element finding error: {str(e)}")
-            
-            # Fallback to simple DOM query
-            try:
-                elements = await page.query_selector_all('button, a, input, textarea, select')
-                results = []
-                
-                for element in elements[:10]:
-                    box = await element.bounding_box()
-                    if box:
-                        text = await element.inner_text() if await element.inner_text() else ''
-                        tag = await element.evaluate('el => el.tagName')
-                        
-                        results.append({
-                            'selector': f'{tag}',
-                            'text': text,
-                            'box': box
-                        })
-                
-                return results
-            except Exception as fallback_error:
-                logger.error(f"Fallback element finding also failed: {str(fallback_error)}")
-                return []
+            return []
     
-    async def close_session(self, session_id: str):
-        """Close browser session"""
-        if session_id in self.sessions:
-            session = self.sessions[session_id]
-            await session['page'].close()
-            await session['context'].close()
-            del self.sessions[session_id]
-            logger.info(f"Closed session: {session_id}")
-    
-    async def smart_click(self, session_id: str, target_hint: str) -> Dict[str, Any]:
-        """
-        Smart click using vision model to find element by natural language description
-        
-        Args:
-            session_id: Browser session ID
-            target_hint: Natural language description of element to click (e.g., "Submit button", "Login link")
-        
-        Returns:
-            {
-                success: bool,
-                screenshot_before: str (base64),
-                screenshot_after: str (base64),
-                box: {x, y, width, height},
-                confidence: float,
-                element_description: str
+    async def _inject_grid_overlay(self, page: Page) -> None:
+        """Inject a lightweight grid overlay and DOM clickables collector."""
+        js = """
+        (() => {
+          if (window.__chimeraGrid) return;
+          const style = document.createElement('style');
+          style.textContent = `
+            .chimera-grid-cell { position: fixed; border: 1px dashed rgba(150,150,150,0.15); pointer-events: none; z-index: 2147483646; }
+            .chimera-grid-label { position: fixed; font: 10px monospace; color: rgba(200,200,200,0.35); background: rgba(0,0,0,0.2); padding: 1px 2px; border-radius: 2px; z-index: 2147483647; pointer-events: none; }
+          `;
+          document.head.appendChild(style);
+          const overlay = document.createElement('div');
+          overlay.id = 'chimera-grid-overlay';
+          overlay.style.position = 'fixed';
+          overlay.style.top = '0';
+          overlay.style.left = '0';
+          overlay.style.right = '0';
+          overlay.style.bottom = '0';
+          overlay.style.pointerEvents = 'none';
+          overlay.style.display = 'none';
+          overlay.style.zIndex = '2147483645';
+          document.body.appendChild(overlay);
+
+          function layoutGrid(rows, cols) {
+            overlay.innerHTML = '';
+            const vw = window.innerWidth, vh = window.innerHeight;
+            const cw = vw / cols, ch = vh / rows;
+            const A = 'A'.charCodeAt(0);
+            for (let r = 0; r < rows; r++) {
+              for (let c = 0; c < cols; c++) {
+                const cell = document.createElement('div');
+                cell.className = 'chimera-grid-cell';
+                cell.style.left = (c * cw) + 'px';
+                cell.style.top = (r * ch) + 'px';
+                cell.style.width = cw + 'px';
+                cell.style.height = ch + 'px';
+                overlay.appendChild(cell);
+                const label = document.createElement('div');
+                label.className = 'chimera-grid-label';
+                label.style.left = (c * cw + 3) + 'px';
+                label.style.top = (r * ch + 2) + 'px';
+                label.textContent = String.fromCharCode(A + c) + (r + 1);
+                overlay.appendChild(label);
+              }
             }
+          }
+
+          window.__chimeraGrid = {
+            show: (rows, cols) => { layoutGrid(rows, cols); overlay.style.display = 'block'; },
+            hide: () => { overlay.style.display = 'none'; },
+            collect: () => {
+              const vw = window.innerWidth, vh = window.innerHeight;
+              const clickables = [];
+              const candidates = Array.from(document.querySelectorAll('a,button,input,textarea,select,[role="button"], [onclick]'));
+              for (const el of candidates) {
+                const rect = el.getBoundingClientRect();
+                if (!rect || rect.width < 6 || rect.height < 6) continue;
+                const style = window.getComputedStyle(el);
+                if (style.visibility === 'hidden' || style.display === 'none') continue;
+                const label = (el.innerText || el.value || el.getAttribute('aria-label') || el.name || '').slice(0, 64);
+                const type = (el.tagName || 'button').toLowerCase();
+                clickables.push({
+                  bbox: { x: Math.max(0, Math.floor(rect.left)), y: Math.max(0, Math.floor(rect.top)), w: Math.floor(rect.width), h: Math.floor(rect.height) },
+                  label,
+                  type,
+                  confidence: 0.8
+                });
+              }
+              return { vw, vh, clickables };
+            }
+          };
+        })();
         """
+        await page.add_init_script(js)
+
+    async def _collect_dom_clickables(self, page: Page) -> Dict[str, Any]:
+        try:
+            data = await page.evaluate("window.__chimeraGrid ? window.__chimeraGrid.collect() : null")
+            if not data:
+                await self._inject_grid_overlay(page)
+                data = await page.evaluate("window.__chimeraGrid.collect()")
+            return data
+        except Exception:
+            return {"vw": 1280, "vh": 800, "clickables": []}
+
+    async def _augment_with_vision(self, screenshot_base64: str, dom_data: Dict[str, Any]) -> List[Dict[str, Any]]:
+        from .local_vision_service import local_vision_service
+        vw, vh = dom_data.get('vw', 1280), dom_data.get('vh', 800)
+        dom_clickables = dom_data.get('clickables', [])
+        return local_vision_service.detect(screenshot_base64, vw, vh, dom_clickables=dom_clickables, model_path=os.path.join('/app/backend/models/', 'ui-detector.onnx'))
+
+    # Convenience actions for SCROLL and WAIT
+    async def scroll(self, session_id: str, dx: int = 0, dy: int = 400) -> Dict[str, Any]:
         if session_id not in self.sessions:
             raise ValueError(f"Session {session_id} not found")
-        
         page = self.sessions[session_id]['page']
-        
         try:
-            # Capture screenshot before
-            screenshot_before = await self.capture_screenshot(session_id)
-            
-            # Use vision model to find element
-            from services.visual_validator_service import visual_validator_service
-            
-            vision_prompt = f"""Analyze this webpage screenshot and locate the element: "{target_hint}"
-
-Return JSON with:
-{{
-    "found": true/false,
-    "box": {{"x": number, "y": number, "width": number, "height": number}},
-    "confidence": 0.0-1.0,
-    "description": "what you found"
-}}
-
-If element not found, set found=false and confidence=0."""
-
-            # Call vision API (using existing visual_validator_service with Gemini)
-            import httpx
-            import json
-            import re
-            
-            api_key = os.environ.get('OPENROUTER_API_KEY')
-            
-            response = await httpx.AsyncClient(timeout=30.0).post(
-                "https://openrouter.ai/api/v1/chat/completions",
-                headers={
-                    "Authorization": f"Bearer {api_key}",
-                    "Content-Type": "application/json"
-                },
-                json={
-                    "model": "google/gemini-2.5-flash-image",
-                    "messages": [
-                        {
-                            "role": "user",
-                            "content": [
-                                {"type": "text", "text": vision_prompt},
-                                {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{screenshot_before}"}}
-                            ]
-                        }
-                    ],
-                    "temperature": 0.3,
-                    "max_tokens": 500
-                }
-            )
-            
-            result_text = response.json()['choices'][0]['message']['content']
-            
-            # Extract JSON from response
-            json_match = re.search(r'```json\s*(.*?)\s*```', result_text, re.DOTALL)
-            if json_match:
-                result_text = json_match.group(1)
-            
-            vision_result = json.loads(result_text)
-            
-            if not vision_result.get('found', False):
-                return {
-                    "success": False,
-                    "screenshot_before": screenshot_before,
-                    "screenshot_after": screenshot_before,
-                    "box": None,
-                    "confidence": 0.0,
-                    "element_description": f"Element '{target_hint}' not found",
-                    "error": "Element not visible or not found on page"
-                }
-            
-            # Get click coordinates
-            box = vision_result['box']
-            click_x = box['x'] + box['width'] / 2
-            click_y = box['y'] + box['height'] / 2
-            
-            # Human-like delay before click
-            await human_like_delay(150, 400)
-            
-            # Perform click
-            await page.mouse.click(click_x, click_y)
-            
-            # Human-like delay after click
-            await human_like_delay(300, 700)
-            
-            # Capture screenshot after
-            screenshot_after = await self.capture_screenshot(session_id)
-            
-            # Post-check: verify something changed
-            url_after = page.url
-            changed = (screenshot_after != screenshot_before) or (url_after != page.url)
-            
-            logger.info(f"Smart click: {target_hint} at ({click_x}, {click_y}) - Changed: {changed}")
-            
+            await page.mouse.wheel(dx, dy)
+            await human_like_delay(200, 500)
+            screenshot_b64 = await self.capture_screenshot(session_id)
+            dom_data = await self._collect_dom_clickables(page)
+            vision = await self._augment_with_vision(screenshot_b64, dom_data)
             return {
-                "success": True,
-                "screenshot_before": screenshot_before,
-                "screenshot_after": screenshot_after,
-                "box": box,
-                "confidence": vision_result.get('confidence', 0.8),
-                "element_description": vision_result.get('description', target_hint)
+                "screenshot_base64": screenshot_b64,
+                "vision": vision,
+                "status": "idle"
             }
-            
         except Exception as e:
-            logger.error(f"Smart click error: {str(e)}")
-            screenshot = await self.capture_screenshot(session_id)
-            return {
-                "success": False,
-                "screenshot_before": screenshot,
-                "screenshot_after": screenshot,
-                "box": None,
-                "confidence": 0.0,
-                "element_description": f"Error: {str(e)}",
-                "error": str(e)
-            }
-    
-    async def smart_type(self, session_id: str, target_hint: str, text: str) -> Dict[str, Any]:
-        """
-        Smart type using vision model to find input field by natural language description
-        
-        Args:
-            session_id: Browser session ID
-            target_hint: Natural language description of input field (e.g., "Email input", "Search box")
-            text: Text to type
-        
-        Returns:
-            {
-                success: bool,
-                screenshot_before: str (base64),
-                screenshot_after: str (base64),
-                box: {x, y, width, height},
-                confidence: float,
-                element_description: str,
-                typed_text: str
-            }
-        """
-        if session_id not in self.sessions:
-            raise ValueError(f"Session {session_id} not found")
-        
-        page = self.sessions[session_id]['page']
-        
-        try:
-            # Capture screenshot before
-            screenshot_before = await self.capture_screenshot(session_id)
-            
-            # Use vision model to find element
-            import httpx
-            import json
-            import re
-            
-            vision_prompt = f"""Analyze this webpage screenshot and locate the input field: "{target_hint}"
+            logger.error(f"Scroll error: {e}")
+            return {"error": str(e)}
 
-Return JSON with:
-{{
-    "found": true/false,
-    "box": {{"x": number, "y": number, "width": number, "height": number}},
-    "confidence": 0.0-1.0,
-    "description": "what you found",
-    "field_type": "text|email|password|search|textarea"
-}}
-
-If element not found, set found=false."""
-
-            api_key = os.environ.get('OPENROUTER_API_KEY')
-            
-            response = await httpx.AsyncClient(timeout=30.0).post(
-                "https://openrouter.ai/api/v1/chat/completions",
-                headers={
-                    "Authorization": f"Bearer {api_key}",
-                    "Content-Type": "application/json"
-                },
-                json={
-                    "model": "google/gemini-2.5-flash-image",
-                    "messages": [
-                        {
-                            "role": "user",
-                            "content": [
-                                {"type": "text", "text": vision_prompt},
-                                {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{screenshot_before}"}}
-                            ]
-                        }
-                    ],
-                    "temperature": 0.3,
-                    "max_tokens": 500
-                }
-            )
-            
-            result_text = response.json()['choices'][0]['message']['content']
-            
-            # Extract JSON
-            json_match = re.search(r'```json\s*(.*?)\s*```', result_text, re.DOTALL)
-            if json_match:
-                result_text = json_match.group(1)
-            
-            vision_result = json.loads(result_text)
-            
-            if not vision_result.get('found', False):
-                return {
-                    "success": False,
-                    "screenshot_before": screenshot_before,
-                    "screenshot_after": screenshot_before,
-                    "box": None,
-                    "confidence": 0.0,
-                    "element_description": f"Input field '{target_hint}' not found",
-                    "typed_text": "",
-                    "error": "Input field not visible or not found on page"
-                }
-            
-            # Get click coordinates to focus
-            box = vision_result['box']
-            click_x = box['x'] + box['width'] / 2
-            click_y = box['y'] + box['height'] / 2
-            
-            # Click to focus
-            await page.mouse.click(click_x, click_y)
-            await page.wait_for_timeout(200)
-            
-            # Clear existing content
-            await page.keyboard.press('Control+A')
-            await page.keyboard.press('Backspace')
-            
-            # Type new text
-            await page.keyboard.type(text, delay=50)
-            await page.wait_for_timeout(300)
-            
-            # Capture screenshot after
-            screenshot_after = await self.capture_screenshot(session_id)
-            
-            logger.info(f"Smart type successful: '{text}' into {target_hint}")
-            
-            return {
-                "success": True,
-                "screenshot_before": screenshot_before,
-                "screenshot_after": screenshot_after,
-                "box": box,
-                "confidence": vision_result.get('confidence', 0.8),
-                "element_description": vision_result.get('description', target_hint),
-                "typed_text": text,
-                "field_type": vision_result.get('field_type', 'text')
-            }
-            
-        except Exception as e:
-            logger.error(f"Smart type error: {str(e)}")
-            screenshot = await self.capture_screenshot(session_id)
-            return {
-                "success": False,
-                "screenshot_before": screenshot,
-                "screenshot_after": screenshot,
-                "box": None,
-                "confidence": 0.0,
-                "element_description": f"Error: {str(e)}",
-                "typed_text": "",
-                "error": str(e)
-            }
-    
-    async def cleanup(self):
-        """Cleanup all resources"""
-        for session_id in list(self.sessions.keys()):
-            await self.close_session(session_id)
-        
-        if self.browser:
-            await self.browser.close()
-        if self.playwright:
-            await self.playwright.stop()
-        
-        logger.info("Browser automation service cleaned up")
+    async def wait(self, ms: int = 500):
+        await human_like_delay(ms, ms + 50)
 
 # Global instance
 browser_service = BrowserAutomationService()
