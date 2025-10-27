@@ -71,7 +71,7 @@ function App() {
       const urlParams = new URLSearchParams(window.location.search);
       const urlSessionId = urlParams.get('session');
       
-      const sessionId = urlSessionId || localStorage.getItem('currentSessionId');
+      let sessionId = urlSessionId || localStorage.getItem('currentSessionId');
       
       if (sessionId) {
         try {
@@ -101,7 +101,16 @@ function App() {
         } catch (error) {
           console.error('Failed to load session:', error);
           localStorage.removeItem('currentSessionId');
+          // Create new session if loading failed
+          sessionId = null;
         }
+      }
+      
+      // If no session exists, create a new one
+      if (!sessionId) {
+        const newSessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        setCurrentSessionId(newSessionId);
+        console.log(`🆕 Created new session: ${newSessionId}`);
       }
     };
     
