@@ -794,6 +794,7 @@ function App() {
             totalCost={totalCost}
             apiBalance={apiBalance}
             activeModel={selectedModel}
+            chatModel={chatModel}
             validatorEnabled={visualValidatorEnabled}
             validatorModel={visualValidatorModel}
             generationStatus={generationStatus}
