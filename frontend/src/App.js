@@ -461,7 +461,14 @@ function App() {
                 type: 'mockup'
               };
               setMessages(prev => [...prev, aiMockupMsg]);
+              setPendingDesign(designSpec);
+              setPendingPrompt(prompt);
               setAwaitingDesignApproval(true);
+              // Require approval before code generation
+              setIsGenerating(false);
+              setGenerationStatus('idle');
+              toast({ title: 'Design Ready', description: 'Please approve or annotate the mockup before generating code.' });
+              return; // stop further flow until approval
             }
           } catch (e) {
             console.warn('Mockup generation skipped or failed:', e?.message || e);
