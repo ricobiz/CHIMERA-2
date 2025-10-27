@@ -102,9 +102,229 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Browser Automation Testing - Регистрация на justfans.uno. Test complete browser automation scenario for account registration including navigation, element detection with vision model, form filling, captcha solving, and avatar upload."
+user_problem_statement: "Chimera AIOS - AI code generation tool. Test full functionality: Chat mode (conversation), Agent mode (code generation with design), Document Verification (3 AI models), Browser Automation (with proxy and anti-detect), Message management (edit/delete/regenerate), Session persistence, Preview display, and Design workflow (clarification → mockup → approval → code)."
 
 backend:
+  - task: "POST /api/chat endpoint - Chat Mode"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/routes/chat_routes.py"
+    stuck_count: 2
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "user"
+        comment: "User reports: Only first message works, all subsequent messages return stub 'I understand! In Chat mode...'. Frontend shows '[Error: Body is disturbed or locked]'"
+      - working: "NA"
+        agent: "main"
+        comment: "Fixed 3 issues: (1) Added response.ok check before json(), (2) Cleaned history to only send {role, content}, (3) Added detailed logging. Backend returns correct {message, response} fields. Needs retesting."
+
+  - task: "POST /api/generate-code endpoint - Agent Mode Code Generation"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/routes/lovable_routes.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Code generation endpoint exists. Uses Grok Code Fast 1 model. Needs comprehensive testing with actual code generation task."
+
+  - task: "POST /api/generate-design endpoint - Design Generation"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/routes/lovable_routes.py, /app/backend/services/design_generator_service.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Uses google/gemini-2.5-flash-image (Nano Banana). Generates design specifications. Needs testing."
+
+  - task: "POST /api/generate-mockup endpoint - Visual Mockup Generation"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/routes/lovable_routes.py, /app/backend/services/design_generator_service.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Generates visual mockup images via Gemini. Needs testing."
+
+  - task: "POST /api/revise-design endpoint - Design Revision"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/routes/lovable_routes.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Allows infinite design iterations based on user feedback. Needs testing."
+
+  - task: "POST /api/document-verification/analyze - Multi-Model Verification"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/document_verification_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "✅ Tested manually. Uses 3 models: GPT-4o (90%), Claude 3.5 Sonnet (98%), Gemini 2.5 Flash (99%). Consensus: 95.7% fraud. Agreement: 91%. Works perfectly in 22.9s."
+
+  - task: "GET /api/proxy/status - Proxy Status"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/proxy_routes.py, /app/backend/services/proxy_service.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "✅ Tested. 10 US proxies available from Webshare.io. Rotation working."
+
+  - task: "POST /api/automation/session/create - Browser Automation with Proxy"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/routes/automation_routes.py, /app/backend/services/browser_automation_service.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Creates browser session with optional proxy. Anti-detect features: Canvas/WebGL/Audio fingerprinting evasion, human-like mouse movement (Bezier curves), realistic typing with typos. Needs testing."
+
+  - task: "POST /api/automation/captcha/solve - AI CAPTCHA Solving"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/routes/automation_routes.py, /app/backend/services/anti_detect.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Auto-detects and solves CAPTCHAs using Gemini 2.5 Flash Image vision model. Supports reCAPTCHA, hCaptcha. Needs testing."
+
+frontend:
+  - task: "Chat Interface - Message Display"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/ChatInterface.jsx, /app/frontend/src/App.js"
+    stuck_count: 2
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "user"
+        comment: "Only first message displays correctly. All subsequent messages show stub fallback text."
+      - working: "NA"
+        agent: "main"
+        comment: "Fixed fetch error handling and history cleaning. Added detailed console logging. Needs retesting."
+
+  - task: "Message Management - Delete/Edit/Regenerate"
+    implemented: true
+    working: false
+    file: "/app/frontend/src/App.js, /app/frontend/src/components/ChatInterface.jsx"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "user"
+        comment: "Buttons appear but don't work. Delete (🗑️) does nothing. Edit (✏️) works locally but disappears on reload. Regenerate (🔄) shows no action."
+      - working: "NA"
+        agent: "main"
+        comment: "Fixed: (1) Auto-create session on start, (2) Auto-save always works now, (3) Fixed stale state in delete/edit, (4) Added detailed logging. Needs retesting."
+
+  - task: "Session Persistence - localStorage Auto-save"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/App.js"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "user"
+        comment: "Changes don't persist after page reload."
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented auto-save on every message change. Creates session automatically. Logs: '💾 Auto-saved X messages'. Needs retesting."
+
+  - task: "Preview Panel - Code Display"
+    implemented: true
+    working: false
+    file: "/app/frontend/src/components/PreviewPanel.jsx, /app/frontend/src/App.js"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "user"
+        comment: "Preview doesn't show generated code. Empty or not appearing."
+      - working: "NA"
+        agent: "main"
+        comment: "Preview panel exists. Need to test with actual code generation in Agent mode."
+
+  - task: "Design Workflow - Clarification → Mockup → Approval → Code"
+    implemented: false
+    working: "NA"
+    file: "/app/frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Backend ready. Frontend UI not implemented yet. Should: (1) Show design spec, (2) Generate mockup image, (3) Show Approve/Edit/Reject buttons, (4) Generate code only after approval."
+
+  - task: "Document Verification UI"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/components/DocumentVerification.jsx"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "✅ Tested manually. UI shows: (1) Traffic light indicator 🟢🟡🔴, (2) Click for detailed report, (3) 3-model analysis display, (4) Official report with download. Working perfectly."
+
+metadata:
+  created_by: "main_agent"
+  version: "3.0"
+  test_sequence: 3
+  run_ui: true
+
+test_plan:
+  current_focus:
+    - "POST /api/chat endpoint - Chat Mode"
+    - "Chat Interface - Message Display"
+    - "Message Management - Delete/Edit/Regenerate"
+    - "Session Persistence - localStorage Auto-save"
+    - "Preview Panel - Code Display"
+    - "POST /api/generate-code endpoint - Agent Mode Code Generation"
+  stuck_tasks:
+    - "Chat Interface - Message Display (stuck_count: 2)"
+    - "POST /api/chat endpoint (stuck_count: 2)"
+    - "Message Management (stuck_count: 1)"
+  test_all: false
+  test_priority: "stuck_first"
+
+agent_communication:
+  - agent: "main"
+    message: "Fixed critical chat bugs: (1) Body is disturbed error - added response.ok check, (2) History cleaning - only send {role, content}, (3) Session auto-creation, (4) Auto-save always works. Added extensive logging to all functions. Please test: Chat (multiple messages), Message delete/edit/regenerate, Session persistence across reload, Preview display, Code generation in Agent mode, Design workflow. Check console for detailed logs: '📤 Sending...', '✅ Chat API response', '💾 Auto-saved', '🗑️ Deleting', etc."
   - task: "POST /api/integrations endpoint"
     implemented: true
     working: true
