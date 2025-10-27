@@ -280,7 +280,7 @@ async def run_task_loop(job_id: str, goal_text: str):
                 # After action, observe again and record
                 obs2 = await observe(session_id)
                 history_steps.append({"action": action, "cell": target_cell, "text": (text[:20] if text else '')})
-                log_step(f"Step: {action} {target_cell or ''} {'"'+text+'"' if text else ''} → ok")
+                log_step(f"Step {len(execution_logs)+1}: {action} {target_cell or ''} {('\\"'+text+'\\"') if text else ''} → ok")
             except Exception as e:
                 ok = False
                 log_step(f"Step error: {action} {target_cell or ''}", status="error", error=str(e))
