@@ -1118,6 +1118,9 @@ test_plan:
     **✅ SCENARIO 4 - Error Handling (MOSTLY PASSED):**
     - ✅ Fallback behavior working correctly for invalid models
     - ❌ Minor: Returns 500 instead of 400 for missing user_request (non-critical - still handles error properly)
+  - agent: "main"
+    message: "Phase 2 start: Added AnnotatorModal for mockup feedback (circles + notes) and wired design/mockup APIs in services. Next: integrate chat flow to require design approval (annotate/approve/request changes) before generate-code, and enable image generation inline via generateMockup with Google model from OpenRouter list if local vision is missing. Will test Preview rendering (no runtime errors), message edit/regenerate/delete flows, and correct model responses."
+
     
     **Technical Validation:**
     - ✅ All response structures match expected format
