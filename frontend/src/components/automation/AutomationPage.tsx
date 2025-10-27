@@ -161,12 +161,14 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
   const quickNavigate = async () => {
     if (!quickSessionId) return alert('Create session first');
     try {
+      setQuickError(null);
       const resp = await fetch(`${BASE_URL}/api/automation/navigate`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ session_id: quickSessionId, url: quickUrl }) });
       const data = await resp.json();
-      if (!resp.ok) throw new Error(data.detail || 'navigate failed');
+      if (!resp.ok || data.success === false) throw new Error(data.error || data.detail || 'navigate failed');
       const shot = await fetch(`${BASE_URL}/api/automation/screenshot?session_id=${encodeURIComponent(quickSessionId)}`);
       const js = await shot.json();
       if (js.screenshot_base64) setPendingSrc(js.screenshot_base64);
+      else setQuickError('No screenshot returned');
     } catch (e: any) {
       alert(e.message || 'Quick navigate failed');
     }
