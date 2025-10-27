@@ -89,10 +89,11 @@ export default App;
             explanation = f"I've created {prompt.lower()}. The code is ready in the preview panel!"
             
             # Get usage statistics
+            response_usage = response.get('usage', {})
             usage = {
-                "prompt_tokens": response.usage.prompt_tokens if response.usage else 0,
-                "completion_tokens": response.usage.completion_tokens if response.usage else 0,
-                "total_tokens": response.usage.total_tokens if response.usage else 0
+                "prompt_tokens": response_usage.get('prompt_tokens', 0),
+                "completion_tokens": response_usage.get('completion_tokens', 0),
+                "total_tokens": response_usage.get('total_tokens', 0)
             }
             
             logger.info(f"Code generated successfully. Tokens used: {usage['total_tokens']}")
