@@ -178,3 +178,38 @@ export const controlAgent = async (mode) => {
     throw error;
   }
 };
+
+
+// ========== New Automation APIs for AI Entry Point ==========
+export const automationCreateSession = async (sessionId, useProxy = true) => {
+  const response = await axios.post(`${API}/api/automation/session/create`, { session_id: sessionId, use_proxy: useProxy });
+  return response.data;
+};
+export const automationNavigate = async (sessionId, url) => {
+  const response = await axios.post(`${API}/api/automation/navigate`, { session_id: sessionId, url });
+  return response.data;
+};
+export const automationScreenshot = async (sessionId) => {
+  const response = await axios.get(`${API}/api/automation/screenshot`, { params: { session_id: sessionId } });
+  return response.data;
+};
+export const automationClickCell = async (sessionId, cell) => {
+  const response = await axios.post(`${API}/api/automation/click-cell`, { session_id: sessionId, cell });
+  return response.data;
+};
+export const automationTypeAtCell = async (sessionId, cell, text) => {
+  const response = await axios.post(`${API}/api/automation/type-at-cell`, { session_id: sessionId, cell, text });
+  return response.data;
+};
+export const automationHoldDrag = async (sessionId, fromCell, toCell) => {
+  const response = await axios.post(`${API}/api/automation/hold-drag`, { session_id: sessionId, from_cell: fromCell, to_cell: toCell });
+  return response.data;
+};
+export const automationScroll = async (sessionId, dx = 0, dy = 400) => {
+  const response = await axios.post(`${API}/api/automation/scroll`, { session_id: sessionId, dx, dy });
+  return response.data;
+};
+export const brainNextStep = async (payload) => {
+  const response = await axios.post(`${API}/api/automation/brain/next-step`, payload);
+  return response.data;
+};
