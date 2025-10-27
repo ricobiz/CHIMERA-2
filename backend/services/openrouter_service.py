@@ -1,9 +1,11 @@
 import os
-from openai import OpenAI
+import httpx
 from typing import List, Dict
 import logging
 
 logger = logging.getLogger(__name__)
+
+OR_BASE = "https://openrouter.ai/api/v1"
 
 class OpenRouterService:
     def __init__(self):
@@ -13,10 +15,11 @@ class OpenRouterService:
         
         self.model = os.environ.get('OPENROUTER_MODEL', 'deepseek/deepseek-coder')
         
-        self.client = OpenAI(
-            base_url="https://openrouter.ai/api/v1",
-            api_key=self.api_key
-        )
+        self.http_headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "HTTP-Referer": os.environ.get("OPENROUTER_HTTP_REFERER", "https://lovable.studio"),
+            "X-Title": os.environ.get("OPENROUTER_X_TITLE", "Lovable Studio"),
+        }
         
         self.system_prompt = """You are an expert full-stack developer specializing in React, HTML, CSS, and JavaScript.
 
