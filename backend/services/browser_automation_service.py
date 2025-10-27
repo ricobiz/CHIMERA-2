@@ -284,6 +284,12 @@ class BrowserAutomationService:
             
             # Get element bounding box
             element = await page.query_selector(selector)
+    async def _augment_with_vision(self, screenshot_base64: str, dom_data: Dict[str, Any]) -> List[Dict[str, Any]]:
+        from .local_vision_service import local_vision_service
+        vw, vh = dom_data.get('vw', 1280), dom_data.get('vh', 800)
+        dom_clickables = dom_data.get('clickables', [])
+        return local_vision_service.detect(screenshot_base64, vw, vh, dom_clickables=dom_clickables, model_path=os.path.join('/app/backend/models/', 'ui-detector.onnx'))
+
             if element:
                 box = await element.bounding_box()
                 
