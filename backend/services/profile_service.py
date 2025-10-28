@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 PROFILES_DIR = "/app/runtime/profiles"
 CHECK_URL1 = os.environ.get("PROFILE_CHECK_URL1", "https://bot.sannysoft.com/")
 CHECK_URL2 = os.environ.get("PROFILE_CHECK_URL2", "https://arh.antoinevastel.com/bots/areyouheadless")
+IPINFO_URL = os.environ.get("IPINFO_URL", "https://ipinfo.io/json")
 
 # Relaxed keywords to reduce false positives
 KEYWORDS_FLAG = [
