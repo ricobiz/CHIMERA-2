@@ -496,11 +496,23 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
               <div className="flex gap-2">
                 <button onClick={async()=>{
                   try {
+                    setShowWarmBanner(false);
+                    alert('⏳ Прогрев аккаунта начался... Это займет 30-60 секунд.');
                     const resp = await fetch(`${BASE_URL}/api/profile/create`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ warmup: true })});
                     const d = await resp.json();
-                    if (d?.profile_id) { setShowWarmBanner(false); alert('Аккаунт прогрет и готов для выполнения'); }
-                    else { alert('Не удалось прогреть профиль'); }
-                  } catch(e:any){ alert(e.message||'Ошибка прогрева'); }
+                    if (d?.profile_id) { 
+                      alert('✅ Аккаунт прогрет и готов! Запускаю автоматизацию...'); 
+                      // Auto-start after warmup
+                      startTask();
+                    }
+                    else { 
+                      setShowWarmBanner(true);
+                      alert('❌ Не удалось прогреть профиль'); 
+                    }
+                  } catch(e:any){ 
+                    setShowWarmBanner(true);
+                    alert(e.message||'Ошибка прогрева'); 
+                  }
                 }} className="px-2 py-1 bg-green-800 hover:bg-green-700 border border-green-700 rounded text-[12px]">Прогреть аккаунт</button>
                 <button onClick={()=> setShowWarmBanner(false)} className="px-2 py-1 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded text-[12px]">Продолжить без прогрева</button>
                 <button onClick={()=> setImportModalOpen(true)} className="px-2 py-1 bg-blue-800 hover:bg-blue-700 border border-blue-700 rounded text-[12px]">Импортировать профиль</button>
