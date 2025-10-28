@@ -1,4 +1,7 @@
 #====================================================================================================
+
+[Automated Backend Test Note] Initiating short automation smoke tests: grid set 64x48, smoke-check google.com, verify screenshot_base64, viewport, vision non-empty; click-cell sanity on returned session; control pause/stop endpoints.
+
 # START - Testing Protocol - DO NOT EDIT OR REMOVE THIS SECTION
 #====================================================================================================
 
