@@ -75,6 +75,16 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
   const [importModalOpen, setImportModalOpen] = useState<boolean>(false);
   const [adjustMsg, setAdjustMsg] = useState<string>("");
 
+  // ExecutionAgent state
+  const [isExecuting, setIsExecuting] = useState<boolean>(false);
+  const [browserState, setBrowserState] = useState<BrowserState>({
+    currentUrl: '',
+    screenshot: '',
+    highlightBoxes: [],
+    pageTitle: '',
+    timestamp: Date.now()
+  });
+
 
 
   const viewerRef = useRef<HTMLDivElement | null>(null);
