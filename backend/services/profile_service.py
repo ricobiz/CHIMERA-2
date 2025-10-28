@@ -128,7 +128,56 @@ class ProfileService:
 
         # Launch persistent-like context as a session linked to this profile
         session_id = f"sess-{profile_id[:8]}"
-        await browser_service.create_session_from_profile(profile_id=profile_id, session_id=session_id, fingerprint=fingerprint, proxy=proxy)
+        # Build meta.json (extended schema)
+        meta = {
+            "profile_id": profile_id,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "last_used": datetime.now(timezone.utc).isoformat(),
+            "used_count": 0,
+            "status": "fresh",
+            "browser": {
+                "user_agent": fingerprint.get('user_agent'),
+                "viewport": fingerprint.get('viewport'),
+                "platform": fingerprint.get('platform', 'Win32'),
+                "vendor": "Google Inc.",
+                "app_version": fingerprint.get('user_agent')
+            },
+            "locale": {
+                "timezone_id": fingerprint.get('timezone_id', 'America/New_York'),
+                "locale": fingerprint.get('locale', 'en-US'),
+                "languages": fingerprint.get('languages', ['en-US','en'])
+            },
+            "hardware": {
+                "hardware_concurrency": fingerprint.get('hardwareConcurrency', 8),
+                "device_memory": fingerprint.get('deviceMemory', 8),
+                "max_touch_points": 0
+            },
+            "webgl": {
+                "vendor": fingerprint.get('webgl_vendor', 'Intel Inc.'),
+                "renderer": fingerprint.get('webgl_renderer', 'Intel Iris OpenGL Engine'),
+                "canvas_noise_seed": fingerprint.get('canvas_noise_seed', str(uuid.uuid4()))
+            },
+            "fonts": ["Arial","Helvetica","Times New Roman","Verdana","Courier New","Georgia","Tahoma","Trebuchet MS"],
+            "plugins": [
+                {"name": "PDF Viewer", "filename": "internal-pdf-viewer"},
+                {"name": "Chrome PDF Viewer", "filename": "mhjfbmdgcfjbbpaeojofohoefgiehjai"}
+            ],
+            "proxy": {
+                "url": proxy['server'] if proxy else None,
+                "ip": proxy_info.get('ip'),
+                "country": proxy_info.get('country'),
+                "region": proxy_info.get('region'),
+                "city": proxy_info.get('city'),
+                "isp": proxy_info.get('org'),
+                "proxy_type": "residential" if proxy_info.get('org','').lower().find('residential')!=-1 else "datacenter",
+                "risk_score": 0.2
+            },
+            "warmup": {"is_warm": False, "warmed_at": None, "sites_visited": []},
+            "captcha": {"last_failed_at": None, "failed_attempts_count": 0, "cooldown_until": None}
+        }
+        self.write_meta(profile_id, meta)
+
+        await browser_service.create_session_from_profile(profile_id=profile_id, session_id=session_id, meta=meta)
 
         # Warmup
         await self._warmup(session_id)
