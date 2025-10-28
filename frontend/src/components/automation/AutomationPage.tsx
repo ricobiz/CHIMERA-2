@@ -82,8 +82,16 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
       // silent
     }
   };
-    // Sync initial grid preset from backend
-    (async()=>{ try { const r = await fetch(`${BASE_URL}/api/automation/grid`); const js = await r.json(); const v = `${js.cols || 16}x${js.rows || 24}` as any; setGridPreset((['8x6','12x8','16x12','24x16','32x24'] as any).includes(v)? v: '24x16'); } catch {} })();
+  // Sync initial grid preset from backend once
+  useEffect(() => {
+    (async()=>{ try { 
+      const r = await fetch(`${BASE_URL}/api/automation/grid`); 
+      const js = await r.json(); 
+      const v = `${js.cols || 16}x${js.rows || 24}` as any; 
+      const allowed = ['8x6','12x8','16x12','24x16','32x24','48x32','64x48'];
+      if (allowed.includes(v)) setGridPreset(v);
+    } catch {} })();
+  }, []);
 
   useEffect(() => {
     pollRef.current = setInterval(loadLogs, 1500);
