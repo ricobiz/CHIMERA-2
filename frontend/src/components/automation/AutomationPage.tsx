@@ -141,6 +141,14 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
 
   useEffect(() => {
     pollRef.current = setInterval(loadLogs, 1500);
+  // Unfreeze observation after timeout
+  useEffect(() => {
+    if (!freezeObsUntil) return;
+    const t = setInterval(() => {
+      if (Date.now() > freezeObsUntil) setFreezeObsUntil(null);
+    }, 250);
+    return () => clearInterval(t);
+  }, [freezeObsUntil]);
     return () => clearInterval(pollRef.current);
   }, []);
 
