@@ -462,7 +462,6 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
             <button onClick={() => setShowFullscreen(true)} className="px-2 py-1 text-[11px] bg-gray-800/60 hover:bg-gray-700/60 border border-gray-700 rounded text-gray-300">Full</button>
           </div>
         </div>
-      </div>
 
       {/* Top: Live Viewer */}
           {/* Warm profile banner */}
