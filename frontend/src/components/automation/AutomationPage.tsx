@@ -59,7 +59,7 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
     if (userReadingLogs) return; // don't jump while user reads
     try { logsEndRef.current?.scrollIntoView({ behavior: 'smooth' }); } catch {}
   };
-  useEffect(() => { scrollToBottom(); }, [logs]);
+  useEffect(() => { if (autoScrollLogs && !userReadingLogs) scrollToBottom(); }, [logs, autoScrollLogs, userReadingLogs]);
 
   // Poll logs from backend hook
   const loadLogs = async () => {
