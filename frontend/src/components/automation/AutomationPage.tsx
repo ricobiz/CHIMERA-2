@@ -204,6 +204,7 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
               <h1 className="text-xl md:text-2xl font-bold text-white">Browser Automation</h1>
               <p className="text-xs md:text-sm text-gray-400">Agent live view, steps and controls</p>
             </div>
+            <span className={`text-[10px] px-2 py-0.5 rounded ${agentStatus==='ERROR'?'bg-red-900/40 text-red-300': agentStatus==='ACTIVE'?'bg-green-900/40 text-green-300': 'bg-gray-900/40 text-gray-300'}`}>{agentStatus}</span>
           <div className="flex items-center gap-2">
             <label className="text-[10px] text-gray-400">Grid</label>
             <select value={gridPreset} onChange={async (e:any)=>{
