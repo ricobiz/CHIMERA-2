@@ -28,6 +28,10 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
   const [profileClean, setProfileClean] = useState<boolean | null>(null);
   const [profileWarm, setProfileWarm] = useState<boolean>(false);
 
+  // UX: avoid jumpy autoscroll while user reads
+  const [autoScrollLogs, setAutoScrollLogs] = useState<boolean>(false);
+  const [userReadingLogs, setUserReadingLogs] = useState<boolean>(false);
+
   // Viewer state
   const [showGrid, setShowGrid] = useState<boolean>(true);
   const [gridPreset, setGridPreset] = useState<'8x6'|'12x8'|'16x12'|'24x16'|'32x24'>('24x16');
