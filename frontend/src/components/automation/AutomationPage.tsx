@@ -518,6 +518,12 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
               </div>
             </div>
           )}
+          {/* Quick auth controls (outside banner) */}
+          <div className="absolute left-2 bottom-2 flex gap-2 z-20">
+            <button onClick={async()=>{ const url = prompt('Введите URL для входа', quickUrl) || quickUrl; setQuickUrl(url); await quickNavigate(); }} className="px-2 py-1 text-[11px] bg-blue-900/70 hover:bg-blue-800/70 border border-blue-800 rounded text-blue-200">Открыть URL для входа</button>
+            <button onClick={async()=>{ if (!sessionId) { alert('Сессия не активна'); return; } try { const resp = await fetch(`${BASE_URL}/api/profile/save_from_session`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ session_id: sessionId }) }); const d = await resp.json(); if (d?.profile_id) alert('Профиль сохранён и прогрет'); else alert('Не удалось сохранить профиль'); } catch(e:any){ alert(e.message||'Ошибка сохранения профиля'); } }} className="px-2 py-1 text-[11px] bg-emerald-900/70 hover:bg-emerald-800/70 border border-emerald-800 rounded text-emerald-200">Сохранить из текущей сессии</button>
+          </div>
+
           <div className="mt-2 flex items-center gap-2">
             <button onClick={()=> setShowPlan(v=>!v)} className="px-2 py-1 text-[11px] border rounded bg-gray-800/60 border-gray-700 text-gray-300">{showPlan ? 'Hide Plan' : 'Show Plan'}</button>
           </div>
