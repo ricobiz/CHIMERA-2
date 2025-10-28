@@ -362,6 +362,11 @@ class ExecutionAgentService {
    * Execute a single step with retry logic
    */
   private async executeStepWithRetry(step: ActionStep, browserState: BrowserState): Promise<boolean> {
+    console.log(`\n[ExecutionAgent.retry] ╔════════════════════════════════════════════╗`);
+    console.log(`[ExecutionAgent.retry] ║  RETRY LOOP START                          ║`);
+    console.log(`[ExecutionAgent.retry] ║  Step: ${step.actionType.padEnd(35)}║`);
+    console.log(`[ExecutionAgent.retry] ╚════════════════════════════════════════════╝`);
+    
     const maxRetries = step.maxRetries || 3;
     let attempt = 0;
 
