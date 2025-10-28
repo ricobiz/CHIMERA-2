@@ -258,7 +258,22 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
 
   // ExecutionAgent: Start automation with real browser execution
   const startAutomation = useCallback(async () => {
-    if (!taskText.trim() || isExecuting) return;
+    console.log('[AutomationPage] ========================================');
+    console.log('[AutomationPage] START AUTOMATION BUTTON CLICKED!');
+    console.log('[AutomationPage] Task text:', taskText);
+    console.log('[AutomationPage] Is executing:', isExecuting);
+    console.log('[AutomationPage] ========================================');
+    
+    if (!taskText.trim()) {
+      console.error('[AutomationPage] ❌ No task text provided');
+      alert('Please enter a task description');
+      return;
+    }
+    
+    if (isExecuting) {
+      console.warn('[AutomationPage] ⚠️ Already executing, ignoring click');
+      return;
+    }
     
     console.log('[AutomationPage] Starting automation with ExecutionAgent');
     setIsExecuting(true);
@@ -308,6 +323,8 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
       }
     });
 
+    console.log('[AutomationPage] Callback setup complete, calling executionAgent.startAutomation...');
+
     // Start automation
     try {
       await executionAgent.startAutomation(taskText, {
@@ -318,11 +335,14 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
         requiresUserInput: null,
         result: null
       });
+      console.log('[AutomationPage] ✅ executionAgent.startAutomation completed');
     } catch (error: any) {
-      console.error('[AutomationPage] Automation error:', error);
+      console.error('[AutomationPage] ❌ Automation error:', error);
+      console.error('[AutomationPage] Error stack:', error.stack);
       setCurrentActionSubtitle(`❌ Error: ${error.message}`);
       setIsExecuting(false);
       setExecutionStatus('failed');
+      alert(`Automation failed: ${error.message}`);
     }
   }, [taskText, isExecuting, browserState]);
 
