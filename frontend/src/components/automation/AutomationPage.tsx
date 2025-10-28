@@ -258,8 +258,6 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
         setQuickSessionId(sid);
       }
       const resp = await fetch(`${BASE_URL}/api/automation/navigate`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ session_id: sid, url: quickUrl }) });
-  // Keep pin ref in sync
-  useEffect(() => { pinMappingRef.current = pinMapping; }, [pinMapping]);
       const data = await resp.json();
       if (!resp.ok || data.success === false) throw new Error(data.error || data.detail || 'navigate failed');
       const shot = await fetch(`${BASE_URL}/api/automation/screenshot?session_id=${encodeURIComponent(sid)}`);
