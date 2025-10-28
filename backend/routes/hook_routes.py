@@ -262,32 +262,71 @@ async def run_task_loop(job_id: str, goal_text: str):
             amount = int(decision.get('amount', 400) or 400)
 
             try:
-                if action == 'CLICK_CELL' and target_cell:
-                    # use anti-detect human click
-                    from services.grid_service import GridConfig
-                    page = browser_service.sessions[session_id]['page']
-                    dom_data = await browser_service._collect_dom_clickables(page)
-                    vw, vh = dom_data.get('vw', 1280), dom_data.get('vh', 800)
-                    grid = GridConfig(rows=browser_service.grid_rows, cols=browser_service.grid_cols)
-                    x, y = grid.cell_to_xy(target_cell, vw, vh)
-                    await HumanBehaviorSimulator.human_click(page, x, y)
-                elif action == 'TYPE_AT_CELL' and target_cell:
-                    # Fill with prepared creds if text hints empty
-                    if not text:
-                        label = next((v.get('label','').lower() for v in vision if v.get('cell') == target_cell), '')
-                        if any(k in label for k in ['user', 'email', 'gmail', 'логин']):
-                            text = credentials['login']
-                        elif any(k in label for k in ['pass', 'парол']):
-                            text = credentials['password']
-                    from services.grid_service import GridConfig
-                    page = browser_service.sessions[session_id]['page']
-                    dom_data = await browser_service._collect_dom_clickables(page)
-                    vw, vh = dom_data.get('vw', 1280), dom_data.get('vh', 800)
-                    grid = GridConfig(rows=browser_service.grid_rows, cols=browser_service.grid_cols)
-                    x, y = grid.cell_to_xy(target_cell, vw, vh)
-                    await HumanBehaviorSimulator.human_move(page, x, y)
-                    await page.mouse.click(x, y)
-                    await page.keyboard.type(text or "test", delay=50)
+                # Helper to pick a fallback cell if missing
+                def pick_fallback_cell(vision_list):
+                    prefs = ['create account','sign in','next','continue','след','далее','войти']
+                    best = None
+                    for v in vision_list or []:
+                        lbl = (v.get('label') or '').lower()
+                        if any(p in lbl for p in prefs):
+                            if not best or float(v.get('confidence',0)) > float(best.get('confidence',0)):
+                                best = v
+                    # fallback to most central clickable if nothing matches
+                    if not best and vision_list:
+                        import math
+                        def center_dist(v):
+                            b=v.get('bbox') or {}; cx=(b.get('x',0)+b.get('w',0)/2); cy=(b.get('y',0)+b.get('h',0)/2); return (cx-640)**2+(cy-400)**2
+                        best = sorted(vision_list, key=center_dist)[0]
+                    return best.get('cell') if best else None
+
+                if action == 'CLICK_CELL':
+                    if not target_cell:
+                        target_cell = pick_fallback_cell(vision)
+                    if target_cell:
+                        # use anti-detect human click
+                        from services.grid_service import GridConfig
+                        page = browser_service.sessions[session_id]['page']
+                        dom_data = await browser_service._collect_dom_clickables(page)
+                        vw, vh = dom_data.get('vw', 1280), dom_data.get('vh', 800)
+                        grid = GridConfig(rows=browser_service.grid_rows, cols=browser_service.grid_cols)
+                        x, y = grid.cell_to_xy(target_cell, vw, vh)
+                        await HumanBehaviorSimulator.human_click(page, x, y)
+                        try:
+                            await page.evaluate(f"window.__chimeraGrid && window.__chimeraGrid.setGrid({browser_service.grid_rows},{browser_service.grid_cols})")
+                            await page.evaluate(f"window.__chimeraGrid && window.__chimeraGrid.flashCell('{target_cell}')")
+                        except Exception:
+                            pass
+                    else:
+                        log_step("Unknown action: CLICK_CELL (no target)", status="warning")
+                        continue
+                elif action == 'TYPE_AT_CELL':
+                    if not target_cell:
+                        target_cell = pick_fallback_cell(vision)
+                    if target_cell:
+                        # Fill with prepared creds if text hints empty
+                        if not text:
+                            label = next((v.get('label','').lower() for v in vision if v.get('cell') == target_cell), '')
+                            if any(k in label for k in ['user', 'email', 'gmail', 'логин']):
+                                text = credentials['login']
+                            elif any(k in label for k in ['pass', 'парол']):
+                                text = credentials['password']
+                        from services.grid_service import GridConfig
+                        page = browser_service.sessions[session_id]['page']
+                        dom_data = await browser_service._collect_dom_clickables(page)
+                        vw, vh = dom_data.get('vw', 1280), dom_data.get('vh', 800)
+                        grid = GridConfig(rows=browser_service.grid_rows, cols=browser_service.grid_cols)
+                        x, y = grid.cell_to_xy(target_cell, vw, vh)
+                        await HumanBehaviorSimulator.human_move(page, x, y)
+                        await page.mouse.click(x, y)
+                        await page.keyboard.type(text or "test", delay=50)
+                        try:
+                            await page.evaluate(f"window.__chimeraGrid && window.__chimeraGrid.setGrid({browser_service.grid_rows},{browser_service.grid_cols})")
+                            await page.evaluate(f"window.__chimeraGrid && window.__chimeraGrid.flashCell('{target_cell}')")
+                        except Exception:
+                            pass
+                    else:
+                        log_step("Unknown action: TYPE_AT_CELL (no target)", status="warning")
+                        continue
                 elif action == 'HOLD_DRAG' and target_cell and isinstance(decision.get('to_cell', None), str):
                     from_cell = target_cell
                     to_cell = decision['to_cell']
