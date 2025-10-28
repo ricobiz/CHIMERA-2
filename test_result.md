@@ -371,6 +371,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ VERIFIED: Hook control endpoint working correctly. Successfully tested PAUSED and STOP modes. Returns proper run_mode and agent_status fields. Control system properly manages agent state transitions. Both control modes functioning as expected."
+      - working: true
+        agent: "testing"
+        comment: "✅ RE-VERIFIED: Automation smoke test confirmed hook control working. Successfully tested PAUSED then STOP modes as requested. Both modes set run_mode correctly (PAUSED → STOP) with proper agent_status transitions. Agent control system fully operational."
 
 frontend:
   - task: "Chat Interface - Message Display"
