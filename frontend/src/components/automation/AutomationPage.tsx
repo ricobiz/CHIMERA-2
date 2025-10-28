@@ -9,9 +9,24 @@ type LogEntry = { ts: number; step: number; action: string; status?: 'ok'|'error
 type Observation = {
   screenshot_base64?: string;
   grid?: { rows: number; cols: number };
-  vision?: Array<{ cell: string; label: string; type: string; confidence: number }>;
+  vision?: Array<{ cell: string; label: string; type: string; confidence: number; bbox?: {x:number;y:number;w:number;h:number} }>;
+  viewport?: { width: number; height: number };
   status?: string;
   url?: string;
+};
+
+const parseCell = (cell?: string): { colIdx: number; rowIdx: number } => {
+  if (!cell) return { colIdx: 0, rowIdx: 0 };
+  const m = cell.match(/^([A-Z]+)([0-9]+)$/i);
+  if (!m) return { colIdx: 0, rowIdx: 0 };
+  const letters = m[1].toUpperCase();
+  let col = 0;
+  for (let i = 0; i < letters.length; i++) {
+    col = col * 26 + (letters.charCodeAt(i) - 64);
+  }
+  col -= 1;
+  const row = Math.max(0, parseInt(m[2], 10) - 1);
+  return { colIdx: col, rowIdx: row };
 };
 
 const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
@@ -35,30 +50,55 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
 
   // Viewer state
   const [showGrid, setShowGrid] = useState<boolean>(true);
-  const [gridPreset, setGridPreset] = useState<'8x6'|'12x8'|'16x12'|'24x16'|'32x24'|'48x32'|'64x48'>('48x32');
+  const [gridPreset, setGridPreset] = useState<'8x6'|'12x8'|'16x12'|'24x16'|'32x24'|'48x32'|'64x48'>('64x48');
   const [showFullscreen, setShowFullscreen] = useState<boolean>(false);
   const [displaySrc, setDisplaySrc] = useState<string | null>(null);
   const [pendingSrc, setPendingSrc] = useState<string | null>(null);
   // Quick test controls
-  const [quickUrl, setQuickUrl] = useState<string>('https://example.com');
+  const [quickUrl, setQuickUrl] = useState<string>('https://google.com');
   const [quickSessionId, setQuickSessionId] = useState<string | null>(null);
   const [quickError, setQuickError] = useState<string | null>(null);
 
+  // Detection overlay controls
+  const [showDetections, setShowDetections] = useState<boolean>(true);
+  const [zoomEnabled, setZoomEnabled] = useState<boolean>(false);
+
   const viewerRef = useRef<HTMLDivElement | null>(null);
   const imageRef = useRef<HTMLImageElement | null>(null);
+  const overlayRef = useRef<HTMLDivElement | null>(null);
   const logsEndRef = useRef<HTMLDivElement | null>(null);
   const pollRef = useRef<any>(null);
 
   // Tap feedback on grid
   const [tapCell, setTapCell] = useState<{cell: string; left: number; top: number} | null>(null);
 
+  // Overlay rect aligned to image
+  const [overlayRect, setOverlayRect] = useState<{left:number;top:number;width:number;height:number} | null>(null);
+
+  const updateOverlayRect = useCallback(() => {
+    const viewer = viewerRef.current;
+    const img = imageRef.current;
+    if (!viewer || !img) return;
+    const vRect = viewer.getBoundingClientRect();
+    const iRect = img.getBoundingClientRect();
+    setOverlayRect({ left: iRect.left - vRect.left, top: iRect.top - vRect.top, width: iRect.width, height: iRect.height });
+  }, []);
+
+  useEffect(() => {
+    updateOverlayRect();
+    const fn = () => updateOverlayRect();
+    window.addEventListener('resize', fn);
+    const intv = setInterval(fn, 1000);
+    return () => { window.removeEventListener('resize', fn); clearInterval(intv); };
+  }, [updateOverlayRect]);
+
   // Smooth screenshot swapping
   useEffect(() => {
     if (!pendingSrc) return;
     const img = new Image();
-    img.onload = () => setDisplaySrc(pendingSrc);
+    img.onload = () => { setDisplaySrc(pendingSrc); setTimeout(updateOverlayRect, 50); };
     img.src = `data:image/png;base64,${pendingSrc}`;
-  }, [pendingSrc]);
+  }, [pendingSrc, updateOverlayRect]);
 
   const scrollToBottom = () => {
     if (userReadingLogs) return; // don't jump while user reads
@@ -151,37 +191,17 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
   // Ghost cursor position from last action
   const ghostCell = useMemo(() => {
     const step = [...(logs||[])].reverse().find(l => l?.action?.includes('CLICK_CELL') || l?.action?.includes('TYPE_AT_CELL') || l?.action?.includes('HOLD_DRAG'));
-    const match = step?.action?.match(/[A-Z][0-9]{1,2}/)?.[0];
+    const match = step?.action?.match(/[A-Z]+[0-9]{1,2}/)?.[0];
     return match || null;
   }, [logs]);
 
-  // Overlay: show first N vision detections
-  const renderDetections = () => {
-    const v = observation?.vision || [];
-    const rows = parseInt((gridPreset.split('x')[1] as any) || '32', 10);
-    const cols = parseInt((gridPreset.split('x')[0] as any) || '48', 10);
-    return (v.slice(0, 12).map((el, idx) => {
-      const cell = el.cell as string;
-      const colIdx = cell ? (cell.charCodeAt(0) - 'A'.charCodeAt(0)) : 0;
-      const rowIdx = cell ? (parseInt(cell.slice(1), 10) - 1) : 0;
-      const left = ((colIdx + 0.5) / cols) * 100;
-      const top = ((rowIdx + 0.5) / rows) * 100;
-      return (
-        <div key={idx} className="absolute" style={{ left: `${left}%`, top: `${top}%`, transform: 'translate(-50%, -50%)' }}>
-          <div className="px-1.5 py-0.5 text-[9px] rounded bg-blue-900/70 border border-blue-500 text-blue-100 whitespace-nowrap max-w-[160px] overflow-hidden text-ellipsis">{el.label || el.type} · {cell}</div>
-        </div>
-      );
-    }));
-  };
-
   const cellToPercent = (cell: string | null, grid?: {rows:number; cols:number}) => {
     if (!cell || !grid) return { left: 50, top: 50 };
-    const colLetter = cell[0].toUpperCase();
-    const rowNum = parseInt(cell.slice(1), 10);
-    const colIndex = colLetter.charCodeAt(0) - 'A'.charCodeAt(0);
-    const rowIndex = rowNum - 1;
-    const left = ((colIndex + 0.5) / (grid.cols || 8)) * 100;
-    const top = ((rowIndex + 0.5) / (grid.rows || 12)) * 100;
+    const m = cell.match(/^([A-Z]+)([0-9]+)$/);
+    if (!m) return { left: 50, top: 50 };
+    const { colIdx, rowIdx } = parseCell(cell);
+    const left = ((colIdx + 0.5) / (grid.cols || 8)) * 100;
+    const top = ((rowIdx + 0.5) / (grid.rows || 12)) * 100;
     return { left, top };
   };
 
@@ -204,8 +224,11 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
       if (!resp.ok || data.success === false) throw new Error(data.error || data.detail || 'navigate failed');
       const shot = await fetch(`${BASE_URL}/api/automation/screenshot?session_id=${encodeURIComponent(sid)}`);
       const js = await shot.json();
-      if (js.screenshot_base64) setPendingSrc(js.screenshot_base64);
-      else setQuickError('No screenshot returned');
+      if (js.screenshot_base64) {
+        setPendingSrc(js.screenshot_base64);
+        setObservation(js);
+        setShowDetections(true);
+      } else setQuickError('No screenshot returned');
     } catch (e: any) {
       alert(e.message || 'Quick navigate failed');
     }
@@ -226,19 +249,70 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
   // Click handler on the screenshot to show calculated cell
   const handleImageClick = (e: React.MouseEvent<HTMLImageElement>) => {
     const img = imageRef.current;
-    if (!img) return;
-    const rect = img.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width;
-    const y = (e.clientY - rect.top) / rect.height;
+    const view = viewerRef.current;
+    if (!img || !view || !overlayRect) return;
+    const vRect = view.getBoundingClientRect();
+    const iRect = img.getBoundingClientRect();
+    // compute relative to image (letterboxed)
+    const x = (e.clientX - iRect.left) / iRect.width;
+    const y = (e.clientY - iRect.top) / iRect.height;
     if (x < 0 || x > 1 || y < 0 || y > 1) return;
     const [cols, rows] = (gridPreset || '24x16').split('x').map(n => parseInt(n, 10));
     const colIndex = Math.min(Math.max(Math.floor(x * cols), 0), cols - 1);
     const rowIndex = Math.min(Math.max(Math.floor(y * rows), 0), rows - 1);
-    const colLetter = String.fromCharCode('A'.charCodeAt(0) + colIndex);
+    const colLetter = (() => {
+      // number to excel letters
+      let n = colIndex + 1; let s = '';
+      while (n > 0) { const r = (n - 1) % 26; s = String.fromCharCode(65 + r) + s; n = Math.floor((n - 1) / 26); }
+      return s;
+    })();
     const cell = `${colLetter}${rowIndex + 1}`;
-    setTapCell({ cell, left: ((colIndex + 0.5) / cols) * 100, top: ((rowIndex + 0.5) / rows) * 100 });
-    // auto hide
+    // Position label inside overlayRect
+    const left = overlayRect.left + ((colIndex + 0.5) / cols) * overlayRect.width;
+    const top = overlayRect.top + ((rowIndex + 0.5) / rows) * overlayRect.height;
+    const ovLeft = ((left - overlayRect.left) / overlayRect.width) * 100;
+    const ovTop = ((top - overlayRect.top) / overlayRect.height) * 100;
+    setTapCell({ cell, left: ovLeft, top: ovTop });
+    // auto hide lens label
     setTimeout(() => setTapCell(null), 1200);
+  };
+
+  // Overlay: show first N vision detections
+  const renderDetections = () => {
+    if (!showDetections) return null;
+    const v = observation?.vision || [];
+    const rows = parseInt((gridPreset.split('x')[1] as any) || '32', 10);
+    const cols = parseInt((gridPreset.split('x')[0] as any) || '48', 10);
+    // only show top 20 to avoid clutter
+    return (v.slice(0, 20).map((el, idx) => {
+      const { colIdx, rowIdx } = parseCell(el.cell as string);
+      const left = ((colIdx + 0.5) / cols) * 100;
+      const top = ((rowIdx + 0.5) / rows) * 100;
+      return (
+        <div key={idx} className="absolute" style={{ left: `${left}%`, top: `${top}%`, transform: 'translate(-50%, -50%)' }}>
+          <div className="px-1.5 py-0.5 text-[9px] rounded bg-blue-900/70 border border-blue-500 text-blue-100 whitespace-nowrap max-w-[160px] overflow-hidden text-ellipsis">{el.label || el.type} · {el.cell}</div>
+        </div>
+      );
+    }));
+  };
+
+  // BBox overlay using viewport scaling
+  const renderBBoxes = () => {
+    if (!showDetections) return null;
+    const v = observation?.vision || [];
+    const vw = observation?.viewport?.width || 1280;
+    const vh = observation?.viewport?.height || 800;
+    if (!overlayRect) return null;
+    return v.slice(0, 20).map((el, idx) => {
+      const b = el.bbox || ({} as any);
+      const x = (b.x || 0) * overlayRect.width / vw;
+      const y = (b.y || 0) * overlayRect.height / vh;
+      const w = (b.w || 0) * overlayRect.width / vw;
+      const h = (b.h || 0) * overlayRect.height / vh;
+      return (
+        <div key={`bb-${idx}`} className="absolute border border-pink-500/70" style={{ left: `${overlayRect.left + x}px`, top: `${overlayRect.top + y}px`, width: `${w}px`, height: `${h}px` }} />
+      );
+    });
   };
 
   return (
@@ -277,6 +351,9 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
               <option value="64x48">64×48</option>
             </select>
             <button onClick={() => setShowGrid(s => !s)} className="px-2 py-1 text-[11px] bg-gray-800/60 hover:bg-gray-700/60 border border-gray-700 rounded text-gray-300">{showGrid ? 'Hide' : 'Show'}</button>
+            <button onClick={() => setZoomEnabled(z => !z)} className={`px-2 py-1 text-[11px] border rounded ${zoomEnabled? 'bg-blue-900/40 border-blue-700 text-blue-300' : 'bg-gray-800/60 border-gray-700 text-gray-300'}`}>Zoom</button>
+            <button onClick={() => setShowDetections(v => !v)} className={`px-2 py-1 text-[11px] border rounded ${showDetections? 'bg-green-900/30 border-green-700 text-green-300' : 'bg-gray-800/60 border-gray-700 text-gray-300'}`}>Detections</button>
+            <button onClick={quickNavigate} className="px-2 py-1 text-[11px] bg-blue-800/60 hover:bg-blue-700/60 border border-blue-700 rounded text-blue-300">Map</button>
             <button onClick={() => setShowFullscreen(true)} className="px-2 py-1 text-[11px] bg-gray-800/60 hover:bg-gray-700/60 border border-gray-700 rounded text-gray-300">Full</button>
           </div>
         </div>
@@ -284,30 +361,40 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
 
       {/* Top: Live Viewer */}
       <div className="px-4 md:px-6 py-3 md:py-4 border-b border-gray-800 flex-shrink-0">
-        <div className="relative w-full h-72 md:h-[420px] border border-gray-800 rounded bg-black/60 overflow-hidden flex items-center justify-center">
+        <div ref={viewerRef} className="relative w-full h-72 md:h-[420px] border border-gray-800 rounded bg-black/60 overflow-hidden flex items-center justify-center">
           {quickError && (
             <div className="absolute top-2 left-2 right-2 text-[11px] text-red-300 bg-red-900/30 border border-red-800 rounded px-2 py-1">{quickError}</div>
           )}
 
           {displaySrc ? (
-            <img ref={imageRef} onClick={handleImageClick} src={`data:image/png;base64,${displaySrc}`} alt="screenshot" className="max-w-full max-h-full object-contain cursor-crosshair" />
+            <img ref={imageRef} onLoad={updateOverlayRect} onClick={handleImageClick} src={`data:image/png;base64,${displaySrc}`} alt="screenshot" className="max-w-full max-h-full object-contain cursor-crosshair select-none" />
           ) : (
             <div className="text-xs text-gray-600">No screenshot</div>
           )}
-          {showGrid && (
-            <div className="absolute inset-0 pointer-events-none">
-              <div className="w-full h-full" style={{ backgroundImage: `linear-gradient(rgba(200,200,200,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(200,200,200,0.08) 1px, transparent 1px)`, backgroundSize: `${(100/((gridPreset.split('x')[0] as any)|0 || 16))}% ${(100/((gridPreset.split('x')[1] as any)|0 || 24))}%` }} />
+
+          {/* Grid overlay aligned to image rect */}
+          {showGrid && overlayRect && (
+            <div ref={overlayRef} className="absolute pointer-events-none" style={{ left: overlayRect.left, top: overlayRect.top, width: overlayRect.width, height: overlayRect.height }}>
+              <div className="w-full h-full" style={{ backgroundImage: `linear-gradient(rgba(200,200,200,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(200,200,200,0.08) 1px, transparent 1px)`, backgroundSize: `${overlayRect.width/parseInt(gridPreset.split('x')[0],10)}px ${overlayRect.height/parseInt(gridPreset.split('x')[1],10)}px` }} />
             </div>
           )}
-          {tapCell && (
-            <div className="absolute" style={{ left: `${tapCell.left}%`, top: `${tapCell.top}%`, transform: 'translate(-50%, -50%)' }}>
+
+          {tapCell && overlayRect && (
+            <div className="absolute" style={{ left: `${overlayRect.left + (tapCell.left/100)*overlayRect.width}px`, top: `${overlayRect.top + (tapCell.top/100)*overlayRect.height}px`, transform: 'translate(-50%, -50%)' }}>
               <div className="px-1.5 py-0.5 text-[10px] rounded bg-black/80 border border-gray-600 text-gray-100">{tapCell.cell}</div>
             </div>
           )}
-          {/* Detected elements overlay (top-12) */}
-          {renderDetections()}
-          {ghostCell && (
-            <div className="absolute transition-all duration-300" style={{ left: `${ghostPos.left}%`, top: `${ghostPos.top}%`, transform: 'translate(-50%, -50%)' }}>
+
+          {/* Detected elements overlay (labels + bboxes) */}
+          {overlayRect && (
+            <div className="absolute inset-0 pointer-events-none" style={{ left: overlayRect.left, top: overlayRect.top, width: overlayRect.width, height: overlayRect.height }}>
+              {renderDetections()}
+            </div>
+          )}
+          {renderBBoxes()}
+
+          {ghostCell && overlayRect && (
+            <div className="absolute transition-all duration-300" style={{ left: `${overlayRect.left + (ghostPos.left/100)*overlayRect.width}px`, top: `${overlayRect.top + (ghostPos.top/100)*overlayRect.height}px`, transform: 'translate(-50%, -50%)' }}>
               <div className="w-4 h-4 rounded-full bg-white/90 shadow-[0_0_10px_rgba(255,255,255,0.6)] border border-gray-200" />
             </div>
           )}
@@ -318,7 +405,7 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
           <input value={quickUrl} onChange={(e:any)=>setQuickUrl(e.target.value)} className="w-full px-3 py-2 text-[12px] bg-black/60 border border-gray-700 rounded text-gray-200 placeholder-gray-500" placeholder="https://..." />
           <div className="mt-2 grid grid-cols-2 gap-2">
             <button onClick={quickNavigate} className="px-2 py-2 text-[12px] bg-blue-800/70 hover:bg-blue-700/70 border border-blue-700 rounded text-blue-200 flex items-center justify-center gap-1"><span>Go</span></button>
-            <button onClick={async()=>{ try{ const resp = await fetch(`${BASE_URL}/api/automation/smoke-check`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ url: quickUrl, use_proxy:false }) }); const data = await resp.json(); if (data?.screenshot_base64) setPendingSrc(data.screenshot_base64);} catch(e:any){ alert(e.message||'Smoke failed');}}} className="px-2 py-2 text-[12px] bg-green-800/70 hover:bg-green-700/70 border border-green-700 rounded text-green-200 flex items-center justify-center gap-1"><BeakerIcon className="w-4 h-4"/><span>Smoke</span></button>
+            <button onClick={async()=>{ try{ const resp = await fetch(`${BASE_URL}/api/automation/smoke-check`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ url: quickUrl, use_proxy:false }) }); const data = await resp.json(); if (data?.screenshot_base64) { setPendingSrc(data.screenshot_base64); setObservation(data); setShowDetections(true);} } catch(e:any){ alert(e.message||'Smoke failed');}}} className="px-2 py-2 text-[12px] bg-green-800/70 hover:bg-green-700/70 border border-green-700 rounded text-green-200 flex items-center justify-center gap-1"><BeakerIcon className="w-4 h-4"/><span>Smoke</span></button>
           </div>
         </div>
       </div>
