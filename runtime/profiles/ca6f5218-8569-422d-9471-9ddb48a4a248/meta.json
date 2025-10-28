@@ -1,0 +1,38 @@
+{
+  "profile_id": "ca6f5218-8569-422d-9471-9ddb48a4a248",
+  "created_at": "2025-10-28T05:10:37.755800+00:00",
+  "last_used": "2025-10-28T05:10:41.165944+00:00",
+  "used_count": 2,
+  "region": null,
+  "proxy_tier": null,
+  "proxy": {},
+  "is_warm": true,
+  "is_clean": false,
+  "fingerprint": {
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0 Safari/537.36",
+    "locale": "en-US",
+    "languages": [
+      "en-US",
+      "en"
+    ],
+    "timezone_id": "America/New_York",
+    "viewport": {
+      "width": 1438,
+      "height": 854
+    },
+    "screen": {
+      "width": 1438,
+      "height": 854
+    },
+    "platform": "Win32",
+    "hardwareConcurrency": 8,
+    "deviceMemory": 8,
+    "webgl_vendor": "Google Inc.",
+    "webgl_renderer": "ANGLE (Intel, Intel(R) UHD Graphics Direct3D11 vs_5_0 ps_5_0)"
+  },
+  "bot_signals": {
+    "flashid_flagged": null,
+    "fingerprint_flagged": null,
+    "notes": ""
+  }
+}

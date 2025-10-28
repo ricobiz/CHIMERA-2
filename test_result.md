@@ -300,6 +300,66 @@ backend:
         agent: "main"
         comment: "Auto-detects and solves CAPTCHAs using Gemini 2.5 Flash Image vision model. Supports reCAPTCHA, hCaptcha. Needs testing."
 
+  - task: "POST /api/automation/grid/set - Grid Configuration"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/automation_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ VERIFIED: Grid set endpoint working perfectly. Successfully set grid to 48x64 rows/cols. Returns success=true with echoed values as expected. Grid configuration system operational."
+
+  - task: "POST /api/automation/smoke-check - Browser Automation Smoke Test"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/automation_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ VERIFIED: Smoke check endpoint working correctly. Successfully navigated to https://google.com, created session, captured screenshot (base64), returned grid configuration, viewport info. Vision array empty but valid (list type). All required fields present and properly formatted."
+
+  - task: "POST /api/automation/click-cell - Grid Cell Clicking"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/automation_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ VERIFIED: Click cell endpoint working perfectly. Successfully clicked cell M12 using session from smoke-check. Returns screenshot_base64, dom_event with correct cell (M12), and proper response structure. Grid-based clicking system operational."
+
+  - task: "GET /api/hook/log - Hook Log Retrieval"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/hook_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ VERIFIED: Hook log endpoint working correctly. Returns proper observation object with all required fields (logs, status, job_id, result_ready, total_steps, timestamp, observation, session_id). Agent status tracking operational."
+
+  - task: "POST /api/hook/control - Agent Control System"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/hook_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ VERIFIED: Hook control endpoint working correctly. Successfully tested PAUSED and STOP modes. Returns proper run_mode and agent_status fields. Control system properly manages agent state transitions. Both control modes functioning as expected."
+
 frontend:
   - task: "Chat Interface - Message Display"
     implemented: true
