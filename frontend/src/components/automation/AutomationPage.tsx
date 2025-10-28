@@ -117,9 +117,12 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
       const data = await resp.json();
       setLogs(data.logs || []);
       setAgentStatus(data.status || 'IDLE');
-      // If freeze window active, do not overwrite observation (keeps detections visible)
+      // If freeze window active, do not overwrite overlays (keeps detections visible)
       if (!freezeObsUntil || Date.now() > freezeObsUntil) {
         setObservation(data.observation || null);
+        setOverlayVision(data.observation?.vision || null);
+        setOverlayViewport(data.observation?.viewport || null);
+        setOverlayGrid(data.observation?.grid || null);
       }
       setSessionId(data.session_id || null);
       if (data.ask_user) setAskUser(data.ask_user); else setAskUser(null);
