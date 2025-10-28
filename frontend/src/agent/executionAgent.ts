@@ -226,9 +226,11 @@ class ExecutionAgentService {
 
       console.log('[ExecutionAgent] ✅ Execution loop completed successfully');
       
-      } catch (loopError) {
+      } catch (loopError: any) {
         console.error('[ExecutionAgent] ❌ CRITICAL ERROR in execution loop:', loopError);
+        console.error('[ExecutionAgent] Error message:', loopError.message);
         console.error('[ExecutionAgent] Error stack:', loopError.stack);
+        console.error('[ExecutionAgent] Completed steps before error:', completedSteps);
         
         await this.cleanupSession(sessionId);
         this.updateState({
@@ -244,6 +246,7 @@ class ExecutionAgentService {
       }
 
       // Phase 3: Final Validation & Result
+      console.log('[ExecutionAgent] 📊 Phase 3: Final Validation');
       this.addLog({
         actionType: 'WAIT',
         details: 'Validating final result...',
