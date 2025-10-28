@@ -422,29 +422,13 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
           {/* Lens controls removed for stability */}
 
           </div>
-          {/* Icon controls + compact grid */}
-          <div className="flex items-center gap-1 flex-wrap justify-end">
-            <button title="Play" onClick={() => control('ACTIVE')} className="p-2 rounded bg-gray-800/70 hover:bg-gray-700/70 border border-gray-700 text-green-300"><PlayIcon className="w-4 h-4"/></button>
-            <button title="Pause" onClick={() => control('PAUSED')} className="p-2 rounded bg-gray-800/70 hover:bg-gray-700/70 border border-gray-700 text-yellow-300"><PauseIcon className="w-4 h-4"/></button>
-            <button title="Stop" onClick={() => control('STOP')} className="p-2 rounded bg-gray-800/70 hover:bg-gray-700/70 border border-gray-700 text-red-300"><StopIcon className="w-4 h-4"/></button>
+          {/* URL row moved to header */}
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <input value={quickUrl} onChange={(e:any)=>setQuickUrl(e.target.value)} className="w-full px-3 py-1.5 text-[12px] bg-black/40 border border-gray-700 rounded text-gray-200 placeholder-gray-500" placeholder="https://..." />
+            <button title="Run" onClick={quickNavigate} className="p-2 rounded bg-blue-800/70 hover:bg-blue-700/70 border border-blue-700 text-blue-200"><PlayIcon className="w-4 h-4"/></button>
             <span className={`text-[10px] px-1.5 py-0.5 rounded ${statusPill(agentStatus)}`}>{agentStatus}</span>
-            <label className="text-[10px] text-gray-400 hidden sm:block">Grid</label>
-            <select value={gridPreset} onChange={async (e:any)=>{
-              const v = e.target.value as typeof gridPreset;
-              setGridPreset(v);
-              const [cols, rows] = v.split('x').map((n)=>parseInt(n,10));
-              try { await fetch(`${BASE_URL}/api/automation/grid/set`, { method: 'POST', headers: { 'Content-Type':'application/json' }, body: JSON.stringify({ rows, cols }) }); } catch {}
-            }} className="px-1.5 py-1 text-[11px] bg-gray-800/60 border border-gray-700 rounded text-gray-300 w-24">
-              <option value="8x6">8×6</option>
-              <option value="12x8">12×8</option>
-              <option value="16x12">16×12</option>
-              <option value="24x16">24×16</option>
-              <option value="32x24">32×24</option>
-              <option value="48x32">48×32</option>
-              <option value="64x48">64×48</option>
-            </select>
-            <button onClick={() => setShowGrid(s => !s)} className="px-2 py-1 text-[11px] bg-gray-800/60 hover:bg-gray-700/60 border border-gray-700 rounded text-gray-300">{showGrid ? 'Hide' : 'Show'}</button>
-            {/* Side icon strips */}
+          </div>
+          {/* Side icon strips */}
             <div className="absolute left-2 top-1/2 -translate-y-1/2 flex flex-col gap-2 z-20">
               <button onClick={quickNavigate} className="w-8 h-8 bg-gray-900/70 hover:bg-gray-800/70 border border-gray-700 rounded text-[10px] text-gray-200">Map</button>
               <button onClick={()=> setPinMapping(p => !p)} className={`w-8 h-8 border rounded text-[10px] ${pinMapping? 'bg-teal-900/40 border-teal-700 text-teal-300' : 'bg-gray-900/70 border-gray-700 text-gray-200'}`}>Pin</button>
