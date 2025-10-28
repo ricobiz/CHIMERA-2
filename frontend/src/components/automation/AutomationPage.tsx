@@ -470,6 +470,19 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
               </button>
             )}
             <div className="truncate text-[12px] md:text-sm text-gray-300">Browser Automation</div>
+          {/* Lens controls */}
+          <div className="mt-2 flex items-center gap-2">
+            <button onClick={()=> setLensEnabled(v=>!v)} className={`px-2 py-1 text-[11px] border rounded ${lensEnabled ? 'bg-blue-900/30 border-blue-700 text-blue-300' : 'bg-gray-800/60 border-gray-700 text-gray-300'}`}>{lensEnabled ? 'Lens: On' : 'Lens: Off'}</button>
+            {lensEnabled && (
+              <>
+                <label className="text-[10px] text-gray-500">Zoom</label>
+                <input type="range" min={1.5} max={3} step={0.25} value={lensScale} onChange={(e:any)=> setLensScale(parseFloat(e.target.value))} />
+                <label className="text-[10px] text-gray-500">Size</label>
+                <input type="range" min={40} max={100} step={10} value={lensRadius} onChange={(e:any)=> setLensRadius(parseInt(e.target.value,10))} />
+              </>
+            )}
+          </div>
+
           </div>
           {/* Icon controls + compact grid */}
           <div className="flex items-center gap-1 flex-wrap justify-end">
