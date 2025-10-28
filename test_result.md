@@ -483,6 +483,9 @@ test_plan:
 
 agent_communication:
   - agent: "main"
+    message: "Viewer stabilized: removed zoom lens, added touch-action:none and overscroll-behavior:contain to viewer to prevent pinch-zoom causing overlay resets. Thin blue detection borders (0.75px) applied. Proceed to backend automation tests next."
+
+  - agent: "main"
     message: "Fixed critical chat bugs: (1) Body is disturbed error - added response.ok check, (2) History cleaning - only send {role, content}, (3) Session auto-creation, (4) Auto-save always works. Added extensive logging to all functions. Please test: Chat (multiple messages), Message delete/edit/regenerate, Session persistence across reload, Preview display, Code generation in Agent mode, Design workflow. Check console for detailed logs: '📤 Sending...', '✅ Chat API response', '💾 Auto-saved', '🗑️ Deleting', etc."
   - agent: "testing"
     message: "🚨 **CRITICAL REACT HOOK ERROR FOUND IN AUTOMATIONPAGE**
