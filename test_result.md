@@ -484,6 +484,30 @@ metadata:
 test_plan:
   - agent: "main"
     message: "Please run frontend AutomationPage sanity: verify viewer renders screenshot without jitter; thin blue detection boxes visible; grid toggle works; Map/Go buttons use smoke-check and update screenshot_id; pinch-zoom within viewer does not scroll or reload overlay; logs update; no console errors."
+  - agent: "testing"
+    message: "🚨 **AUTOMATIONPAGE UI SANITY CHECK FAILED - CRITICAL REACT HOOK ERROR CONFIRMED**
+
+**ISSUE STATUS:** AutomationPage component has React hook errors preventing proper rendering
+
+**DETAILED FINDINGS:**
+1. **Navigation Issue:** AutomationPage cannot be accessed through normal UI flow due to React hook errors
+2. **Backend Endpoints Working:** ✅ Verified /api/automation/smoke-check endpoint working correctly (returns screenshot_base64, session_id, etc.)
+3. **Frontend Component Broken:** ❌ AutomationPage.tsx has Invalid hook call errors preventing component from rendering
+4. **Error Pattern:** 'Invalid hook call. Hooks can only be called inside of the body of a function component' - occurs when trying to navigate to AutomationPage
+5. **Scope:** Error is specific to AutomationPage component - other app sections work correctly
+
+**UNABLE TO TEST DUE TO COMPONENT ERROR:**
+- ❌ Viewer renders screenshot after Map/Go buttons (component won't load)
+- ❌ Thin blue detection boxes and grid toggle (component won't load)  
+- ❌ Pin/Clear buttons functionality (component won't load)
+- ❌ Grid preset change triggers API calls (component won't load)
+- ❌ Pinch-zoom prevention in viewer (component won't load)
+- ❌ Logs panel updates (component won't load)
+- ❌ Ghost cursor appearance (component won't load)
+
+**ROOT CAUSE:** AutomationPage.tsx contains improper hook usage - likely hooks called conditionally or outside component body
+
+**RECOMMENDATION:** Fix React hook errors in AutomationPage.tsx before UI testing can proceed. Focus on useEffect, useState, useCallback, useMemo, useRef usage patterns."
 
   current_focus:
     - "Browser Automation viewer stability (pinch-zoom blocked in viewer)"
