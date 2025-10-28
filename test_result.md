@@ -485,6 +485,28 @@ agent_communication:
   - agent: "main"
     message: "Fixed critical chat bugs: (1) Body is disturbed error - added response.ok check, (2) History cleaning - only send {role, content}, (3) Session auto-creation, (4) Auto-save always works. Added extensive logging to all functions. Please test: Chat (multiple messages), Message delete/edit/regenerate, Session persistence across reload, Preview display, Code generation in Agent mode, Design workflow. Check console for detailed logs: '📤 Sending...', '✅ Chat API response', '💾 Auto-saved', '🗑️ Deleting', etc."
   - agent: "testing"
+    message: "🚨 **CRITICAL REACT HOOK ERROR FOUND IN AUTOMATIONPAGE**
+
+**CONFIRMED ISSUE:** Invalid hook call error occurs specifically when navigating to AutomationPage component.
+
+**ERROR DETAILS:**
+- **Error Message:** 'Invalid hook call. Hooks can only be called inside of the body of a function component'
+- **Component:** AutomationPage (bundle.js:70802:3)
+- **Stack Trace:** Error occurs in AutomationPage component, called from App component
+- **Trigger:** Typing browser automation task in chat → classification → navigation to AutomationPage
+
+**TECHNICAL ANALYSIS:**
+- React DevTools detected but 0 renderers (suspicious)
+- No window.React available (React not in global scope)
+- Error appears as red error boundary screen with full stack trace
+- Bundle.js references: Lines around 70802, 31975, 50442, 38629, 40122, etc.
+
+**SCOPE:** Error is **SPECIFIC TO AUTOMATIONPAGE** - other pages (Settings, main chat) work correctly.
+
+**REPRODUCTION:** 100% reproducible by typing any browser automation task in chat input.
+
+**RECOMMENDATION:** Check AutomationPage.tsx for improper hook usage - likely hooks called conditionally or outside component body. Focus on lines with useEffect, useState, useCallback, useMemo, useRef in AutomationPage component."
+  - agent: "testing"
     message: "✅ **PHASE 2 FRONTEND TESTING COMPLETE - MAJOR SUCCESS**
 
 **Test Results: 6/6 CORE FLOWS WORKING (100% Success Rate)**
