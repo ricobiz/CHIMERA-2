@@ -55,7 +55,8 @@ class ProfileService:
                 "https://www.youtube.com/",
                 "https://www.reddit.com/",
                 "https://www.amazon.com/",
-                "https://www.cnn.com/"
+                "https://www.wikipedia.org/",
+                "https://news.ycombinator.com/"
             ]
             page = browser_service.sessions[session_id]['page']
             for url in urls:
