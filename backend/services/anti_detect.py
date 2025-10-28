@@ -108,6 +108,11 @@ class HumanBehaviorSimulator:
             await page.mouse.move(target_x, target_y)
     
     @staticmethod
+    async def human_move(page: Page, target_x: int, target_y: int, speed_factor: float = 1.0):
+        """Alias for human_mouse_move to match existing calls."""
+        await HumanBehaviorSimulator.human_mouse_move(page, target_x, target_y, speed_factor)
+    
+    @staticmethod
     async def human_click(page: Page, x: int, y: int, button: str = "left"):
         """
         Click with human-like behavior (movement + click + small delay)
@@ -134,6 +139,38 @@ class HumanBehaviorSimulator:
             micro_x = x + random.randint(-3, 3)
             micro_y = y + random.randint(-3, 3)
             await page.mouse.move(micro_x, micro_y)
+    
+    @staticmethod
+    async def human_drag(page: Page, sx: int, sy: int, ex: int, ey: int, speed_factor: float = 1.0):
+        """Drag from (sx,sy) to (ex,ey) with human-like curve."""
+        try:
+            # Move to start
+            await HumanBehaviorSimulator.human_mouse_move(page, sx, sy, speed_factor)
+            await asyncio.sleep(random.uniform(0.05, 0.15))
+            await page.mouse.down(button="left")
+            await asyncio.sleep(random.uniform(0.05, 0.12))
+
+            # Drag along curve
+            path = HumanBehaviorSimulator.generate_bezier_curve((sx, sy), (ex, ey))
+            for i, (x, y) in enumerate(path):
+                if i < len(path) * 0.3:
+                    delay = random.uniform(0.003, 0.008) / speed_factor
+                elif i > len(path) * 0.7:
+                    delay = random.uniform(0.005, 0.015) / speed_factor
+                else:
+                    delay = random.uniform(0.002, 0.005) / speed_factor
+                await page.mouse.move(x, y)
+                await asyncio.sleep(delay)
+
+            # Release
+            await asyncio.sleep(random.uniform(0.05, 0.12))
+            await page.mouse.up(button="left")
+        except Exception as e:
+            logger.warning(f"Human drag failed: {e}, using direct drag")
+            await page.mouse.move(sx, sy)
+            await page.mouse.down()
+            await page.mouse.move(ex, ey)
+            await page.mouse.up()
     
     @staticmethod
     async def human_type(page: Page, selector: str, text: str):
@@ -323,7 +360,7 @@ class AntiDetectFingerprint:
         // ==== TIMEZONE CONSISTENCY ====
         const originalDateToString = Date.prototype.toString;
         Date.prototype.toString = function() {
-            return originalDateToString.call(this).replace(/\\(.*\\)/, '(Eastern Standard Time)');
+            return originalDateToString.call(this).replace(/\(.*\)/, '(Eastern Standard Time)');
         };
         
         // ==== BATTERY API (privacy concern) ====
@@ -404,7 +441,7 @@ class AntiDetectFingerprint:
             "webgl_renderer": "ANGLE (Intel, Intel(R) UHD Graphics Direct3D11 vs_5_0 ps_5_0)"
         }
         return profile
-
+    
     @staticmethod
     async def apply_profile(context, profile: dict) -> bool:
         try:
@@ -438,7 +475,7 @@ class AntiDetectFingerprint:
         except Exception as e:
             logger.error(f"Error applying profile: {e}")
             return False
-
+    
     @staticmethod
     async def apply_fingerprinting_evasion(context):
         """Apply advanced fingerprinting evasion to browser context"""

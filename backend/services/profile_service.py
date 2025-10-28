@@ -16,9 +16,12 @@ PROFILES_DIR = "/app/runtime/profiles"
 CHECK_URL1 = os.environ.get("PROFILE_CHECK_URL1", "https://bot.sannysoft.com/")
 CHECK_URL2 = os.environ.get("PROFILE_CHECK_URL2", "https://arh.antoinevastel.com/bots/areyouheadless")
 
+# Relaxed keywords to reduce false positives
 KEYWORDS_FLAG = [
-    # Relaxed keywords to reduce false positives
-    'selenium', 'webdriver', 'blocked', 'fingerprint'
+    'headless', 'webdriver: true', 'bot detected', 'are you a bot', 'automation detected', 'blocked by'
+]
+SAFE_PHRASES = [
+    'not detected', 'passed', 'ok', 'no issues', 'undetected', 'human'
 ]
 
 class ProfileService:
@@ -74,9 +77,18 @@ class ProfileService:
         try:
             await browser_service.navigate(session_id, url)
             page = browser_service.sessions[session_id]['page']
+            # Quick runtime signals
+            try:
+                wd = await page.evaluate("navigator.webdriver === true")
+            except Exception:
+                wd = False
             body_text = (await page.inner_text('body'))[:5000].lower()
             shot = await browser_service.capture_screenshot(session_id)
-            flagged = any(k in body_text for k in KEYWORDS_FLAG)
+            # Keyword/phrases
+            flagged_kw = any(k in body_text for k in KEYWORDS_FLAG)
+            safe_ok = any(p in body_text for p in SAFE_PHRASES)
+            # Final flag: webdriver true OR strong keywords AND not overridden by safe phrases
+            flagged = (bool(wd) or flagged_kw) and not safe_ok
             notes = body_text[:600]
             return shot, flagged, notes
         except Exception as e:
