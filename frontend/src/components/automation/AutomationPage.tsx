@@ -454,6 +454,29 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
 
           {/* Grid overlay aligned to image rect */}
           {/* Zoom lens disabled */}
+          {/* Plan overlay (top-right) */}
+          {showPlan && (planner.steps?.length || 0) > 0 && overlayRect && (
+            <div className="absolute right-2 top-2 max-w-[46%] bg-black/55 backdrop-blur-sm border border-gray-700 rounded-lg text-gray-200 shadow-lg" style={{pointerEvents:'auto'}}>
+              <div className="flex items-center justify-between px-3 py-2 border-b border-gray-700/60">
+                <div className="text-[12px] text-gray-300">Plan: <span className="text-blue-300">{planner.strategy || '—'}</span></div>
+                <button onClick={()=> setShowPlan(false)} className="text-[11px] text-gray-400 hover:text-gray-200">Hide</button>
+              </div>
+              <div className="max-h-48 overflow-y-auto p-3 space-y-2">
+                {planner.steps.slice(0, 20).map((s:any, idx:number) => (
+                  <div key={s.id || idx} className="text-[11px] leading-snug">
+                    <span className="text-gray-400">{idx+1}.</span> <span className="text-gray-100">{s.action}</span>
+                    {s.field && (<span className="text-gray-400"> • {s.field}</span>)}
+                    {s.target && (<span className="text-gray-400"> • {s.target}</span>)}
+                    {s.value && typeof s.value === 'string' && s.value !== '[WAITING_USER_INPUT]' && (<span className="text-gray-500"> • {s.value}</span>)}
+                  </div>
+                ))}
+                {planner.steps.length > 20 && (
+                  <div className="text-[10px] text-gray-500">…and {planner.steps.length - 20} more</div>
+                )}
+              </div>
+            </div>
+          )}
+
 
           {showGrid && overlayRect && (
             <div ref={overlayRef} className="absolute pointer-events-none" style={{ left: overlayRect.left, top: overlayRect.top, width: overlayRect.width, height: overlayRect.height }}>
