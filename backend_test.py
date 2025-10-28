@@ -4318,16 +4318,19 @@ export default App;""",
         print("PRIORITY 2 - Core Functionality")
         print("="*60)
         
-        # 2. POST /api/generate-code - Agent mode
+        # 2. Profile Lifecycle Endpoints (as requested in review)
+        self.test_profile_lifecycle_endpoints()
+        
+        # 3. POST /api/generate-code - Agent mode
         self.test_generate_code_endpoint_critical()
         
-        # 3. POST /api/generate-design & /api/generate-mockup
+        # 4. POST /api/generate-design & /api/generate-mockup
         # This is called from generate_code_endpoint_critical
         
-        # 4. Proxy status for automation
+        # 5. Proxy status for automation
         self.test_proxy_status_endpoint()
         
-        # 5. POST /api/automation/session/create with proxy
+        # 6. POST /api/automation/session/create with proxy
         self.test_browser_automation_create_session_with_proxy()
         
         self.print_critical_summary()
