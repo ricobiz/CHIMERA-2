@@ -341,6 +341,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ VERIFIED: Click cell endpoint working perfectly. Successfully clicked cell M12 using session from smoke-check. Returns screenshot_base64, dom_event with correct cell (M12), and proper response structure. Grid-based clicking system operational."
+      - working: true
+        agent: "testing"
+        comment: "✅ RE-VERIFIED: Automation smoke test confirmed click-cell working. Successfully clicked cell M12 using session_id from smoke-check. Returns new screenshot_base64 and dom_event with correct cell information. Grid-based clicking system fully operational."
 
   - task: "GET /api/hook/log - Hook Log Retrieval"
     implemented: true
