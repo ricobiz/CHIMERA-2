@@ -71,12 +71,7 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
   const imageRef = useRef<HTMLImageElement | null>(null);
   const overlayRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  // Zoom lens state
-  const [lensEnabled, setLensEnabled] = useState<boolean>(false);
-  const lensCanvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [lensPos, setLensPos] = useState<{x:number; y:number} | null>(null); // coords relative to overlayRect in px
-  const [lensRadius, setLensRadius] = useState<number>(60); // display px radius
-  const [lensScale, setLensScale] = useState<number>(2); // 2x magnification
+  // Zoom disabled for stability
 
   const logsEndRef = useRef<HTMLDivElement | null>(null);
   const pollRef = useRef<any>(null);
