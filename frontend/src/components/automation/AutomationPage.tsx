@@ -322,9 +322,9 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
   // BBox overlay using viewport scaling
   const renderBBoxes = () => {
     if (!showDetections) return null;
-    const v = observation?.vision || [];
-    const vw = observation?.viewport?.width || 1280;
-    const vh = observation?.viewport?.height || 800;
+    const v = (overlayVision ?? observation?.vision) || [];
+    const vw = (overlayViewport?.width) || observation?.viewport?.width || 1280;
+    const vh = (overlayViewport?.height) || observation?.viewport?.height || 800;
     if (!overlayRect) return null;
     return v.slice(0, 20).map((el, idx) => {
       const b = el.bbox || ({} as any);
