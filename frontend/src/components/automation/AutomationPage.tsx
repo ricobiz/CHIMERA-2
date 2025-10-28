@@ -62,8 +62,10 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
   // Overlay model snapshot in ref so React re-renders don't wipe drawing
   const pinMappingRef = useRef<boolean>(false);
   const [pinMapping, setPinMapping] = useState<boolean>(false);
-  const lastSnapshotRef = useRef<{ shotId: string | null; vision: NonNullable<Observation['vision']>; viewport: Observation['viewport'] | null; grid: Observation['grid'] | null } | null>(null);
+  const lastSnapshotRef = useRef<{ shotId: string | null; vision: any[]; viewport: Observation['viewport'] | null; grid: Observation['grid'] | null } | null>(null);
   const lastDrawnShotIdRef = useRef<string | null>(null);
+  // Single source of truth for current vision for lists/UI (not for canvas)
+  const [vision, setVision] = useState<any[]>([]);
 
   const viewerRef = useRef<HTMLDivElement | null>(null);
   const imageRef = useRef<HTMLImageElement | null>(null);
