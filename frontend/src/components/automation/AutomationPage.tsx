@@ -122,6 +122,26 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
       const data = await resp.json();
       setRunMode(data.run_mode);
       setAgentStatus(data.agent_status);
+  // Overlay: show first N vision detections
+  const renderDetections = () => {
+    const v = observation?.vision || [];
+    const rows = parseInt((gridPreset.split('x')[1] as any) || '32', 10);
+    const cols = parseInt((gridPreset.split('x')[0] as any) || '48', 10);
+    // only show top 12 to avoid clutter
+    return (v.slice(0, 12).map((el, idx) => {
+      const cell = el.cell as string;
+      const colIdx = cell ? (cell.charCodeAt(0) - 'A'.charCodeAt(0)) : 0;
+      const rowIdx = cell ? (parseInt(cell.slice(1), 10) - 1) : 0;
+      const left = ((colIdx + 0.5) / cols) * 100;
+      const top = ((rowIdx + 0.5) / rows) * 100;
+      return (
+        <div key={idx} className="absolute" style={{ left: `${left}%`, top: `${top}%`, transform: 'translate(-50%, -50%)' }}>
+          <div className="px-1.5 py-0.5 text-[9px] rounded bg-blue-900/70 border border-blue-500 text-blue-100 whitespace-nowrap max-w-[160px] overflow-hidden text-ellipsis">{el.label || el.type} · {cell}</div>
+        </div>
+      );
+    }));
+  };
+
     } catch (e) {
       // ignore
     }
