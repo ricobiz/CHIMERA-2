@@ -444,6 +444,20 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
               <option value="64x48">64×48</option>
             </select>
             <button onClick={() => setShowGrid(s => !s)} className="px-2 py-1 text-[11px] bg-gray-800/60 hover:bg-gray-700/60 border border-gray-700 rounded text-gray-300">{showGrid ? 'Hide' : 'Show'}</button>
+            {/* Side icon strips */}
+            <div className="absolute left-2 top-1/2 -translate-y-1/2 flex flex-col gap-2 z-20">
+              <button onClick={quickNavigate} className="w-8 h-8 bg-gray-900/70 hover:bg-gray-800/70 border border-gray-700 rounded text-[10px] text-gray-200">Map</button>
+              <button onClick={()=> setPinMapping(p => !p)} className={`w-8 h-8 border rounded text-[10px] ${pinMapping? 'bg-teal-900/40 border-teal-700 text-teal-300' : 'bg-gray-900/70 border-gray-700 text-gray-200'}`}>Pin</button>
+              <button onClick={()=>{ lastSnapshotRef.current=null; setVision([]); drawCanvas(); }} className="w-8 h-8 bg-gray-900/70 hover:bg-gray-800/70 border border-gray-700 rounded text-[10px] text-gray-200">Clr</button>
+              <button onClick={()=> setShowDetections(v=>!v)} className="w-8 h-8 bg-gray-900/70 hover:bg-gray-800/70 border border-gray-700 rounded text-[10px] text-gray-200">Hide</button>
+            </div>
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex flex-col gap-2 z-20">
+              <button onClick={()=> setShowGrid(s=>!s)} className="w-8 h-8 bg-gray-900/70 hover:bg-gray-800/70 border border-gray-700 rounded text-[10px] text-gray-200">Grid</button>
+              <button onClick={()=> setShowPlan(v=>!v)} className="w-8 h-8 bg-gray-900/70 hover:bg-gray-800/70 border border-gray-700 rounded text-[10px] text-gray-200">Plan</button>
+              <button onClick={()=> {/* placeholder for markup toggle */}} className="w-8 h-8 bg-gray-900/70 hover:bg-gray-800/70 border border-gray-700 rounded text-[10px] text-gray-200">MkUp</button>
+              <button onClick={()=> {/* placeholder for logs toggle */}} className="w-8 h-8 bg-gray-900/70 hover:bg-gray-800/70 border border-gray-700 rounded text-[10px] text-gray-200">Logs</button>
+            </div>
+
             <button onClick={() => setPinMapping(p => !p)} className={`px-2 py-1 text-[11px] border rounded ${pinMapping? 'bg-teal-900/40 border-teal-700 text-teal-300' : 'bg-gray-800/60 border-gray-700 text-gray-300'}`}>{pinMapping? 'Pinned' : 'Pin'}</button>
             <button onClick={() => { lastSnapshotRef.current = null; setVision([]); drawCanvas(); }} className="px-2 py-1 text-[11px] bg-gray-800/60 hover:bg-gray-700/60 border border-gray-700 rounded text-gray-300">Clear</button>
             <button onClick={quickNavigate} className="px-2 py-1 text-[11px] bg-blue-800/60 hover:bg-blue-700/60 border border-blue-700 rounded text-blue-300">Map</button>
