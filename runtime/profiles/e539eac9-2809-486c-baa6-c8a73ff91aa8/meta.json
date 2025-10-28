@@ -1,18 +1,18 @@
 {
-  "profile_id": "a8a82c65-a4a7-408c-b4c0-2a1643a8b9a8",
-  "created_at": "2025-10-28T15:01:52.520379+00:00",
-  "last_used": "2025-10-28T15:01:52.520396+00:00",
+  "profile_id": "e539eac9-2809-486c-baa6-c8a73ff91aa8",
+  "created_at": "2025-10-28T15:05:39.969164+00:00",
+  "last_used": "2025-10-28T15:05:39.969180+00:00",
   "used_count": 0,
-  "status": "warm",
+  "status": "fresh",
   "browser": {
-    "user_agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_3_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3.1 Mobile/15E148 Safari/604.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 Edg/135.0.0.0",
     "viewport": {
-      "width": 1325,
-      "height": 886
+      "width": 1334,
+      "height": 840
     },
     "platform": "Win32",
     "vendor": "Google Inc.",
-    "app_version": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_3_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3.1 Mobile/15E148 Safari/604.1"
+    "app_version": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 Edg/135.0.0.0"
   },
   "locale": {
     "timezone_id": "America/New_York",
@@ -30,7 +30,7 @@
   "webgl": {
     "vendor": "Intel Inc.",
     "renderer": "Intel Iris OpenGL Engine",
-    "canvas_noise_seed": "117673"
+    "canvas_noise_seed": "613835"
   },
   "fonts": [
     "Arial",
@@ -64,14 +64,9 @@
     "risk_score": 0.2
   },
   "warmup": {
-    "is_warm": true,
-    "warmed_at": "2025-10-28T15:05:44.468420+00:00",
-    "sites_visited": [
-      "google.com",
-      "youtube.com",
-      "reddit.com",
-      "amazon.com"
-    ]
+    "is_warm": false,
+    "warmed_at": null,
+    "sites_visited": []
   },
   "captcha": {
     "last_failed_at": null,
