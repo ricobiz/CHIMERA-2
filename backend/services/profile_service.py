@@ -109,27 +109,11 @@ class ProfileService:
         # Pick proxy
         proxy = proxy_service.get_proxy_by(region=region, tier=proxy_tier) if hasattr(proxy_service, 'get_proxy_by') else None
 
-        # Fetch proxy info
+        # Prepare proxy_info placeholder; will fetch via page after context creation
         proxy_info = {}
-        try:
-            import httpx
-            async with httpx.AsyncClient(timeout=15) as client:
-                r = await client.get(IPINFO_URL, proxies=proxy['server'] if proxy else None)
-                if r.status_code == 200:
-                    ipd = r.json()
-                    proxy_info = {
-                        "ip": ipd.get('ip'),
-                        "country": ipd.get('country'),
-                        "region": ipd.get('region'),
-                        "city": ipd.get('city'),
-                        "isp": ipd.get('org'),
-                        "timezone": ipd.get('timezone')
-                    }
-        except Exception as e:
-            logger.warning(f"proxy info fetch failed: {e}")
 
-        # Determine locale/timezone/languages based on proxy info
-        country = (proxy_info.get('country') or 'US').upper()
+        # Determine locale/timezone/languages baseline (will refine after ipinfo)
+        country = 'US'
         tz_default = 'America/New_York'
         tz_map = {
             'US': 'America/New_York', 'CA': 'America/Toronto', 'GB': 'Europe/London', 'DE': 'Europe/Berlin', 'FR': 'Europe/Paris', 'RU': 'Europe/Moscow', 'AU': 'Australia/Sydney'
