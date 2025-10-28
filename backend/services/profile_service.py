@@ -201,6 +201,34 @@ class ProfileService:
         self.write_meta(profile_id, meta)
 
         # Close session after warmup to flush data
+        # After context created, fetch ipinfo via Playwright (ensures request goes through proxy)
+        try:
+            page = browser_service.sessions[session_id]['page']
+            resp = await page.request.get(IPINFO_URL)
+            if resp and resp.ok:
+                ipd = await resp.json()
+                proxy_info = {
+                    "ip": ipd.get('ip'),
+                    "country": ipd.get('country'),
+                    "region": ipd.get('region'),
+                    "city": ipd.get('city'),
+                    "isp": ipd.get('org'),
+                    "timezone": ipd.get('timezone')
+                }
+                # Patch meta proxy info with real values
+                meta = self.read_meta(profile_id)
+                meta['proxy'].update({
+                    "ip": proxy_info.get('ip'),
+                    "country": proxy_info.get('country'),
+                    "region": proxy_info.get('region'),
+                    "city": proxy_info.get('city'),
+                    "isp": proxy_info.get('isp'),
+                    "timezone": proxy_info.get('timezone')
+                })
+                self.write_meta(profile_id, meta)
+        except Exception as e:
+            logger.warning(f"ipinfo via page failed: {e}")
+
         await browser_service.close_session(session_id)
 
         # Response summary
