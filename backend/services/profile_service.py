@@ -204,18 +204,7 @@ class ProfileService:
 
         # Warmup
         await self._warmup(session_id)
-
         # Save storage_state after warmup
-        try:
-            ctx = browser_service.sessions[session_id]['context']
-            await ctx.storage_state(path=self._storage_path(profile_id))
-        except Exception as e:
-            logger.warning(f"storage_state save error: {e}")
-
-        # Save meta initial
-        # Warmup right after creation
-        await self._warmup(session_id)
-        # Save state after warmup
         try:
             ctx = browser_service.sessions[session_id]['context']
             await ctx.storage_state(path=self._storage_path(profile_id))
