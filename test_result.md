@@ -326,6 +326,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ VERIFIED: Smoke check endpoint working correctly. Successfully navigated to https://google.com, created session, captured screenshot (base64), returned grid configuration, viewport info. Vision array empty but valid (list type). All required fields present and properly formatted."
+      - working: true
+        agent: "testing"
+        comment: "✅ RE-VERIFIED: Automation smoke test confirmed smoke-check working. Successfully navigated to https://google.com with use_proxy:false. Returns all required fields: screenshot_base64, screenshot_id, grid, viewport. Session created with ID: smoke-279000246054544-1761658972213. Browser automation system fully operational."
 
   - task: "POST /api/automation/click-cell - Grid Cell Clicking"
     implemented: true
