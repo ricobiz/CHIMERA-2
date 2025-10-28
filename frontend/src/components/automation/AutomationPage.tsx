@@ -515,6 +515,17 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
           )}
         </div>
 
+        {/* Bottom toolbar - все кнопки в один ряд ПОД viewer'ом */}
+        <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+          <button onClick={quickNavigate} className="px-3 py-1.5 text-xs bg-blue-900/70 hover:bg-blue-800/70 border border-blue-800 rounded text-blue-200">Map</button>
+          <button onClick={()=> setPinMapping(p => !p)} className={`px-3 py-1.5 text-xs border rounded ${pinMapping? 'bg-teal-900/40 border-teal-700 text-teal-300' : 'bg-gray-900/70 border-gray-700 text-gray-200'}`}>{pinMapping? 'Pinned' : 'Pin'}</button>
+          <button onClick={()=>{ lastSnapshotRef.current=null; setVision([]); drawCanvas(); }} className="px-3 py-1.5 text-xs bg-gray-900/70 hover:bg-gray-800/70 border border-gray-700 rounded text-gray-200">Clear</button>
+          <button onClick={()=> setShowDetections(v=>!v)} className="px-3 py-1.5 text-xs bg-gray-900/70 hover:bg-gray-800/70 border border-gray-700 rounded text-gray-200">{showDetections? 'Hide' : 'Show'}</button>
+          <button onClick={()=> setShowGrid(s=>!s)} className="px-3 py-1.5 text-xs bg-gray-900/70 hover:bg-gray-800/70 border border-gray-700 rounded text-gray-200">Grid</button>
+          <button onClick={()=> setShowPlan(v=>!v)} className="px-3 py-1.5 text-xs bg-gray-900/70 hover:bg-gray-800/70 border border-gray-700 rounded text-gray-200">Plan</button>
+          <button onClick={async()=>{ const url = prompt('Введите URL для входа', quickUrl) || quickUrl; setQuickUrl(url); await quickNavigate(); }} className="px-3 py-1.5 text-xs bg-blue-900/70 hover:bg-blue-800/70 border border-blue-800 rounded text-blue-200">Открыть URL</button>
+          <button onClick={async()=>{ if (!sessionId) { alert('Сессия не активна'); return; } try { const resp = await fetch(`${BASE_URL}/api/profile/save_from_session`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ session_id: sessionId }) }); const d = await resp.json(); if (d?.profile_id) alert('Профиль сохранён и прогрет'); else alert('Не удалось сохранить профиль'); } catch(e:any){ alert(e.message||'Ошибка сохранения профиля'); } }} className="px-3 py-1.5 text-xs bg-emerald-900/70 hover:bg-emerald-800/70 border border-emerald-800 rounded text-emerald-200">Сохранить</button>
+        </div>
 
       </div>
 
