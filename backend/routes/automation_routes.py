@@ -78,6 +78,14 @@ class ValidateNavigationRequest(BaseModel):
     pageTitle: str
     description: str
 
+class GridSetRequest(BaseModel):
+    rows: int
+    cols: int
+
+class SmokeCheckRequest(BaseModel):
+    url: Optional[str] = None
+    use_proxy: bool = False
+
 @router.get("/screenshot/{session_id}/full")
 async def get_screenshot_full(session_id: str):
     try:
@@ -341,10 +349,7 @@ async def do_wait(req: WaitMsRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-@router.post("/wait")
+@router.post("/wait-for")
 async def wait_for_element(request: WaitRequest):
     """Wait for element to appear"""
     try:
@@ -379,6 +384,19 @@ async def get_screenshot_endpoint(session_id: str):
         }
     except Exception as e:
         logger.error(f"Error capturing screenshot: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ============= Utility: Grid density set =============
+@router.post("/grid/set")
+async def set_grid_density(req: GridSetRequest):
+    try:
+        rows = max(4, min(64, req.rows))
+        cols = max(4, min(64, req.cols))
+        browser_service.grid_rows = rows
+        browser_service.grid_cols = cols
+        return {"success": True, "rows": rows, "cols": cols}
+    except Exception as e:
+        logger.error(f"Error setting grid: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # ============= Supervisor (Step Brain) =============
@@ -443,7 +461,7 @@ async def find_elements(request: FindElementsRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.post("/smart-click")
+@router.post("/smart-click-legacy")
 async def smart_click(request: FindElementsRequest):
     """
     Smart click: Use vision model to find element by description, then click it
@@ -571,4 +589,31 @@ async def solve_captcha(request: Dict[str, str]):
         return result
     except Exception as e:
         logger.error(f"Error solving CAPTCHA: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/smoke-check")
+async def smoke_check(req: SmokeCheckRequest):
+    """Create a fresh session, navigate to URL, and return a screenshot + grid in one atomic call."""
+    try:
+        sid = f"smoke-{id(req)}-{int(__import__('time').time()*1000)}"
+        await browser_service.create_session(sid, use_proxy=req.use_proxy)
+        url = req.url or "https://example.com"
+        nav = await browser_service.navigate(sid, url)
+        page = browser_service.sessions[sid]['page']
+        await browser_service._inject_grid_overlay(page)
+        dom_data = await browser_service._collect_dom_clickables(page)
+        screenshot_b64 = await browser_service.capture_screenshot(sid)
+        vision = await browser_service._augment_with_vision(screenshot_b64, dom_data)
+        return {
+            "success": True,
+            "session_id": sid,
+            "url": nav.get('url', url),
+            "title": nav.get('title'),
+            "screenshot_base64": screenshot_b64,
+            "grid": {"rows": browser_service.grid_rows, "cols": browser_service.grid_cols},
+            "vision": vision
+        }
+    except Exception as e:
+        logger.error(f"Smoke-check error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))

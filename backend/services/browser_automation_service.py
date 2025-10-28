@@ -31,9 +31,9 @@ class BrowserAutomationService:
         self.page: Optional[Page] = None
         self.sessions: Dict[str, Dict[str, Any]] = {}
         self.captcha_solver: Optional[CaptchaSolver] = None
-        # Grid config defaults (12x8)
-        self.grid_rows = 12
-        self.grid_cols = 8
+        # Grid config defaults (denser grid by default)
+        self.grid_rows = 24
+        self.grid_cols = 16
         
     async def initialize(self):
         """Initialize Playwright and browser with anti-detect"""
@@ -91,7 +91,7 @@ class BrowserAutomationService:
         user_agent = proxy_service.get_random_user_agent()
         
         # Prepare context options
-        context_options = {
+        context_options: Dict[str, Any] = {
             'viewport': {'width': viewport_width, 'height': viewport_height},
             'user_agent': user_agent,
             'locale': 'en-US',
@@ -115,6 +115,26 @@ class BrowserAutomationService:
                     'username': proxy['username'],
                     'password': proxy['password']
                 }
+        
+        # Create context and page
+        context = await self.browser.new_context(**context_options)
+        # Apply advanced fingerprinting evasion
+        try:
+            await AntiDetectFingerprint.apply_fingerprinting_evasion(context)
+        except Exception as e:
+            logger.warning(f"Fingerprint evasion failed: {e}")
+        page = await context.new_page()
+        
+        self.sessions[session_id] = {
+            'context': context,
+            'page': page,
+            'history': [],
+            'use_proxy': use_proxy
+        }
+        
+        logger.info(f"✅ Created session: {session_id} (proxy={use_proxy})")
+        return {'session_id': session_id, 'status': 'ready', 'proxy_enabled': use_proxy}
+    
     async def create_session_from_profile(self, profile_id: str, session_id: str, fingerprint: Dict[str, Any], proxy: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         await self.initialize()
         user_agent = fingerprint.get('user_agent')
@@ -161,21 +181,6 @@ class BrowserAutomationService:
         except Exception as e:
             logger.error(f"Close session error: {e}")
             return False
-        
-        # Apply advanced fingerprinting evasion
-        await AntiDetectFingerprint.apply_fingerprinting_evasion(context)
-        
-        page = await context.new_page()
-        
-        self.sessions[session_id] = {
-            'context': context,
-            'page': page,
-            'history': [],
-            'use_proxy': use_proxy
-        }
-        
-        logger.info(f"✅ Created session: {session_id} (proxy={use_proxy})")
-        return {'session_id': session_id, 'status': 'ready', 'proxy_enabled': use_proxy}
     
     async def navigate(self, session_id: str, url: str) -> Dict[str, Any]:
         """Navigate to URL"""
