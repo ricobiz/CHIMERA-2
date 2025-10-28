@@ -170,16 +170,20 @@ class ExecutionAgentService {
         
         const step = plan.steps[i];
         
-        console.log(`[ExecutionAgent] Executing step: ${step.actionType} - ${step.targetDescription}`);
+        console.log(`[ExecutionAgent] 🎯 Executing step ${i+1}: ${step.actionType} - ${step.targetDescription}`);
 
         // Execute step with retry logic
         const stepSuccess = await this.executeStepWithRetry(step, initialState.browserState);
         
+        console.log(`[ExecutionAgent] Step ${i+1} result: ${stepSuccess ? '✅ SUCCESS' : '❌ FAILED'}`);
+        
         if (stepSuccess) {
           completedSteps++;
+          console.log(`[ExecutionAgent] ✅ Step ${i+1} completed successfully! (Total completed: ${completedSteps}/${plan.steps.length})`);
         } else {
           // Step failed after all retries
-          console.error(`[ExecutionAgent] Step ${i + 1} failed after all retries`);
+          console.error(`[ExecutionAgent] ❌ Step ${i + 1} FAILED after all retries`);
+          console.error(`[ExecutionAgent] Failed step details:`, step);
           await this.cleanupSession(sessionId);
           this.updateState({
             status: 'failed',
@@ -192,6 +196,8 @@ class ExecutionAgentService {
           });
           return;
         }
+        
+        console.log(`[ExecutionAgent] ➡️  Moving to next step (if any)...\n`);
       }
 
       console.log('[ExecutionAgent] ✅ Execution loop completed successfully');
