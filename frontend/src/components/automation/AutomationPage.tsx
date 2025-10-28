@@ -340,8 +340,8 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
         const pad = 3;
         const tw = ctx.measureText(label).width + pad*2;
         const th = 14;
-        ctx.fillStyle = 'rgba(0,0,0,0.75)';
-        ctx.strokeStyle = 'rgba(120, 160, 255, 0.9)';
+        ctx.fillStyle = 'rgba(0,0,0,0.7)';
+        ctx.strokeStyle = 'rgba(80, 140, 255, 0.85)';
         ctx.shadowBlur = 0;
         ctx.fillRect(x, Math.max(0,y-th-2), tw, th);
         ctx.strokeRect(x, Math.max(0,y-th-2), tw, th);
