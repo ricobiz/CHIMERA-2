@@ -490,20 +490,33 @@ class BrowserAutomationService:
             collect: () => {
               const vw = window.innerWidth, vh = window.innerHeight;
               const clickables = [];
-              const candidates = Array.from(document.querySelectorAll('a,button,input,textarea,select,[role="button"], [onclick]'));
-              for (const el of candidates) {
-                const rect = el.getBoundingClientRect();
-                if (!rect || rect.width < 6 || rect.height < 6) continue;
-                const style = window.getComputedStyle(el);
-                if (style.visibility === 'hidden' || style.display === 'none') continue;
-                const label = (el.innerText || el.value || el.getAttribute('aria-label') || el.name || '').slice(0, 64);
-                const type = (el.tagName || 'button').toLowerCase();
-                clickables.push({
-                  bbox: { x: Math.max(0, Math.floor(rect.left)), y: Math.max(0, Math.floor(rect.top)), w: Math.floor(rect.width), h: Math.floor(rect.height) },
-                  label,
-                  type,
-                  confidence: 0.8
-                });
+              function collectIn(doc, offX, offY) {
+                const nodes = Array.from(doc.querySelectorAll('a,button,input,textarea,select,[role="button"], [onclick]'));
+                for (const el of nodes) {
+                  const rect = el.getBoundingClientRect();
+                  if (!rect || rect.width < 4 || rect.height < 4) continue;
+                  const style = doc.defaultView.getComputedStyle(el);
+                  if (style.visibility === 'hidden' || style.display === 'none' || style.pointerEvents === 'none') continue;
+                  const label = (el.innerText || el.value || el.getAttribute('aria-label') || el.getAttribute('title') || el.name || '').slice(0, 64);
+                  const type = (el.tagName || 'button').toLowerCase();
+                  clickables.push({
+                    bbox: { x: Math.max(0, Math.floor(rect.left + offX)), y: Math.max(0, Math.floor(rect.top + offY)), w: Math.floor(rect.width), h: Math.floor(rect.height) },
+                    label,
+                    type,
+                    confidence: 0.8
+                  });
+                }
+              }
+              // Top document
+              collectIn(document, 0, 0);
+              // Try a few same-origin iframes
+              const iframes = Array.from(document.querySelectorAll('iframe')).slice(0, 5);
+              for (const iframe of iframes) {
+                try {
+                  const r = iframe.getBoundingClientRect();
+                  const idoc = iframe.contentDocument;
+                  if (idoc) collectIn(idoc, r.left, r.top);
+                } catch (e) { /* cross-origin */ }
               }
               return { vw, vh, clickables };
             },
