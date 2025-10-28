@@ -297,6 +297,8 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
               <div className="px-1.5 py-0.5 text-[10px] rounded bg-black/80 border border-gray-600 text-gray-100">{tapCell.cell}</div>
             </div>
           )}
+          {/* Detected elements overlay (top-12) */}
+          {renderDetections()}
           {ghostCell && (
             <div className="absolute transition-all duration-300" style={{ left: `${ghostPos.left}%`, top: `${ghostPos.top}%`, transform: 'translate(-50%, -50%)' }}>
               <div className="w-4 h-4 rounded-full bg-white/90 shadow-[0_0_10px_rgba(255,255,255,0.6)] border border-gray-200" />
