@@ -149,9 +149,11 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
         const obs = (data.observation || null) as Observation | null;
         setObservation(obs);
         if (obs && obs.vision && obs.vision.length > 0) {
-          lastSnapshotRef.current = { shotId: obs.screenshot_id || null, vision: obs.vision as any, viewport: obs.viewport || null, grid: obs.grid || null };
+          const v = obs.vision as any[];
+          lastSnapshotRef.current = { shotId: obs.screenshot_id || null, vision: v, viewport: obs.viewport || null, grid: obs.grid || null };
           if (obs.screenshot_base64) setPendingSrc(obs.screenshot_base64);
           lastDrawnShotIdRef.current = obs.screenshot_id || null;
+          setVision(v);
         }
       }
     } catch (e) {
