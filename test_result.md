@@ -483,6 +483,9 @@ metadata:
 
 test_plan:
   - agent: "main"
+    message: "Re-run AutomationPage UI sanity after lens removal and pinch-zoom block: verify Map/Go update screenshot_id and render; detection boxes visible; grid toggle stable; Pin/Clear work; no console errors; no React invalid hook call; touch-action:none prevents page zoom inside viewer."
+
+  - agent: "main"
     message: "Please run frontend AutomationPage sanity: verify viewer renders screenshot without jitter; thin blue detection boxes visible; grid toggle works; Map/Go buttons use smoke-check and update screenshot_id; pinch-zoom within viewer does not scroll or reload overlay; logs update; no console errors."
   - agent: "testing"
     message: "🚨 **AUTOMATIONPAGE UI SANITY CHECK FAILED - CRITICAL REACT HOOK ERROR CONFIRMED**
