@@ -3,6 +3,7 @@ import base64
 from typing import Dict, Any, List
 import httpx
 import json
+import re
 
 # Supervisor (Step Brain) via OpenRouter (text-first, robust JSON)
 # Default model can be overridden by request payload or env
@@ -32,6 +33,8 @@ SAFE_MODELS = [
     lambda: 'qwen/qwen2.5',
 ]
 
+CELL_RE = re.compile(r"^[A-Z][0-9]{1,2}$")
+
 class SupervisorService:
     def _extract_json(self, content: str) -> Dict[str, Any]:
         """Best-effort JSON extraction from model text."""
@@ -49,6 +52,59 @@ class SupervisorService:
             except Exception:
                 pass
         return {"error": "Non-JSON content", "raw": content[:400]}
+
+    def _map_label_to_cell(self, label: str, vision: List[Dict[str, Any]]) -> str:
+        """Find cell in vision by fuzzy label match."""
+        if not label:
+            return ''
+        L = label.lower()
+        best = None
+        for el in vision or []:
+            lab = (el.get('label') or '').lower()
+            if L in lab or lab in L:
+                if not best or float(el.get('confidence', 0.0)) > float(best.get('confidence', 0.0)):
+                    best = el
+        return best.get('cell') if best else ''
+
+    def _normalize(self, raw: Dict[str, Any], vision: List[Dict[str, Any]]) -> Dict[str, Any]:
+        if raw.get('error'):
+            return raw
+        action = (raw.get('next_action') or raw.get('action') or '').upper().strip()
+        # Normalize action aliases
+        if action in ('CLICK', 'PRESS'):
+            action = 'CLICK_CELL'
+        if action in ('TYPE', 'INPUT'):
+            action = 'TYPE_AT_CELL'
+        if action in ('DRAG', 'DRAG_DROP'):
+            action = 'HOLD_DRAG'
+        if action not in ('CLICK_CELL', 'TYPE_AT_CELL', 'HOLD_DRAG', 'SCROLL', 'WAIT', 'DONE'):
+            # fallback to WAIT to avoid infinite warnings
+            return {"next_action": "WAIT", "amount": 400}
+
+        target_cell = raw.get('target_cell') or raw.get('cell') or ''
+        if target_cell and not CELL_RE.match(str(target_cell).upper()):
+            # try map label -> cell
+            mapped = self._map_label_to_cell(str(target_cell), vision)
+            if mapped:
+                target_cell = mapped
+            else:
+                target_cell = ''
+        elif target_cell:
+            target_cell = str(target_cell).upper()
+
+        out = {
+            "next_action": action,
+            "target_cell": target_cell,
+            "text": raw.get('text') or '',
+            "direction": raw.get('direction', 'down'),
+            "amount": int(raw.get('amount', 400) or 400),
+            "needs_user_input": bool(raw.get('needs_user_input', False)),
+            "ask_user": raw.get('ask_user', ''),
+            "confidence": float(raw.get('confidence', 0.5))
+        }
+        # Bound amount
+        out['amount'] = max(100, min(800, out['amount']))
+        return out
 
     async def _call_openrouter(self, messages: List[Dict[str, str]], model: str) -> Dict[str, Any]:
         api_key = os.environ.get('OPENROUTER_API_KEY')
@@ -98,7 +154,6 @@ class SupervisorService:
             {"role": "user", "content": user_prompt}
         ]
 
-        # Try selected model and then safe fallbacks on 400/404/other errors
         tried_errors = []
         for getter in SAFE_MODELS:
             m = None
@@ -108,11 +163,10 @@ class SupervisorService:
                 m = None
             if not m:
                 continue
-            result = await self._call_openrouter(messages, m)
-            if not result.get('error'):
-                return result
-            tried_errors.append({"model": m, "error": result.get('error'), "details": result.get('details')})
-        # If none succeeded, return the last error with context
+            raw = await self._call_openrouter(messages, m)
+            if not raw.get('error'):
+                return self._normalize(raw, vision)
+            tried_errors.append({"model": m, "error": raw.get('error'), "details": raw.get('details')})
         return {"error": "Brain request failed", "tried": tried_errors}
 
 supervisor_service = SupervisorService()
