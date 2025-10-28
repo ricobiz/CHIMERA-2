@@ -404,6 +404,7 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
             </div>
           )}
           {renderBBoxes()}
+          {renderVisionDebug()}
 
           {ghostCell && overlayRect && (
             <div className="absolute transition-all duration-300" style={{ left: `${overlayRect.left + (ghostPos.left/100)*overlayRect.width}px`, top: `${overlayRect.top + (ghostPos.top/100)*overlayRect.height}px`, transform: 'translate(-50%, -50%)' }}>
