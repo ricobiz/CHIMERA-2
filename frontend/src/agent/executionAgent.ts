@@ -426,6 +426,10 @@ class ExecutionAgentService {
         // Step succeeded
         console.log(`[ExecutionAgent.retry] ✅ Step validated successfully!`);
         this.updateLastLog({ status: 'ok' });
+        
+        console.log(`[ExecutionAgent.retry] ╔════════════════════════════════════════════╗`);
+        console.log(`[ExecutionAgent.retry] ║  RETRY LOOP END - RETURNING TRUE           ║`);
+        console.log(`[ExecutionAgent.retry] ╚════════════════════════════════════════════╝\n`);
         return true;
       } else {
         // Step failed
