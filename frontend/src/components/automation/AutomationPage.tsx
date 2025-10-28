@@ -372,6 +372,13 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
     // Compute source box in image coords
     const vw = overlayRect.width;
     const vh = overlayRect.height;
+    // Update lens position if enabled
+    if (lensEnabled) {
+      const px = (x * overlayRect.width);
+      const py = (y * overlayRect.height);
+      setLensPos({ x: px, y: py });
+    }
+
 
     // Convert lensPos (px within overlay) to normalized image coords
     const nx = lensPos.x / vw;
