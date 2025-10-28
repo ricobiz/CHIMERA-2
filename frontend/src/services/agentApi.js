@@ -7,7 +7,7 @@ import axios from 'axios';
 
 // IMPORTANT: REACT_APP_BACKEND_URL must be set in environment
 // No localhost fallback to ensure proper production configuration
-const API = process.env.REACT_APP_BACKEND_URL;
+const API = import.meta?.env?.REACT_APP_BACKEND_URL || process.env.REACT_APP_BACKEND_URL;
 
 if (!API) {
   console.error('REACT_APP_BACKEND_URL is not set! API calls will fail.');
@@ -211,5 +211,10 @@ export const automationScroll = async (sessionId, dx = 0, dy = 400) => {
 };
 export const brainNextStep = async (payload) => {
   const response = await axios.post(`${API}/api/automation/brain/next-step`, payload);
+  return response.data;
+};
+
+export const automationSmokeCheck = async (url = 'https://example.com', useProxy = false) => {
+  const response = await axios.post(`${API}/api/automation/smoke-check`, { url, use_proxy: useProxy });
   return response.data;
 };
