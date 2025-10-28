@@ -561,6 +561,11 @@ class BrowserAutomationService:
         })();
         """
         await page.add_init_script(js)
+        # Also run immediately on current document so collect() works without navigation
+        try:
+            await page.evaluate(js)
+        except Exception:
+            pass
 
     async def _collect_dom_clickables(self, page: Page) -> Dict[str, Any]:
         try:
