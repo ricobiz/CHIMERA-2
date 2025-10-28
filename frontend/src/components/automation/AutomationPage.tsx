@@ -498,6 +498,8 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
               } catch(e:any){ alert(e.message||'Ошибка сохранения профиля'); }
             }} className="px-2 py-1 text-[11px] bg-emerald-900/70 hover:bg-emerald-800/70 border border-emerald-800 rounded text-emerald-200">Сохранить из текущей сессии</button>
           </div>
+          </div>
+        )}
 
                 <button onClick={()=> setShowWarmBanner(false)} className="px-2 py-1 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded text-[12px]">Продолжить без прогрева</button>
                 <button onClick={()=> setImportModalOpen(true)} className="px-2 py-1 bg-blue-800 hover:bg-blue-700 border border-blue-700 rounded text-[12px]">Импортировать профиль</button>
