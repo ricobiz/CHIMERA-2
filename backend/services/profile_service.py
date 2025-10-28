@@ -106,6 +106,9 @@ class ProfileService:
                         "region": ipd.get('region'),
                         "city": ipd.get('city'),
                         "isp": ipd.get('org')
+        except Exception as e:
+            logger.warning(f"proxy info fetch failed: {e}")
+
                     }
         except Exception as e:
             logger.warning(f"proxy info fetch failed: {e}")
