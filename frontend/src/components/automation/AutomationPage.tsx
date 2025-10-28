@@ -491,37 +491,21 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
               </div>
             </div>
           )}
-          {/* Quick auth controls (outside banner) */}
-          <div className="absolute left-2 bottom-2 md:bottom-3 flex gap-2 z-20">
-            <button onClick={async()=>{ const url = prompt('Введите URL для входа', quickUrl) || quickUrl; setQuickUrl(url); await quickNavigate(); }} className="px-2 py-1 text-[11px] bg-blue-900/70 hover:bg-blue-800/70 border border-blue-800 rounded text-blue-200">Открыть URL для входа</button>
-            <button onClick={async()=>{ if (!sessionId) { alert('Сессия не активна'); return; } try { const resp = await fetch(`${BASE_URL}/api/profile/save_from_session`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ session_id: sessionId }) }); const d = await resp.json(); if (d?.profile_id) alert('Профиль сохранён и прогрет'); else alert('Не удалось сохранить профиль'); } catch(e:any){ alert(e.message||'Ошибка сохранения профиля'); } }} className="px-2 py-1 text-[11px] bg-emerald-900/70 hover:bg-emerald-800/70 border border-emerald-800 rounded text-emerald-200">Сохранить из текущей сессии</button>
-          </div>
-
-          <div className="mt-2 flex items-center gap-2">
-            <button onClick={()=> setShowPlan(v=>!v)} className="px-2 py-1 text-[11px] border rounded bg-gray-800/60 border-gray-700 text-gray-300">{showPlan ? 'Hide Plan' : 'Show Plan'}</button>
-          </div>
-
-
-
           {showGrid && overlayRect && (
             <div ref={overlayRef} className="absolute pointer-events-none" style={{ left: overlayRect.left, top: overlayRect.top, width: overlayRect.width, height: overlayRect.height }}>
               <div className="w-full h-full" style={{ backgroundImage: `linear-gradient(rgba(200,200,200,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(200,200,200,0.08) 1px, transparent 1px)`, backgroundSize: `${overlayRect.width/parseInt(gridPreset.split('x')[0],10)}px ${overlayRect.height/parseInt(gridPreset.split('x')[1],10)}px` }} />
             </div>
           )}
-          {/* Bottom compact toolbar */}
-          <div className="absolute inset-x-2 bottom-2 flex flex-wrap items-center justify-between gap-2 z-20">
-            <div className="flex items-center gap-1.5">
-              <button onClick={quickNavigate} className="px-2 py-1 text-[11px] bg-blue-900/70 hover:bg-blue-800/70 border border-blue-800 rounded text-blue-200">Map</button>
-              <button onClick={()=> setPinMapping(p => !p)} className={`px-2 py-1 text-[11px] border rounded ${pinMapping? 'bg-teal-900/40 border-teal-700 text-teal-300' : 'bg-gray-900/70 border-gray-700 text-gray-200'}`}>{pinMapping? 'Pinned' : 'Pin'}</button>
-              <button onClick={()=>{ lastSnapshotRef.current=null; setVision([]); drawCanvas(); }} className="px-2 py-1 text-[11px] bg-gray-900/70 hover:bg-gray-800/70 border border-gray-700 rounded text-gray-200">Clear</button>
-              <button onClick={()=> setShowDetections(v=>!v)} className="px-2 py-1 text-[11px] bg-gray-900/70 hover:bg-gray-800/70 border border-gray-700 rounded text-gray-200">{showDetections? 'Hide' : 'Show'}</button>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <button onClick={()=> setShowGrid(s=>!s)} className="px-2 py-1 text-[11px] bg-gray-900/70 hover:bg-gray-800/70 border border-gray-700 rounded text-gray-200">Grid</button>
-              <button onClick={()=> setShowPlan(v=>!v)} className="px-2 py-1 text-[11px] bg-gray-900/70 hover:bg-gray-800/70 border border-gray-700 rounded text-gray-200">Plan</button>
-              <button onClick={async()=>{ const url = prompt('Введите URL для входа', quickUrl) || quickUrl; setQuickUrl(url); await quickNavigate(); }} className="px-2 py-1 text-[11px] bg-blue-900/70 hover:bg-blue-800/70 border border-blue-800 rounded text-blue-200">Войти</button>
-              <button onClick={async()=>{ if (!sessionId) { alert('Сессия не активна'); return; } try { const resp = await fetch(`${BASE_URL}/api/profile/save_from_session`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ session_id: sessionId }) }); const d = await resp.json(); if (d?.profile_id) alert('Профиль сохранён и прогрет'); else alert('Не удалось сохранить профиль'); } catch(e:any){ alert(e.message||'Ошибка сохранения профиля'); } }} className="px-2 py-1 text-[11px] bg-emerald-900/70 hover:bg-emerald-800/70 border border-emerald-800 rounded text-emerald-200">Сохранить</button>
-            </div>
+          {/* Bottom toolbar - все кнопки в один ряд */}
+          <div className="absolute inset-x-2 bottom-2 flex flex-wrap items-center justify-center gap-1.5 z-20">
+            <button onClick={quickNavigate} className="px-2 py-1 text-[11px] bg-blue-900/70 hover:bg-blue-800/70 border border-blue-800 rounded text-blue-200">Map</button>
+            <button onClick={()=> setPinMapping(p => !p)} className={`px-2 py-1 text-[11px] border rounded ${pinMapping? 'bg-teal-900/40 border-teal-700 text-teal-300' : 'bg-gray-900/70 border-gray-700 text-gray-200'}`}>{pinMapping? 'Pinned' : 'Pin'}</button>
+            <button onClick={()=>{ lastSnapshotRef.current=null; setVision([]); drawCanvas(); }} className="px-2 py-1 text-[11px] bg-gray-900/70 hover:bg-gray-800/70 border border-gray-700 rounded text-gray-200">Clear</button>
+            <button onClick={()=> setShowDetections(v=>!v)} className="px-2 py-1 text-[11px] bg-gray-900/70 hover:bg-gray-800/70 border border-gray-700 rounded text-gray-200">{showDetections? 'Hide' : 'Show'}</button>
+            <button onClick={()=> setShowGrid(s=>!s)} className="px-2 py-1 text-[11px] bg-gray-900/70 hover:bg-gray-800/70 border border-gray-700 rounded text-gray-200">Grid</button>
+            <button onClick={()=> setShowPlan(v=>!v)} className="px-2 py-1 text-[11px] bg-gray-900/70 hover:bg-gray-800/70 border border-gray-700 rounded text-gray-200">Plan</button>
+            <button onClick={async()=>{ const url = prompt('Введите URL для входа', quickUrl) || quickUrl; setQuickUrl(url); await quickNavigate(); }} className="px-2 py-1 text-[11px] bg-blue-900/70 hover:bg-blue-800/70 border border-blue-800 rounded text-blue-200">Открыть URL</button>
+            <button onClick={async()=>{ if (!sessionId) { alert('Сессия не активна'); return; } try { const resp = await fetch(`${BASE_URL}/api/profile/save_from_session`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ session_id: sessionId }) }); const d = await resp.json(); if (d?.profile_id) alert('Профиль сохранён и прогрет'); else alert('Не удалось сохранить профиль'); } catch(e:any){ alert(e.message||'Ошибка сохранения профиля'); } }} className="px-2 py-1 text-[11px] bg-emerald-900/70 hover:bg-emerald-800/70 border border-emerald-800 rounded text-emerald-200">Сохранить</button>
           </div>
 
 
