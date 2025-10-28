@@ -310,7 +310,7 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
       const w = (b.w || 0) * overlayRect.width / vw;
       const h = (b.h || 0) * overlayRect.height / vh;
       return (
-        <div key={`bb-${idx}`} className="absolute border border-pink-500/70" style={{ left: `${overlayRect.left + x}px`, top: `${overlayRect.top + y}px`, width: `${w}px`, height: `${h}px` }} />
+        <div key={`bb-${idx}`} className="absolute border-2 border-pink-400/90 shadow-[0_0_4px_rgba(255,0,128,0.7)]" style={{ left: `${overlayRect.left + x}px`, top: `${overlayRect.top + y}px`, width: `${w}px`, height: `${h}px` }} />
       );
     });
   };
