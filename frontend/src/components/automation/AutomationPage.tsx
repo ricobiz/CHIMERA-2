@@ -162,7 +162,7 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
         }
       // Capture plan for overlay
       try {
-        const plan = (data.plan || data.observation?.plan || null);
+        const plan = (data.plan || data.observation?.plan || data.observation?.analysis?.plan || null);
         setPlanner({ strategy: plan?.strategy || null, steps: Array.isArray(plan?.steps) ? plan.steps : [] });
       } catch {}
 
