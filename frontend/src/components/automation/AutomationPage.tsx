@@ -452,6 +452,29 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
       </div>
 
       {/* Top: Live Viewer */}
+          {/* Warm profile banner */}
+          {showWarmBanner && (
+            <div className="absolute left-2 right-2 top-2 bg-yellow-900/70 text-yellow-100 border border-yellow-700 rounded p-3 z-20">
+              <div className="text-[12px] mb-2">Нет прогретого профиля. Можно продолжить без прогрева (рекомендуется прогреть).</div>
+              <div className="flex gap-2">
+                <button onClick={async()=>{
+                  try {
+                    const resp = await fetch(`${BASE_URL}/api/profile/create`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ warmup: true })});
+                    const d = await resp.json();
+                    if (d?.profile_id) {
+                      setShowWarmBanner(false);
+                      alert('Аккаунт прогрет и готов для выполнения');
+                    } else {
+                      alert('Не удалось прогреть профиль');
+                    }
+                  } catch(e:any){ alert(e.message||'Ошибка прогрева'); }
+                }} className="px-2 py-1 bg-green-800 hover:bg-green-700 border border-green-700 rounded text-[12px]">Прогреть аккаунт</button>
+                <button onClick={()=> setShowWarmBanner(false)} className="px-2 py-1 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded text-[12px]">Продолжить без прогрева</button>
+                <button onClick={()=> setImportModalOpen(true)} className="px-2 py-1 bg-blue-800 hover:bg-blue-700 border border-blue-700 rounded text-[12px]">Импортировать профиль</button>
+              </div>
+            </div>
+          )}
+
       <div className="px-4 md:px-6 py-3 md:py-4 border-b border-gray-800 flex-shrink-0">
         <div ref={viewerRef} className="relative w-full h-72 md:h-[420px] border border-gray-800 rounded bg-black/60 overflow-hidden flex items-center justify-center" style={{ touchAction: 'none', overscrollBehavior: 'contain' }}>
           {quickError && (
