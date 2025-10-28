@@ -57,7 +57,10 @@ class ExecutionAgentService {
    * Main entry point: Start automation for a goal
    */
   async startAutomation(goal: string, initialState: AutomationState): Promise<void> {
-    console.log(`[ExecutionAgent] Starting automation for goal: "${goal}"`);
+    console.log(`[ExecutionAgent] ╔═══════════════════════════════════════════════════════╗`);
+    console.log(`[ExecutionAgent] ║  START AUTOMATION CALLED                               ║`);
+    console.log(`[ExecutionAgent] ║  Goal: ${goal.substring(0, 40).padEnd(40)}║`);
+    console.log(`[ExecutionAgent] ╚═══════════════════════════════════════════════════════╝`);
     
     this.aborted = false;
     this.paused = false;
