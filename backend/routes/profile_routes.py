@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 class CreateProfileRequest(BaseModel):
     region: Optional[str] = None
     proxy_tier: Optional[str] = None
+    warmup: bool = True
 
 class UseProfileRequest(BaseModel):
     profile_id: str
@@ -21,7 +22,7 @@ class CheckProfileRequest(BaseModel):
 @router.post("/create")
 async def create_profile(req: CreateProfileRequest):
     try:
-        result = await profile_service.create_profile(region=req.region, proxy_tier=req.proxy_tier)
+        result = await profile_service.create_profile(region=req.region, proxy_tier=req.proxy_tier, warmup=req.warmup)
         return result
     except Exception as e:
         logger.error(f"Profile create error: {e}")
