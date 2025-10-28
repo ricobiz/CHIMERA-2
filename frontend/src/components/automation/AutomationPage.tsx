@@ -312,7 +312,8 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
     const vw = snap.viewport?.width || 1280;
     const vh = snap.viewport?.height || 800;
 
-    ctx.lineWidth = 2;
+    // Thinner detection borders for clarity on mobile/high-DPI
+    ctx.lineWidth = 1;
     for (let i=0; i<Math.min(v.length, 50); i++) {
       const el = v[i] as any;
       const b = el.bbox || {};
