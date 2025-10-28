@@ -6,6 +6,7 @@ type LogEntry = { ts: number; step: number; action: string; status?: 'ok'|'error
 
 type Observation = {
   screenshot_base64?: string;
+  screenshot_id?: string;
   grid?: { rows: number; cols: number };
   vision?: Array<{ cell: string; label: string; type: string; confidence: number; bbox?: {x:number;y:number;w:number;h:number} }>;
   viewport?: { width: number; height: number };
@@ -57,19 +58,17 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
   const [quickSessionId, setQuickSessionId] = useState<string | null>(null);
   const [quickError, setQuickError] = useState<string | null>(null);
 
-  // Freeze observation after manual Map/Smoke + persistent overlay payload
-  const [freezeObsUntil, setFreezeObsUntil] = useState<number | null>(null);
+  // Overlay model state (persist independent of polling)
   const [overlayVision, setOverlayVision] = useState<Observation['vision'] | null>(null);
   const [overlayViewport, setOverlayViewport] = useState<Observation['viewport'] | null>(null);
   const [overlayGrid, setOverlayGrid] = useState<Observation['grid'] | null>(null);
-
-  // Detection overlay controls
-  const [showDetections, setShowDetections] = useState<boolean>(true);
-  const [zoomEnabled, setZoomEnabled] = useState<boolean>(false);
+  const [pinMapping, setPinMapping] = useState<boolean>(false);
+  const [lastDrawnShotId, setLastDrawnShotId] = useState<string | null>(null);
 
   const viewerRef = useRef<HTMLDivElement | null>(null);
   const imageRef = useRef<HTMLImageElement | null>(null);
   const overlayRef = useRef<HTMLDivElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const logsEndRef = useRef<HTMLDivElement | null>(null);
   const pollRef = useRef<any>(null);
 
@@ -117,17 +116,17 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
       const data = await resp.json();
       setLogs(data.logs || []);
       setAgentStatus(data.status || 'IDLE');
-      // If freeze window active, do not overwrite overlays (keeps detections visible)
-      if (!freezeObsUntil || Date.now() > freezeObsUntil) {
+      setSessionId(data.session_id || null);
+      if (data.ask_user) setAskUser(data.ask_user); else setAskUser(null);
+      if (data.profile_id) setProfileId(data.profile_id);
+      if (!pinMapping) {
+        // refresh overlays only if not pinned
         setObservation(data.observation || null);
         setOverlayVision(data.observation?.vision || null);
         setOverlayViewport(data.observation?.viewport || null);
         setOverlayGrid(data.observation?.grid || null);
+        if (data.observation?.screenshot_base64) setPendingSrc(data.observation.screenshot_base64);
       }
-      setSessionId(data.session_id || null);
-      if (data.ask_user) setAskUser(data.ask_user); else setAskUser(null);
-      if (data.profile_id) setProfileId(data.profile_id);
-      if (data.observation?.screenshot_base64) setPendingSrc(data.observation.screenshot_base64);
     } catch (e) {
       // silent
     }
@@ -147,15 +146,6 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
     pollRef.current = setInterval(loadLogs, 1500);
     return () => clearInterval(pollRef.current);
   }, []);
-
-  // Unfreeze observation after timeout (top-level effect)
-  useEffect(() => {
-    if (!freezeObsUntil) return;
-    const t = setInterval(() => {
-      if (Date.now() > freezeObsUntil) setFreezeObsUntil(null);
-    }, 250);
-    return () => clearInterval(t);
-  }, [freezeObsUntil]);
 
   const startTask = async () => {
     if (!taskText.trim()) return;
@@ -223,6 +213,7 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
     const top = ((rowIdx + 0.5) / (grid.rows || 12)) * 100;
     return { left, top };
   };
+
   // Quick test: create session, navigate and screenshot
   const quickNavigate = async () => {
     try {
@@ -241,16 +232,15 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
       const data = await resp.json();
       if (!resp.ok || data.success === false) throw new Error(data.error || data.detail || 'navigate failed');
       const shot = await fetch(`${BASE_URL}/api/automation/screenshot?session_id=${encodeURIComponent(sid)}`);
-      const js = await shot.json();
+      const js: Observation & {screenshot_id?: string} = await shot.json();
       if (js.screenshot_base64) {
         setPendingSrc(js.screenshot_base64);
         setObservation(js);
-        // persist overlays irrespective of polling
         setOverlayVision(js.vision || []);
         setOverlayViewport(js.viewport || null);
         setOverlayGrid(js.grid || null);
         setShowDetections(true);
-        setFreezeObsUntil(Date.now() + 5000); // freeze 5s so overlays stay visible
+        setLastDrawnShotId(js.screenshot_id || null);
       } else setQuickError('No screenshot returned');
     } catch (e: any) {
       alert(e.message || 'Quick navigate failed');
@@ -269,12 +259,69 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
     }
   };
 
+  // Draw detections on canvas (bound to current overlayRect)
+  const drawCanvas = useCallback(() => {
+    const cvs = canvasRef.current;
+    if (!cvs || !overlayRect) return;
+    const ctx = cvs.getContext('2d');
+    if (!ctx) return;
+
+    // Size canvas to overlayRect (DPR aware)
+    const dpr = (window.devicePixelRatio || 1);
+    cvs.width = Math.max(1, Math.floor(overlayRect.width * dpr));
+    cvs.height = Math.max(1, Math.floor(overlayRect.height * dpr));
+    cvs.style.width = `${overlayRect.width}px`;
+    cvs.style.height = `${overlayRect.height}px`;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    // Clear
+    ctx.clearRect(0, 0, overlayRect.width, overlayRect.height);
+
+    if (!showDetections) return;
+
+    const v = (overlayVision ?? observation?.vision) || [];
+    const vw = (overlayViewport?.width) || observation?.viewport?.width || 1280;
+    const vh = (overlayViewport?.height) || observation?.viewport?.height || 800;
+
+    ctx.lineWidth = 2;
+    for (let i=0; i<Math.min(v.length, 50); i++) {
+      const el = v[i] as any;
+      const b = el.bbox || {};
+      const x = (b.x || 0) * overlayRect.width / vw;
+      const y = (b.y || 0) * overlayRect.height / vh;
+      const w = (b.w || 0) * overlayRect.width / vw;
+      const h = (b.h || 0) * overlayRect.height / vh;
+      // Box
+      ctx.strokeStyle = 'rgba(255, 64, 160, 0.95)';
+      ctx.shadowColor = 'rgba(255, 64, 160, 0.7)';
+      ctx.shadowBlur = 2;
+      ctx.strokeRect(x, y, Math.max(1,w), Math.max(1,h));
+      // Label
+      const label = `${el.label || el.type || ''} · ${el.cell || ''}`.slice(0, 40);
+      if (label) {
+        ctx.font = '10px ui-monospace, SFMono-Regular, Menlo, monospace';
+        const pad = 3;
+        const tw = ctx.measureText(label).width + pad*2;
+        const th = 14;
+        ctx.fillStyle = 'rgba(0,0,0,0.75)';
+        ctx.strokeStyle = 'rgba(120, 160, 255, 0.9)';
+        ctx.shadowBlur = 0;
+        ctx.fillRect(x, Math.max(0,y-th-2), tw, th);
+        ctx.strokeRect(x, Math.max(0,y-th-2), tw, th);
+        ctx.fillStyle = 'rgba(200,220,255,0.95)';
+        ctx.fillText(label, x+pad, Math.max(10,y-4));
+      }
+    }
+  }, [overlayRect, showDetections, overlayVision, overlayViewport, observation?.vision, observation?.viewport]);
+
+  // Redraw when image rect or overlays change
+  useEffect(() => { drawCanvas(); }, [drawCanvas]);
+
   // Click handler on the screenshot to show calculated cell
   const handleImageClick = (e: React.MouseEvent<HTMLImageElement>) => {
     const img = imageRef.current;
     const view = viewerRef.current;
     if (!img || !view || !overlayRect) return;
-    const vRect = view.getBoundingClientRect();
     const iRect = img.getBoundingClientRect();
     // compute relative to image (letterboxed)
     const x = (e.clientX - iRect.left) / iRect.width;
@@ -296,47 +343,13 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
     const ovLeft = ((left - overlayRect.left) / overlayRect.width) * 100;
     const ovTop = ((top - overlayRect.top) / overlayRect.height) * 100;
     setTapCell({ cell, left: ovLeft, top: ovTop });
-    // auto hide lens label
     setTimeout(() => setTapCell(null), 1200);
   };
 
-  // Overlay: show first N vision detections
-  const renderDetections = () => {
-    if (!showDetections) return null;
-    const v = (overlayVision ?? observation?.vision) || [];
-    const rows = parseInt(((overlayGrid ?? observation?.grid)?.rows as any) || (gridPreset.split('x')[1] as any) || '32', 10);
-    const cols = parseInt(((overlayGrid ?? observation?.grid)?.cols as any) || (gridPreset.split('x')[0] as any) || '48', 10);
-    // only show top 20 to avoid clutter
-    return (v.slice(0, 20).map((el, idx) => {
-      const { colIdx, rowIdx } = parseCell(el.cell as string);
-      const left = ((colIdx + 0.5) / cols) * 100;
-      const top = ((rowIdx + 0.5) / rows) * 100;
-      return (
-        <div key={idx} className="absolute" style={{ left: `${left}%`, top: `${top}%`, transform: 'translate(-50%, -50%)' }}>
-          <div className="px-1.5 py-0.5 text-[9px] rounded bg-blue-900/70 border border-blue-500 text-blue-100 whitespace-nowrap max-w-[160px] overflow-hidden text-ellipsis">{el.label || el.type} · {el.cell}</div>
-        </div>
-      );
-    }));
-  };
-
-  // BBox overlay using viewport scaling
-  const renderBBoxes = () => {
-    if (!showDetections) return null;
-    const v = (overlayVision ?? observation?.vision) || [];
-    const vw = (overlayViewport?.width) || observation?.viewport?.width || 1280;
-    const vh = (overlayViewport?.height) || observation?.viewport?.height || 800;
-    if (!overlayRect) return null;
-    return v.slice(0, 20).map((el, idx) => {
-      const b = el.bbox || ({} as any);
-      const x = (b.x || 0) * overlayRect.width / vw;
-      const y = (b.y || 0) * overlayRect.height / vh;
-      const w = (b.w || 0) * overlayRect.width / vw;
-      const h = (b.h || 0) * overlayRect.height / vh;
-      return (
-        <div key={`bb-${idx}`} className="absolute border-2 border-pink-400/90 shadow-[0_0_4px_rgba(255,0,128,0.7)]" style={{ left: `${overlayRect.left + x}px`, top: `${overlayRect.top + y}px`, width: `${w}px`, height: `${h}px` }} />
-      );
-    });
-  };
+  // Helper for listing detections
+  const currentDetections = useMemo(() => {
+    return (overlayVision ?? observation?.vision) || [];
+  }, [overlayVision, observation?.vision]);
 
   return (
     <div className="flex flex-col bg-[#0f0f10] text-gray-100 overflow-x-hidden" style={{ height: '100dvh' }}>
@@ -374,8 +387,8 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
               <option value="64x48">64×48</option>
             </select>
             <button onClick={() => setShowGrid(s => !s)} className="px-2 py-1 text-[11px] bg-gray-800/60 hover:bg-gray-700/60 border border-gray-700 rounded text-gray-300">{showGrid ? 'Hide' : 'Show'}</button>
-            <button onClick={() => setZoomEnabled(z => !z)} className={`px-2 py-1 text-[11px] border rounded ${zoomEnabled? 'bg-blue-900/40 border-blue-700 text-blue-300' : 'bg-gray-800/60 border-gray-700 text-gray-300'}`}>Zoom</button>
-            <button onClick={() => setShowDetections(v => !v)} className={`px-2 py-1 text-[11px] border rounded ${showDetections? 'bg-green-900/30 border-green-700 text-green-300' : 'bg-gray-800/60 border-gray-700 text-gray-300'}`}>Detections</button>
+            <button onClick={() => setPinMapping(p => !p)} className={`px-2 py-1 text-[11px] border rounded ${pinMapping? 'bg-teal-900/40 border-teal-700 text-teal-300' : 'bg-gray-800/60 border-gray-700 text-gray-300'}`}>{pinMapping? 'Pinned' : 'Pin'}</button>
+            <button onClick={() => { setOverlayVision(null); setOverlayViewport(null); setOverlayGrid(null); setLastDrawnShotId(null); drawCanvas(); }} className="px-2 py-1 text-[11px] bg-gray-800/60 hover:bg-gray-700/60 border border-gray-700 rounded text-gray-300">Clear</button>
             <button onClick={quickNavigate} className="px-2 py-1 text-[11px] bg-blue-800/60 hover:bg-blue-700/60 border border-blue-700 rounded text-blue-300">Map</button>
             <button onClick={() => setShowFullscreen(true)} className="px-2 py-1 text-[11px] bg-gray-800/60 hover:bg-gray-700/60 border border-gray-700 rounded text-gray-300">Full</button>
           </div>
@@ -402,19 +415,16 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
             </div>
           )}
 
+          {/* Canvas overlay for detections */}
+          {overlayRect && (
+            <canvas ref={canvasRef} className="absolute pointer-events-none" style={{ left: overlayRect.left, top: overlayRect.top, width: overlayRect.width, height: overlayRect.height }} />
+          )}
+
           {tapCell && overlayRect && (
             <div className="absolute" style={{ left: `${overlayRect.left + (tapCell.left/100)*overlayRect.width}px`, top: `${overlayRect.top + (tapCell.top/100)*overlayRect.height}px`, transform: 'translate(-50%, -50%)' }}>
               <div className="px-1.5 py-0.5 text-[10px] rounded bg-black/80 border border-gray-600 text-gray-100">{tapCell.cell}</div>
             </div>
           )}
-
-          {/* Detected elements overlay (labels + bboxes) */}
-          {overlayRect && (
-            <div className="absolute inset-0 pointer-events-none" style={{ left: overlayRect.left, top: overlayRect.top, width: overlayRect.width, height: overlayRect.height }}>
-              {renderDetections()}
-            </div>
-          )}
-          {renderBBoxes()}
 
           {ghostCell && overlayRect && (
             <div className="absolute transition-all duration-300" style={{ left: `${overlayRect.left + (ghostPos.left/100)*overlayRect.width}px`, top: `${overlayRect.top + (ghostPos.top/100)*overlayRect.height}px`, transform: 'translate(-50%, -50%)' }}>
@@ -428,7 +438,7 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
           <input value={quickUrl} onChange={(e:any)=>setQuickUrl(e.target.value)} className="w-full px-3 py-2 text-[12px] bg-black/60 border border-gray-700 rounded text-gray-200 placeholder-gray-500" placeholder="https://..." />
           <div className="mt-2 grid grid-cols-2 gap-2">
             <button onClick={quickNavigate} className="px-2 py-2 text-[12px] bg-blue-800/70 hover:bg-blue-700/70 border border-blue-700 rounded text-blue-200 flex items-center justify-center gap-1"><span>Go</span></button>
-            <button onClick={async()=>{ try{ const resp = await fetch(`${BASE_URL}/api/automation/smoke-check`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ url: quickUrl, use_proxy:false }) }); const data = await resp.json(); if (data?.screenshot_base64) { setPendingSrc(data.screenshot_base64); setObservation(data); setShowDetections(true);} } catch(e:any){ alert(e.message||'Smoke failed');}}} className="px-2 py-2 text-[12px] bg-green-800/70 hover:bg-green-700/70 border border-green-700 rounded text-green-200 flex items-center justify-center gap-1"><BeakerIcon className="w-4 h-4"/><span>Smoke</span></button>
+            <button onClick={async()=>{ try{ const resp = await fetch(`${BASE_URL}/api/automation/smoke-check`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ url: quickUrl, use_proxy:false }) }); const data: any = await resp.json(); if (data?.screenshot_base64) { setPendingSrc(data.screenshot_base64); setObservation(data); setOverlayVision(data.vision || []); setOverlayViewport(data.viewport || null); setOverlayGrid(data.grid || null); setShowDetections(true); setLastDrawnShotId(data.screenshot_id || null); } } catch(e:any){ alert(e.message||'Smoke failed');}}} className="px-2 py-2 text-[12px] bg-green-800/70 hover:bg-green-700/70 border border-green-700 rounded text-green-200 flex items-center justify-center gap-1"><BeakerIcon className="w-4 h-4"/><span>Smoke</span></button>
           </div>
         </div>
       </div>
@@ -444,6 +454,28 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
               <button onClick={() => control('ACTIVE')} className="px-3 py-1.5 bg-green-600/20 hover:bg-green-600/30 border border-green-600/50 text-green-400 rounded text-xs">Resume</button>
               <button onClick={() => control('PAUSED')} className="px-3 py-1.5 bg-yellow-600/20 hover:bg-yellow-600/30 border border-yellow-600/50 text-yellow-400 rounded text-xs">Pause</button>
               <button onClick={() => control('STOP')} className="px-3 py-1.5 bg-red-600/20 hover:bg-red-600/30 border border-red-600/50 text-red-400 rounded text-xs">Stop</button>
+            </div>
+          </div>
+
+          {/* Detections list */}
+          <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-gray-400 font-medium">Detections ({currentDetections.length})</span>
+              <div className="flex items-center gap-2">
+                <label className="text-[10px] text-gray-500">Show</label>
+                <input type="checkbox" checked={showDetections} onChange={(e)=>{ if (!e.target.checked) { const cvs = canvasRef.current; if (cvs && overlayRect) { const ctx = cvs.getContext('2d'); if (ctx) { ctx.clearRect(0,0,overlayRect.width, overlayRect.height); } } } setShowDetections(e.target.checked); }} />
+              </div>
+            </div>
+            <div className="max-h-48 overflow-y-auto space-y-1">
+              {currentDetections.slice(0,30).map((el, idx) => (
+                <div key={idx} className="text-[11px] text-gray-300 flex items-center gap-2">
+                  <span className="text-gray-500">{el.cell || '—'}</span>
+                  <span className="flex-1 truncate">{el.label || el.type}</span>
+                </div>
+              ))}
+              {currentDetections.length === 0 && (
+                <div className="text-[11px] text-gray-600">No detections yet. Press Map.</div>
+              )}
             </div>
           </div>
 
