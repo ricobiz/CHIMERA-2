@@ -75,6 +75,20 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
   const [importModalOpen, setImportModalOpen] = useState<boolean>(false);
   const [adjustMsg, setAdjustMsg] = useState<string>("");
 
+  // ExecutionAgent state
+  const [isExecuting, setIsExecuting] = useState<boolean>(false);
+  const [executionStatus, setExecutionStatus] = useState<'idle' | 'planning' | 'executing' | 'completed' | 'failed' | 'paused'>('idle');
+  const [currentStepIndex, setCurrentStepIndex] = useState<number>(0);
+  const [currentActionSubtitle, setCurrentActionSubtitle] = useState<string>('');
+  const [agentLogs, setAgentLogs] = useState<AgentLogEntry[]>([]);
+  const [browserState, setBrowserState] = useState<BrowserState>({
+    currentUrl: '',
+    screenshot: '',
+    highlightBoxes: [],
+    pageTitle: '',
+    timestamp: Date.now()
+  });
+
 
 
   const viewerRef = useRef<HTMLDivElement | null>(null);
