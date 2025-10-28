@@ -447,19 +447,6 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
     const ovTop = ((top - overlayRect.top) / overlayRect.height) * 100;
     setTapCell({ cell, left: ovLeft, top: ovTop });
     setTimeout(() => setTapCell(null), 1200);
-          {/* Zoom lens canvas */}
-          {overlayRect && lensEnabled && lensPos && (
-            <canvas
-              ref={lensCanvasRef}
-              className="absolute pointer-events-none rounded-full shadow-[0_0_12px_rgba(0,0,0,0.6)]"
-              style={{
-                left: overlayRect.left + Math.max(lensRadius, Math.min(overlayRect.width - lensRadius, lensPos.x)) - lensRadius,
-                top: overlayRect.top + Math.max(lensRadius, Math.min(overlayRect.height - lensRadius, lensPos.y)) - lensRadius,
-                width: lensRadius*2,
-                height: lensRadius*2
-              }}
-            />
-          )}
   };
 
   // Helper for listing detections
