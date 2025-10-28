@@ -316,6 +316,10 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
           <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-4">
             <div className="flex items-center justify-between mb-3">
               <span className="text-sm text-gray-400 font-medium">Step Timeline</span>
+              <div className="flex items-center gap-2">
+                <label className="text-[10px] text-gray-500">Auto-scroll</label>
+                <input type="checkbox" checked={autoScrollLogs && !userReadingLogs} onChange={(e)=> setAutoScrollLogs(e.target.checked)} />
+              </div>
             </div>
             <div className="max-h-64 overflow-y-auto space-y-1" onMouseEnter={()=> setUserReadingLogs(true)} onMouseLeave={()=> setUserReadingLogs(false)} onTouchStart={()=> setUserReadingLogs(true)} onTouchEnd={()=> setUserReadingLogs(false)}>
               {(logs || []).map((l, idx) => (
