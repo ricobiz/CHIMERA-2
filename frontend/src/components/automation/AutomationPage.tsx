@@ -59,6 +59,9 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
   const [quickSessionId, setQuickSessionId] = useState<string | null>(null);
   const [quickError, setQuickError] = useState<string | null>(null);
 
+  // Freeze observation after manual Map/Smoke to prevent polling from wiping detections
+  const [freezeObsUntil, setFreezeObsUntil] = useState<number | null>(null);
+
   // Detection overlay controls
   const [showDetections, setShowDetections] = useState<boolean>(true);
   const [zoomEnabled, setZoomEnabled] = useState<boolean>(false);
