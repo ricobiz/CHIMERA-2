@@ -51,15 +51,23 @@ class LocalVisionService:
             except Exception:
                 self.session = None
 
+    def set_grid(self, rows: int, cols: int) -> None:
+        self.grid = GridConfig(rows=rows, cols=cols)
+
     def detect(self,
                screenshot_base64: str,
                viewport_w: int,
                viewport_h: int,
                dom_clickables: Optional[List[Dict]] = None,
-               model_path: Optional[str] = MODEL_PATH) -> List[Dict]:
+               model_path: Optional[str] = MODEL_PATH,
+               rows: Optional[int] = None,
+               cols: Optional[int] = None) -> List[Dict]:
         """
         Returns list of {cell, bbox:{x,y,w,h}, label, type, confidence}
         """
+        # Align grid to caller's config
+        if rows and cols:
+            self.set_grid(rows, cols)
         # Try model if available (placeholder – not producing detections yet)
         if model_path:
             self.maybe_load_model(model_path)

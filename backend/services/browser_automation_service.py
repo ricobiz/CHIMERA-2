@@ -484,7 +484,30 @@ class BrowserAutomationService:
                 });
               }
               return { vw, vh, clickables };
-            }
+            },
+            flashCell: (cell) => {
+              // Visual feedback: briefly highlight a cell
+              const vw = window.innerWidth, vh = window.innerHeight;
+              const col = cell.charCodeAt(0) - 'A'.charCodeAt(0);
+              const row = parseInt(cell.slice(1), 10) - 1;
+              const cw = vw / window.__chimeraGrid.__cols;
+              const ch = vh / window.__chimeraGrid.__rows;
+              const box = document.createElement('div');
+              box.style.position = 'fixed';
+              box.style.left = (col*cw) + 'px';
+              box.style.top = (row*ch) + 'px';
+              box.style.width = cw + 'px';
+              box.style.height = ch + 'px';
+              box.style.border = '2px solid rgba(0,200,255,0.9)';
+              box.style.borderRadius = '2px';
+              box.style.zIndex = '2147483647';
+              box.style.pointerEvents = 'none';
+              document.body.appendChild(box);
+              setTimeout(()=> box.remove(), 450);
+            },
+            __rows: 12,
+            __cols: 8,
+            setGrid: (rows, cols) => { window.__chimeraGrid.__rows = rows; window.__chimeraGrid.__cols = cols; }
           };
         })();
         """
@@ -504,7 +527,7 @@ class BrowserAutomationService:
         from .local_vision_service import local_vision_service
         vw, vh = dom_data.get('vw', 1280), dom_data.get('vh', 800)
         dom_clickables = dom_data.get('clickables', [])
-        return local_vision_service.detect(screenshot_base64, vw, vh, dom_clickables=dom_clickables, model_path=os.path.join('/app/backend/models/', 'ui-detector.onnx'))
+        return local_vision_service.detect(screenshot_base64, vw, vh, dom_clickables=dom_clickables, model_path=os.path.join('/app/backend/models/', 'ui-detector.onnx'), rows=self.grid_rows, cols=self.grid_cols)
 
     # Convenience actions for SCROLL and WAIT
     async def scroll(self, session_id: str, dx: int = 0, dy: int = 400) -> Dict[str, Any]:
