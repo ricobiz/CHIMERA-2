@@ -460,6 +460,9 @@ class BrowserAutomationService:
               for (let c = 0; c < cols; c++) {
                 const cell = document.createElement('div');
                 cell.className = 'chimera-grid-cell';
+                // hit blocker to allow clicking even if DOM intercepts pointer events
+                const hit = document.createElement('div');
+                hit.className = 'chimera-grid-block';
                 cell.style.left = (c * cw) + 'px';
                 cell.style.top = (r * ch) + 'px';
                 cell.style.width = cw + 'px';
