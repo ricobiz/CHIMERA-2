@@ -250,30 +250,21 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
   const quickNavigate = async () => {
     try {
       setQuickError(null);
-      let sid = quickSessionId;
-      if (!sid) {
-        // Auto-create a session if none exists
-        const newId = 'auto-' + Date.now();
-        const respCreate = await fetch(`${BASE_URL}/api/automation/session/create`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ session_id: newId, use_proxy: false }) });
-        const dataCreate = await respCreate.json();
-        if (!respCreate.ok || !dataCreate.session_id) throw new Error(dataCreate.detail || 'create failed');
-        sid = dataCreate.session_id;
-        setQuickSessionId(sid);
-      }
-      const resp = await fetch(`${BASE_URL}/api/automation/navigate`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ session_id: sid, url: quickUrl }) });
-      const data = await resp.json();
-      if (!resp.ok || data.success === false) throw new Error(data.error || data.detail || 'navigate failed');
-      const shot = await fetch(`${BASE_URL}/api/automation/screenshot?session_id=${encodeURIComponent(sid)}`);
-      const js: Observation & {screenshot_id?: string} = await shot.json();
-      if (js.screenshot_base64) {
-        const imgSrc = js.screenshot_base64;
-        setPendingSrc(imgSrc);
-        setObservation(js);
-        const v = (js.vision || []) as any[];
-        lastSnapshotRef.current = { shotId: js.screenshot_id || null, vision: v, viewport: js.viewport || null, grid: js.grid || null };
-        lastDrawnShotIdRef.current = js.screenshot_id || null;
-        setVision(v);
-      } else setQuickError('No screenshot returned');
+      // Use smoke-check for atomic navigate+screenshot+vision
+      const resp = await fetch(`${BASE_URL}/api/automation/smoke-check`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: quickUrl, use_proxy: false })
+      });
+      const js: any = await resp.json();
+      if (!resp.ok || !js?.screenshot_base64) throw new Error(js?.detail || 'smoke-check failed');
+      setPendingSrc(js.screenshot_base64);
+      setObservation(js);
+      const v = (js.vision || []) as any[];
+      lastSnapshotRef.current = { shotId: js.screenshot_id || null, vision: v, viewport: js.viewport || null, grid: js.grid || null };
+      lastDrawnShotIdRef.current = js.screenshot_id || null;
+      setVision(v);
+      setQuickSessionId(js.session_id || null);
     } catch (e: any) {
       alert(e.message || 'Quick navigate failed');
     }
