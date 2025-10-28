@@ -432,7 +432,7 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
 
       {/* Top: Live Viewer */}
       <div className="px-4 md:px-6 py-3 md:py-4 border-b border-gray-800 flex-shrink-0">
-        <div ref={viewerRef} className="relative w-full h-72 md:h-[420px] border border-gray-800 rounded bg-black/60 overflow-hidden flex items-center justify-center">
+        <div ref={viewerRef} className="relative w-full h-72 md:h-[420px] border border-gray-800 rounded bg-black/60 overflow-hidden flex items-center justify-center" style={{ touchAction: 'none', overscrollBehavior: 'contain' }}>
           {quickError && (
             <div className="absolute top-2 left-2 right-2 text-[11px] text-red-300 bg-red-900/30 border border-red-800 rounded px-2 py-1">{quickError}</div>
           )}
