@@ -242,8 +242,12 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
       if (js.screenshot_base64) {
         setPendingSrc(js.screenshot_base64);
         setObservation(js);
+        // persist overlays irrespective of polling
+        setOverlayVision(js.vision || []);
+        setOverlayViewport(js.viewport || null);
+        setOverlayGrid(js.grid || null);
         setShowDetections(true);
-        setFreezeObsUntil(Date.now() + 3000); // freeze 3s so overlays stay visible
+        setFreezeObsUntil(Date.now() + 5000); // freeze 5s so overlays stay visible
       } else setQuickError('No screenshot returned');
     } catch (e: any) {
       alert(e.message || 'Quick navigate failed');
