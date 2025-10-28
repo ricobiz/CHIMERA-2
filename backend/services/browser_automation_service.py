@@ -439,6 +439,18 @@ class BrowserAutomationService:
           overlay.style.zIndex = '2147483645';
           document.body.appendChild(overlay);
 
+          const blockers = document.createElement('div');
+          blockers.id = 'chimera-grid-blockers';
+          blockers.style.position = 'fixed';
+          blockers.style.top = '0';
+          blockers.style.left = '0';
+          blockers.style.right = '0';
+          blockers.style.bottom = '0';
+          blockers.style.pointerEvents = 'none';
+          blockers.style.display = 'none';
+          blockers.style.zIndex = '2147483643';
+          document.body.appendChild(blockers);
+
           function layoutGrid(rows, cols) {
             overlay.innerHTML = '';
             const vw = window.innerWidth, vh = window.innerHeight;
