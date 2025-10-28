@@ -97,7 +97,7 @@ class ProfileService:
         try:
             import httpx
             async with httpx.AsyncClient(timeout=15) as client:
-                r = await client.get(IPINFO_URL, proxies=proxy['server'] if proxy else None)
+                r = await client.get(IPINFO_URL)
                 if r.status_code == 200:
                     ipd = r.json()
                     proxy_info = {
@@ -106,9 +106,6 @@ class ProfileService:
                         "region": ipd.get('region'),
                         "city": ipd.get('city'),
                         "isp": ipd.get('org')
-        except Exception as e:
-            logger.warning(f"proxy info fetch failed: {e}")
-
                     }
         except Exception as e:
             logger.warning(f"proxy info fetch failed: {e}")
