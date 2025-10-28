@@ -84,15 +84,21 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
     if (!viewer || !img) return;
     const vRect = viewer.getBoundingClientRect();
     const iRect = img.getBoundingClientRect();
-    setOverlayRect({ left: iRect.left - vRect.left, top: iRect.top - vRect.top, width: iRect.width, height: iRect.height });
+    const rect = { left: iRect.left - vRect.left, top: iRect.top - vRect.top, width: iRect.width, height: iRect.height };
+    setOverlayRect(rect);
+    // debug
+    // console.debug('[overlay] rect', rect);
   }, []);
 
   useEffect(() => {
     updateOverlayRect();
-    const fn = () => updateOverlayRect();
-    window.addEventListener('resize', fn);
-    const intv = setInterval(fn, 1000);
-    return () => { window.removeEventListener('resize', fn); clearInterval(intv); };
+    const viewer = viewerRef.current;
+    if (!viewer) return;
+    const ro = new (window as any).ResizeObserver?.(() => updateOverlayRect());
+    if (ro && viewer) ro.observe(viewer);
+    const onResize = () => updateOverlayRect();
+    window.addEventListener('resize', onResize);
+    return () => { window.removeEventListener('resize', onResize); if (ro && viewer) ro.unobserve(viewer); };
   }, [updateOverlayRect]);
 
   // Smooth screenshot swapping
