@@ -88,6 +88,7 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
   // Warmup progress state
   const [isWarming, setIsWarming] = useState<boolean>(false);
   const [warmupProgress, setWarmupProgress] = useState<string>('');
+  const [executionSubtitle, setExecutionSubtitle] = useState<string>('');
 
 
 
