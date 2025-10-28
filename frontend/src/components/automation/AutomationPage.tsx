@@ -125,16 +125,13 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
       setSessionId(data.session_id || null);
       if (data.ask_user) setAskUser(data.ask_user); else setAskUser(null);
       if (data.profile_id) setProfileId(data.profile_id);
-      if (!pinMapping) {
+      if (!pinMappingRef.current) {
         const obs = (data.observation || null) as Observation | null;
         setObservation(obs);
-        // Only update overlays when we actually have non-empty vision from backend
         if (obs && obs.vision && obs.vision.length > 0) {
-          setOverlayVision(obs.vision);
-          setOverlayViewport(obs.viewport || null);
-          setOverlayGrid(obs.grid || null);
+          lastSnapshotRef.current = { shotId: obs.screenshot_id || null, vision: obs.vision as any, viewport: obs.viewport || null, grid: obs.grid || null };
           if (obs.screenshot_base64) setPendingSrc(obs.screenshot_base64);
-          setLastDrawnShotId(obs.screenshot_id || null);
+          lastDrawnShotIdRef.current = obs.screenshot_id || null;
         }
       }
     } catch (e) {
