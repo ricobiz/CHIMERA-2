@@ -483,6 +483,9 @@ metadata:
 
 test_plan:
   - agent: "main"
+    message: "Run backend tests for profile lifecycle: POST /api/profile/create (region=US) → expect meta.status=warm, warmup.is_warm=true, storage_state.json exists; POST /api/profile/use → expect session_id, meta.used_count++, last_used updated; verify meta.locale/timezone/languages consistent with proxy; verify proxy fields ip/country/region/city/isp present."
+
+  - agent: "main"
     message: "Re-run AutomationPage UI sanity after lens removal and pinch-zoom block: verify Map/Go update screenshot_id and render; detection boxes visible; grid toggle stable; Pin/Clear work; no console errors; no React invalid hook call; touch-action:none prevents page zoom inside viewer."
 
   - agent: "main"
