@@ -157,6 +157,12 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
           lastDrawnShotIdRef.current = obs.screenshot_id || null;
           setVision(v);
         }
+      // Capture plan for overlay
+      try {
+        const plan = (data.plan || data.observation?.plan || null);
+        setPlanner({ strategy: plan?.strategy || null, steps: Array.isArray(plan?.steps) ? plan.steps : [] });
+      } catch {}
+
       }
     } catch (e) {
       // silent
