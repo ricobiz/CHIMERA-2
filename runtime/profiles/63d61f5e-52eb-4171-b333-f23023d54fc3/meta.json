@@ -1,0 +1,76 @@
+{
+  "profile_id": "63d61f5e-52eb-4171-b333-f23023d54fc3",
+  "created_at": "2025-10-28T14:55:42.004762+00:00",
+  "last_used": "2025-10-28T14:55:42.004776+00:00",
+  "used_count": 0,
+  "status": "fresh",
+  "browser": {
+    "user_agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.7951.1310 Mobile Safari/537.36",
+    "viewport": {
+      "width": 1309,
+      "height": 788
+    },
+    "platform": "Win32",
+    "vendor": "Google Inc.",
+    "app_version": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.7951.1310 Mobile Safari/537.36"
+  },
+  "locale": {
+    "timezone_id": "America/New_York",
+    "locale": "en-US",
+    "languages": [
+      "en-US",
+      "en"
+    ]
+  },
+  "hardware": {
+    "hardware_concurrency": 8,
+    "device_memory": 8,
+    "max_touch_points": 0
+  },
+  "webgl": {
+    "vendor": "Intel Inc.",
+    "renderer": "Intel Iris OpenGL Engine",
+    "canvas_noise_seed": "329787"
+  },
+  "fonts": [
+    "Arial",
+    "Helvetica",
+    "Times New Roman",
+    "Verdana",
+    "Courier New",
+    "Georgia",
+    "Tahoma",
+    "Trebuchet MS"
+  ],
+  "plugins": [
+    {
+      "name": "PDF Viewer",
+      "filename": "internal-pdf-viewer"
+    },
+    {
+      "name": "Chrome PDF Viewer",
+      "filename": "mhjfbmdgcfjbbpaeojofohoefgiehjai"
+    }
+  ],
+  "proxy": {
+    "url": null,
+    "ip": null,
+    "country": null,
+    "region": null,
+    "city": null,
+    "isp": null,
+    "timezone": null,
+    "proxy_type": "datacenter",
+    "risk_score": 0.2
+  },
+  "warmup": {
+    "is_warm": false,
+    "warmed_at": null,
+    "sites_visited": []
+  },
+  "captcha": {
+    "last_failed_at": null,
+    "failed_attempts_count": 0,
+    "cooldown_until": null
+  }
+}
