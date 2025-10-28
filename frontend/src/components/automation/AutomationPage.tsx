@@ -212,7 +212,7 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
               <p className="text-xs md:text-sm text-gray-400">Agent live view, steps and controls</p>
             </div>
             <span className={`text-[10px] px-2 py-0.5 rounded ${agentStatus==='ERROR'?'bg-red-900/40 text-red-300': agentStatus==='ACTIVE'?'bg-green-900/40 text-green-300': 'bg-gray-900/40 text-gray-300'}`}>{agentStatus}</span>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <label className="text-[10px] text-gray-400">Grid</label>
           {/* Compact controls row for mobile */}
           <div className="absolute bottom-1 left-2 right-2 flex items-center gap-2 z-10 md:hidden">
@@ -251,7 +251,7 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
             </select>
           </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <span className={`text-[10px] px-2 py-0.5 rounded ${statusPill(agentStatus)}`}>{agentStatus}</span>
             <button onClick={() => setShowGrid(s => !s)} className="px-2 py-1 text-xs bg-gray-800/60 hover:bg-gray-700/60 border border-gray-700 rounded text-gray-300">{showGrid ? 'Hide Grid' : 'Show Grid'}</button>
             <button onClick={() => setShowFullscreen(true)} className="px-2 py-1 text-xs bg-gray-800/60 hover:bg-gray-700/60 border border-gray-700 rounded text-gray-300">Fullscreen</button>
@@ -316,7 +316,7 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
           <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-4">
             <div className="flex items-center justify-between mb-3">
               <span className="text-sm text-gray-400 font-medium">Step Timeline</span>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <label className="text-[10px] text-gray-500">Auto-scroll</label>
                 <input type="checkbox" checked={autoScrollLogs && !userReadingLogs} onChange={(e)=> setAutoScrollLogs(e.target.checked)} />
               </div>
@@ -358,7 +358,7 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
         <div className="lg:w-2/3">
           <div className="bg-black border border-gray-800 rounded-lg h-full flex flex-col">
             <div className="px-4 py-3 border-b border-gray-800 flex items-center justify-between">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-sm text-green-400 font-mono">EXECUTION LOG</span>
               </div>
               <span className="text-xs text-gray-600">{logs.length} entries</span>
@@ -406,7 +406,7 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
           <div className="bg-[#0f0f10] border border-gray-800 rounded-lg w-full max-w-md p-4">
             <div className="text-sm text-gray-300 mb-2">Agent needs your input</div>
             <div className="text-xs text-gray-400 mb-3">{askUser}</div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <input id="user_input_field" className="flex-1 px-2 py-1 text-xs bg-gray-900 border border-gray-700 rounded text-gray-300" placeholder="Enter value (phone/code)" />
               <button onClick={async() => { const val = (document.getElementById('user_input_field') as HTMLInputElement).value; if (!jobId) return; await fetch(`${BASE_URL}/api/hook/user_input`, { method: 'POST', headers: { 'Content-Type':'application/json' }, body: JSON.stringify({ job_id: jobId, field: 'code', value: val })}); setAskUser(null); }} className="px-3 py-1.5 text-xs bg-blue-600/20 hover:bg-blue-600/30 border border-blue-600/50 text-blue-300 rounded">Submit</button>
               <button onClick={() => setAskUser(null)} className="px-3 py-1.5 text-xs bg-gray-800/20 hover:bg-gray-800/30 border border-gray-700 text-gray-300 rounded">Cancel</button>
