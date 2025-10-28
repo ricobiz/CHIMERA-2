@@ -302,7 +302,7 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
             <div className="flex items-center justify-between mb-3">
               <span className="text-sm text-gray-400 font-medium">Step Timeline</span>
             </div>
-            <div className="max-h-64 overflow-y-auto space-y-1">
+            <div className="max-h-64 overflow-y-auto space-y-1" onMouseEnter={()=> setUserReadingLogs(true)} onMouseLeave={()=> setUserReadingLogs(false)} onTouchStart={()=> setUserReadingLogs(true)} onTouchEnd={()=> setUserReadingLogs(false)}>
               {(logs || []).map((l, idx) => (
                 <div key={idx} className="text-xs text-gray-300 flex items-center gap-2">
                   <span className="text-gray-500 w-16">Step {l.step}</span>
