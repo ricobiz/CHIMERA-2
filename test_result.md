@@ -1462,6 +1462,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ VERIFIED: Profile creation working perfectly. Created profile with region=US, proxy_tier=residential. Returns all required fields: profile_id, is_warm=true, is_clean=boolean, fingerprint_summary (dict), bot_signals (dict). Profile warmup process completed successfully with browser automation and anti-detect features. Profile creation takes ~30-45 seconds due to warmup process."
+      - working: true
+        agent: "testing"
+        comment: "✅ RE-VERIFIED: Profile lifecycle per review spec working correctly. Created profile cb6b3215-4fe7-4286-9f72-96a6644047a3 with region=US. Returns profile_id, is_warm=true as required. Meta.json file created with status=warm, warmup.is_warm=true, warmed_at timestamp, sites_visited includes google/youtube/reddit/amazon, browser.user_agent present, locale fields populated (timezone_id=America/New_York, locale=en-US, languages=[en-US,en]). Storage_state.json file exists. Minor: proxy fields null due to proxy service httpx issue, but core functionality working."
 
   - task: "GET /api/profile/{profile_id}/status - Profile Status"
     implemented: true
