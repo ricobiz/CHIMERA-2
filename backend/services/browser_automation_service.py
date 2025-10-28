@@ -572,7 +572,7 @@ class BrowserAutomationService:
             data = await page.evaluate("window.__chimeraGrid ? window.__chimeraGrid.collect() : null")
             if not data:
                 await self._inject_grid_overlay(page)
-                data = await page.evaluate("window.__chimeraGrid.collect()")
+                data = await page.evaluate("window.__chimeraGrid ? window.__chimeraGrid.collect() : null")
             return data
         except Exception:
             return {"vw": 1280, "vh": 800, "clickables": []}
