@@ -258,9 +258,9 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
           ) : (
             <div className="text-xs text-gray-600">No screenshot</div>
           )}
-          {showGrid && observation?.grid && (
+          {showGrid && (
             <div className="absolute inset-0 pointer-events-none">
-              <div className="w-full h-full" style={{ backgroundImage: `linear-gradient(rgba(200,200,200,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(200,200,200,0.08) 1px, transparent 1px)`, backgroundSize: `${(100/(observation.grid.cols||8))}% ${(100/(observation.grid.rows||12))}%` }} />
+              <div className="w-full h-full" style={{ backgroundImage: `linear-gradient(rgba(200,200,200,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(200,200,200,0.08) 1px, transparent 1px)`, backgroundSize: `${(100/((gridPreset.split('x')[0] as any)|0 || 16))}% ${(100/((gridPreset.split('x')[1] as any)|0 || 24))}%` }} />
             </div>
           )}
           {ghostCell && (
