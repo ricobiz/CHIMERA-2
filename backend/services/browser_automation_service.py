@@ -424,6 +424,7 @@ class BrowserAutomationService:
           style.textContent = `
             .chimera-grid-cell { position: fixed; border: 1px dashed rgba(150,150,150,0.15); pointer-events: none; z-index: 2147483646; }
             .chimera-grid-label { position: fixed; font: 10px monospace; color: rgba(200,200,200,0.35); background: rgba(0,0,0,0.2); padding: 1px 2px; border-radius: 2px; z-index: 2147483647; pointer-events: none; }
+            .chimera-grid-block { position: fixed; z-index: 2147483644; pointer-events: all; background: transparent; }
           `;
           document.head.appendChild(style);
           const overlay = document.createElement('div');
