@@ -303,9 +303,9 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
   // Overlay: show first N vision detections
   const renderDetections = () => {
     if (!showDetections) return null;
-    const v = observation?.vision || [];
-    const rows = parseInt((gridPreset.split('x')[1] as any) || '32', 10);
-    const cols = parseInt((gridPreset.split('x')[0] as any) || '48', 10);
+    const v = (overlayVision ?? observation?.vision) || [];
+    const rows = parseInt(((overlayGrid ?? observation?.grid)?.rows as any) || (gridPreset.split('x')[1] as any) || '32', 10);
+    const cols = parseInt(((overlayGrid ?? observation?.grid)?.cols as any) || (gridPreset.split('x')[0] as any) || '48', 10);
     // only show top 20 to avoid clutter
     return (v.slice(0, 20).map((el, idx) => {
       const { colIdx, rowIdx } = parseCell(el.cell as string);
