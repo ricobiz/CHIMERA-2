@@ -560,6 +560,18 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
             <div className="text-sm text-gray-400 font-medium mb-2">Controls</div>
             <div className="flex gap-2">
               <button onClick={() => control('ACTIVE')} className="px-3 py-1.5 bg-green-600/20 hover:bg-green-600/30 border border-green-600/50 text-green-400 rounded text-xs">Resume</button>
+          {/* Adjust mini-chat under viewer */}
+          <div className="mt-2 flex items-center gap-2">
+            <input value={adjustMsg} onChange={e=> setAdjustMsg(e.target.value)} placeholder="Подсказать плану (корректировки)..." className="flex-1 px-2 py-1 bg-gray-900/70 border border-gray-700 rounded text-[12px]" />
+            <button onClick={async()=>{
+              if(!adjustMsg.trim()) return;
+              try{
+                await fetch(`${BASE_URL}/api/hook/adjust`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ message: adjustMsg })});
+                setAdjustMsg('');
+              }catch(e:any){ alert(e.message||'Ошибка отправки'); }
+            }} className="px-2 py-1 bg-indigo-800 hover:bg-indigo-700 border border-indigo-700 rounded text-[12px]">Отправить</button>
+          </div>
+
               <button onClick={() => control('PAUSED')} className="px-3 py-1.5 bg-yellow-600/20 hover:bg-yellow-600/30 border border-yellow-600/50 text-yellow-400 rounded text-xs">Pause</button>
               <button onClick={() => control('STOP')} className="px-3 py-1.5 bg-red-600/20 hover:bg-red-600/30 border border-red-600/50 text-red-400 rounded text-xs">Stop</button>
             </div>
