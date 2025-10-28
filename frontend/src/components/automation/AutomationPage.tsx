@@ -340,7 +340,6 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
         ctx.shadowBlur = 0;
         ctx.fillRect(x, Math.max(0,y-th-2), tw, th);
         ctx.fillRect(x, Math.max(0,y-th-2), tw, th);
-        // Zoom lens disabled
         ctx.strokeRect(x, Math.max(0,y-th-2), tw, th);
         ctx.fillStyle = 'rgba(200,220,255,0.95)';
         ctx.fillText(label, x+pad, Math.max(10,y-4));
