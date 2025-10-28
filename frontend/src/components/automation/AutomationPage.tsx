@@ -218,10 +218,9 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
   const startTask = async () => {
     if (!taskText.trim()) return;
     setIsSubmitting(true);
-    setIsExecuting(true);
     
     try {
-      // First call hook/exec to create plan
+      // First call hook/exec to create plan AND check profile
       const resp = await fetch(`${BASE_URL}/api/hook/exec`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -229,33 +228,50 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
       });
       const data = await resp.json();
       
-      if (resp.ok) {
-        setJobId(data.job_id);
-        setLogs([]);
-        setAgentStatus('ACTIVE');
-        
-        // Setup ExecutionAgent callback for UI updates
-        executionAgent.setStateCallback((updates) => {
-          if (updates.browserState) {
-            setBrowserState(updates.browserState);
-            if (updates.browserState.screenshot) {
-              setDisplaySrc(updates.browserState.screenshot);
-            }
-          }
-        });
-        
-        // Now start execution through ExecutionAgent
-        await executionAgent.startAutomation(taskText, {
-          browserState,
-          logEntries: [],
-          currentStepIndex: 0,
-          status: 'idle',
-          requiresUserInput: null,
-          result: null
-        });
-      } else {
+      if (!resp.ok) {
         alert(data.detail || 'Failed to start');
+        return;
       }
+      
+      setJobId(data.job_id);
+      setLogs([]);
+      setAgentStatus('ACTIVE');
+      
+      // Check if profile is warm
+      const analysis = data.analysis;
+      const isWarm = analysis?.analysis?.availability?.profile?.is_warm;
+      
+      if (!isWarm) {
+        // Show warm banner and DON'T start execution
+        setShowWarmBanner(true);
+        alert('❌ Профиль не прогрет! Нажмите "Прогреть аккаунт" перед запуском автоматизации.');
+        setIsSubmitting(false);
+        return;
+      }
+      
+      // Profile is warm, proceed with execution
+      setIsExecuting(true);
+      
+      // Setup ExecutionAgent callback for UI updates
+      executionAgent.setStateCallback((updates) => {
+        if (updates.browserState) {
+          setBrowserState(updates.browserState);
+          if (updates.browserState.screenshot) {
+            setDisplaySrc(updates.browserState.screenshot);
+          }
+        }
+      });
+      
+      // Now start execution through ExecutionAgent
+      await executionAgent.startAutomation(taskText, {
+        browserState,
+        logEntries: [],
+        currentStepIndex: 0,
+        status: 'idle',
+        requiresUserInput: null,
+        result: null
+      });
+      
     } catch (e: any) {
       alert(e.message || 'Failed to start');
     } finally {
