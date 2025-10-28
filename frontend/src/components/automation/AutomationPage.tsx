@@ -305,6 +305,58 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
     }
   };
 
+  const resetTask = async () => {
+    try {
+      // Stop any running execution
+      if (isExecuting) {
+        executionAgent.abort();
+      }
+      
+      // Close current session if exists
+      if (sessionId) {
+        try {
+          await fetch(`${BASE_URL}/api/automation/session/close`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ session_id: sessionId })
+          });
+        } catch {}
+      }
+      
+      // Clear backend state
+      try {
+        await fetch(`${BASE_URL}/api/hook/control`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mode: 'STOP' })
+        });
+      } catch {}
+      
+      // Clear all frontend state
+      setTaskText('');
+      setLogs([]);
+      setJobId(null);
+      setSessionId(null);
+      setAgentStatus('IDLE');
+      setIsExecuting(false);
+      setIsSubmitting(false);
+      setIsWarming(false);
+      setWarmupProgress('');
+      setExecutionSubtitle('');
+      setDisplaySrc(null);
+      setPendingSrc(null);
+      setShowWarmBanner(false);
+      setVision([]);
+      setObservation(null);
+      setPlanner({ strategy: null, steps: [] });
+      
+      alert('✅ Всё сброшено! Можете начать новую задачу.');
+    } catch (e: any) {
+      console.error('Reset error:', e);
+      alert('Ошибка сброса, но состояние очищено');
+    }
+  };
+
   const control = async (mode: 'ACTIVE'|'PAUSED'|'STOP') => {
     try {
       const resp = await fetch(`${BASE_URL}/api/hook/control`, {
