@@ -456,15 +456,15 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
           )}
 
       <div className="px-4 md:px-6 py-3 md:py-4 border-b border-gray-800 flex-shrink-0">
-        <div ref={viewerRef} className="relative w-full h-72 md:h-[420px] border border-gray-800 rounded bg-black/60 overflow-hidden flex items-center justify-center px-16" style={{ touchAction: 'none', overscrollBehavior: 'contain' }}>
+        <div ref={viewerRef} className="relative w-full h-72 md:h-[520px] border border-gray-800 rounded bg-black/60 overflow-hidden flex items-center justify-center" style={{ touchAction: 'none', overscrollBehavior: 'contain' }}>
           {quickError && (
-            <div className="absolute top-2 left-2 right-2 text-[11px] text-red-300 bg-red-900/30 border border-red-800 rounded px-2 py-1">{quickError}</div>
+            <div className="absolute top-2 left-2 right-2 text-[11px] text-red-300 bg-red-900/30 border border-red-800 rounded px-2 py-1 z-30">{quickError}</div>
           )}
 
           {displaySrc ? (
-            <img ref={imageRef} onLoad={updateOverlayRect} onClick={handleImageClick} src={`data:image/png;base64,${displaySrc}`} alt="screenshot" className="max-h-full object-contain cursor-crosshair select-none" style={{ maxWidth: 'calc(100% - 144px)' }} />
+            <img ref={imageRef} onLoad={updateOverlayRect} onClick={handleImageClick} src={`data:image/png;base64,${displaySrc}`} alt="screenshot" className="max-w-full max-h-full object-contain cursor-crosshair select-none" />
           ) : (
-            <div className="text-xs text-gray-600" style={{ width: 'calc(100% - 96px)', textAlign: 'center' }}>No screenshot</div>
+            <div className="text-xs text-gray-600 text-center">No screenshot</div>
           )}
 
           {/* Grid overlay aligned to image rect */}
