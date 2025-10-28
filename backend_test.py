@@ -4338,6 +4338,12 @@ export default App;""",
         print(f"🔗 Backend URL: {BACKEND_URL}")
         print("=" * 60)
         
+        # Test PROFILE LIFECYCLE ENDPOINTS (as requested in review)
+        print("\n" + "=" * 60)
+        print("🔐 TESTING PROFILE LIFECYCLE ENDPOINTS")
+        print("=" * 60)
+        self.test_profile_lifecycle_endpoints()
+        
         # Test NEW RESEARCH PLANNER ENDPOINT (as requested in review)
         print("\n" + "=" * 60)
         print("🔬 TESTING NEW RESEARCH PLANNER ENDPOINT")
