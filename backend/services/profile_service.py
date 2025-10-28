@@ -114,7 +114,7 @@ class ProfileService:
         try:
             import httpx
             async with httpx.AsyncClient(timeout=15) as client:
-                r = await client.get(IPINFO_URL)
+                r = await client.get(IPINFO_URL, proxies=proxy['server'] if proxy else None)
                 if r.status_code == 200:
                     ipd = r.json()
                     proxy_info = {
@@ -122,10 +122,31 @@ class ProfileService:
                         "country": ipd.get('country'),
                         "region": ipd.get('region'),
                         "city": ipd.get('city'),
-                        "isp": ipd.get('org')
+                        "isp": ipd.get('org'),
+                        "timezone": ipd.get('timezone')
                     }
         except Exception as e:
             logger.warning(f"proxy info fetch failed: {e}")
+
+        # Determine locale/timezone/languages based on proxy info
+        country = (proxy_info.get('country') or 'US').upper()
+        tz_default = 'America/New_York'
+        tz_map = {
+            'US': 'America/New_York', 'CA': 'America/Toronto', 'GB': 'Europe/London', 'DE': 'Europe/Berlin', 'FR': 'Europe/Paris', 'RU': 'Europe/Moscow', 'AU': 'Australia/Sydney'
+        }
+        timezone_id = proxy_info.get('timezone') or tz_map.get(country, tz_default)
+        locale_map = {'US':'en-US','GB':'en-GB','DE':'de-DE','FR':'fr-FR','RU':'ru-RU','CA':'en-CA','AU':'en-AU'}
+        locale_str = locale_map.get(country, 'en-US')
+        languages = [locale_str.split('-')[0] if '-' in locale_str else locale_str]
+        if locale_str not in languages:
+            languages.insert(0, locale_str)
+
+        # Prefer UA from proxy service if available
+        try:
+            from services.proxy_service import proxy_service as _ps
+            ua = _ps.get_random_user_agent()
+        except Exception:
+            ua = AntiDetectFingerprint.generate_profile(region=region).get('user_agent')
 
         # Launch persistent-like context as a session linked to this profile
         session_id = f"sess-{profile_id[:8]}"
