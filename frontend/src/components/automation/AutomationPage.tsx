@@ -218,17 +218,41 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
   const startTask = async () => {
     if (!taskText.trim()) return;
     setIsSubmitting(true);
+    setIsExecuting(true);
+    
     try {
+      // First call hook/exec to create plan
       const resp = await fetch(`${BASE_URL}/api/hook/exec`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: taskText, timestamp: Date.now(), nocache: true })
       });
       const data = await resp.json();
+      
       if (resp.ok) {
         setJobId(data.job_id);
         setLogs([]);
         setAgentStatus('ACTIVE');
+        
+        // Setup ExecutionAgent callback for UI updates
+        executionAgent.setStateCallback((updates) => {
+          if (updates.browserState) {
+            setBrowserState(updates.browserState);
+            if (updates.browserState.screenshot) {
+              setDisplaySrc(updates.browserState.screenshot);
+            }
+          }
+        });
+        
+        // Now start execution through ExecutionAgent
+        await executionAgent.startAutomation(taskText, {
+          browserState,
+          logEntries: [],
+          currentStepIndex: 0,
+          status: 'idle',
+          requiresUserInput: null,
+          result: null
+        });
       } else {
         alert(data.detail || 'Failed to start');
       }
@@ -236,6 +260,7 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
       alert(e.message || 'Failed to start');
     } finally {
       setIsSubmitting(false);
+      setIsExecuting(false);
     }
   };
 
