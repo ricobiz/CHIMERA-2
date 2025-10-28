@@ -1477,6 +1477,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ VERIFIED: Profile status endpoint working correctly. Returns all required fields: profile_id, region, proxy_tier, proxy, created_at, last_used, used_count, is_warm, is_clean. Fixed missing status() method in ProfileService. Status tracking accurate with usage count increments."
+      - working: true
+        agent: "testing"
+        comment: "✅ RE-VERIFIED: Profile status per review spec working correctly. GET /api/profile/cb6b3215-4fe7-4286-9f72-96a6644047a3/status returns all required fields. Status reflects meta.json content: profile_id, created_at, last_used, used_count=1 (incremented after use), proxy fields present (though null due to proxy service issue). Status endpoint accurately reflects profile usage and metadata."
 
   - task: "POST /api/profile/use - Profile Session Creation"
     implemented: true
