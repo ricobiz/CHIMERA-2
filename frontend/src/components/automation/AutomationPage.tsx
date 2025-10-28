@@ -254,6 +254,10 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
           <div className="absolute top-2 left-2 right-2 flex items-center gap-2 z-10">
             <input value={quickUrl} onChange={(e:any)=>setQuickUrl(e.target.value)} className="flex-1 px-2 py-1 text-xs bg-black/60 border border-gray-700 rounded text-gray-200 placeholder-gray-500" placeholder="https://..." />
             <button onClick={quickCreate} className="px-2 py-1 text-xs bg-gray-800/60 hover:bg-gray-700/60 border border-gray-700 rounded text-gray-300">Create</button>
+            <div className="flex items-center gap-2 mt-2">
+              <label className="text-[10px] text-gray-500">Auto-scroll</label>
+              <input type="checkbox" checked={autoScrollLogs && !userReadingLogs} onChange={(e)=> setAutoScrollLogs(e.target.checked)} />
+            </div>
             <button onClick={quickNavigate} className="px-2 py-1 text-xs bg-blue-800/60 hover:bg-blue-700/60 border border-blue-700 rounded text-blue-300">Go</button>
           </div>
 
