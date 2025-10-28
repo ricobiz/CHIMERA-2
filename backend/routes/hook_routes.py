@@ -76,6 +76,7 @@ async def observe(session_id: str):
             "screenshot_base64": screenshot_b64,
             "vision": vision,
             "grid": {"rows": browser_service.grid_rows, "cols": browser_service.grid_cols},
+            "viewport": {"width": dom_data.get('vw', 1280), "height": dom_data.get('vh', 800)},
             "status": "idle",
             "url": page.url
         }
