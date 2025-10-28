@@ -199,41 +199,38 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
   return (
     <div className="flex flex-col bg-[#0f0f10] text-gray-100 overflow-x-hidden" style={{ height: '100dvh' }}>
       {/* Header */}
-      <div className="px-4 md:px-6 py-2 md:py-3 border-b border-gray-800 flex-shrink-0 bg-[#0f0f10] sticky top-0 z-10">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
+      <div className="px-3 md:px-4 py-2 border-b border-gray-800 flex-shrink-0 bg-[#0f0f10] sticky top-0 z-10">
+        <div className="flex items-center justify-between gap-2 min-w-0">
+          <div className="flex items-center gap-2 min-w-0">
             {onClose && (
-              <button onClick={onClose} className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors flex items-center gap-2 text-sm">
+              <button onClick={onClose} className="px-2 py-1 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors flex items-center gap-1 text-[12px]">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
                 Back
               </button>
             )}
-            <div>
-              <h1 className="text-lg md:text-2xl font-bold text-white">Browser Automation</h1>
-              <p className="text-[11px] md:text-xs text-gray-400">Agent live view, steps and controls</p>
-            </div>
+            <div className="truncate text-[12px] md:text-sm text-gray-300">Browser Automation</div>
           </div>
-          {/* Icon controls + grid */}
-          <div className="flex items-center gap-2">
+          {/* Icon controls + compact grid */}
+          <div className="flex items-center gap-1 flex-wrap justify-end">
             <button title="Play" onClick={() => control('ACTIVE')} className="p-2 rounded bg-gray-800/70 hover:bg-gray-700/70 border border-gray-700 text-green-300"><PlayIcon className="w-4 h-4"/></button>
             <button title="Pause" onClick={() => control('PAUSED')} className="p-2 rounded bg-gray-800/70 hover:bg-gray-700/70 border border-gray-700 text-yellow-300"><PauseIcon className="w-4 h-4"/></button>
             <button title="Stop" onClick={() => control('STOP')} className="p-2 rounded bg-gray-800/70 hover:bg-gray-700/70 border border-gray-700 text-red-300"><StopIcon className="w-4 h-4"/></button>
-            <span className={`text-[10px] px-2 py-0.5 rounded ${statusPill(agentStatus)}`}>{agentStatus}</span>
-            <label className="text-[10px] text-gray-400">Grid</label>
+            <span className={`text-[10px] px-1.5 py-0.5 rounded ${statusPill(agentStatus)}`}>{agentStatus}</span>
+            <label className="text-[10px] text-gray-400 hidden sm:block">Grid</label>
             <select value={gridPreset} onChange={async (e:any)=>{
               const v = e.target.value as typeof gridPreset;
               setGridPreset(v);
               const [cols, rows] = v.split('x').map((n)=>parseInt(n,10));
               try { await fetch(`${BASE_URL}/api/automation/grid/set`, { method: 'POST', headers: { 'Content-Type':'application/json' }, body: JSON.stringify({ rows, cols }) }); } catch {}
-            }} className="px-2 py-1 text-xs bg-gray-800/60 border border-gray-700 rounded text-gray-300">
+            }} className="px-1.5 py-1 text-[11px] bg-gray-800/60 border border-gray-700 rounded text-gray-300 w-20">
               <option value="8x6">8×6</option>
               <option value="12x8">12×8</option>
               <option value="16x12">16×12</option>
               <option value="24x16">24×16</option>
               <option value="32x24">32×24</option>
             </select>
-            <button onClick={() => setShowGrid(s => !s)} className="px-2 py-1 text-xs bg-gray-800/60 hover:bg-gray-700/60 border border-gray-700 rounded text-gray-300">{showGrid ? 'Hide Grid' : 'Show Grid'}</button>
-            <button onClick={() => setShowFullscreen(true)} className="px-2 py-1 text-xs bg-gray-800/60 hover:bg-gray-700/60 border border-gray-700 rounded text-gray-300">Fullscreen</button>
+            <button onClick={() => setShowGrid(s => !s)} className="px-2 py-1 text-[11px] bg-gray-800/60 hover:bg-gray-700/60 border border-gray-700 rounded text-gray-300">{showGrid ? 'Hide' : 'Show'}</button>
+            <button onClick={() => setShowFullscreen(true)} className="px-2 py-1 text-[11px] bg-gray-800/60 hover:bg-gray-700/60 border border-gray-700 rounded text-gray-300">Full</button>
           </div>
         </div>
       </div>
