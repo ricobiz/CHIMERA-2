@@ -256,6 +256,7 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
       
       // Profile is warm, proceed with execution
       setIsExecuting(true);
+      setExecutionSubtitle('🚀 Запуск браузерной автоматизации...');
       
       // Setup ExecutionAgent callback for UI updates
       executionAgent.setStateCallback((updates) => {
@@ -264,6 +265,25 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
           if (updates.browserState.screenshot) {
             setDisplaySrc(updates.browserState.screenshot);
           }
+        }
+        // Update subtitle from logs
+        if (updates.logEntries && updates.logEntries.length > 0) {
+          const lastLog = updates.logEntries[updates.logEntries.length - 1];
+          if (lastLog?.details) {
+            setExecutionSubtitle(lastLog.details);
+          }
+        }
+        // Update subtitle from status
+        if (updates.status === 'planning') {
+          setExecutionSubtitle('📋 Анализ задачи и создание плана...');
+        } else if (updates.status === 'executing') {
+          setExecutionSubtitle('⚙️ Выполнение автоматизации...');
+        } else if (updates.status === 'completed') {
+          setExecutionSubtitle('✅ Автоматизация завершена успешно!');
+          setTimeout(() => setExecutionSubtitle(''), 3000);
+        } else if (updates.status === 'failed') {
+          setExecutionSubtitle('❌ Автоматизация завершилась с ошибкой');
+          setTimeout(() => setExecutionSubtitle(''), 5000);
         }
       });
       
