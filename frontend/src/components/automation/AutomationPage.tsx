@@ -176,6 +176,9 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
     return () => clearInterval(pollRef.current);
   }, []);
 
+  // Keep pin ref in sync
+  useEffect(() => { pinMappingRef.current = pinMapping; }, [pinMapping]);
+
   const startTask = async () => {
     if (!taskText.trim()) return;
     setIsSubmitting(true);
