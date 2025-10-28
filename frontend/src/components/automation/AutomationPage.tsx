@@ -518,18 +518,6 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
 
 
           {showGrid && overlayRect && (
-          {/* Adjust mini-chat */}
-          <div className="mt-2 flex items-center gap-2">
-            <input value={adjustMsg} onChange={e=> setAdjustMsg(e.target.value)} placeholder="Подсказать плану (корректировки)..." className="flex-1 px-2 py-1 bg-gray-900/70 border border-gray-700 rounded text-[12px]" />
-            <button onClick={async()=>{
-              if(!adjustMsg.trim()) return;
-              try{
-                await fetch(`${BASE_URL}/api/hook/adjust`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ message: adjustMsg })});
-                setAdjustMsg('');
-              }catch(e:any){ alert(e.message||'Ошибка отправки'); }
-            }} className="px-2 py-1 bg-indigo-800 hover:bg-indigo-700 border border-indigo-700 rounded text-[12px]">Отправить</button>
-          </div>
-
             <div ref={overlayRef} className="absolute pointer-events-none" style={{ left: overlayRect.left, top: overlayRect.top, width: overlayRect.width, height: overlayRect.height }}>
               <div className="w-full h-full" style={{ backgroundImage: `linear-gradient(rgba(200,200,200,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(200,200,200,0.08) 1px, transparent 1px)`, backgroundSize: `${overlayRect.width/parseInt(gridPreset.split('x')[0],10)}px ${overlayRect.height/parseInt(gridPreset.split('x')[1],10)}px` }} />
             </div>
