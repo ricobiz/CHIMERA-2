@@ -338,10 +338,15 @@ class ExecutionAgentService {
     const maxRetries = step.maxRetries || 3;
     let attempt = 0;
 
+    console.log(`[ExecutionAgent.retry] Starting retry loop for step: ${step.actionType}`);
+    console.log(`[ExecutionAgent.retry] Max retries: ${maxRetries}`);
+
     while (attempt < maxRetries) {
       attempt++;
       
       const retryLabel = attempt > 1 ? ` (Retry ${attempt}/${maxRetries})` : '';
+      
+      console.log(`[ExecutionAgent.retry] 🔄 Attempt ${attempt}/${maxRetries} for ${step.actionType}`);
       
       this.addLog({
         actionType: step.actionType,
@@ -351,22 +356,52 @@ class ExecutionAgentService {
       });
 
       // Perform the step
-      const stepResult = await this.performStep(step, browserState);
+      try {
+        console.log(`[ExecutionAgent.retry] Calling performStep...`);
+        const stepResult = await this.performStep(step, browserState);
+        console.log(`[ExecutionAgent.retry] performStep completed without throwing`);
+      } catch (performError: any) {
+        console.error(`[ExecutionAgent.retry] ❌ performStep threw error:`, performError.message);
+        console.error(`[ExecutionAgent.retry] Error stack:`, performError.stack);
+        
+        // If step threw error, treat as failed
+        this.updateLastLog({ 
+          status: 'fail',
+          error: performError.message
+        });
+        
+        if (attempt < maxRetries) {
+          console.log(`[ExecutionAgent.retry] Will retry after 1 second...`);
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          continue;
+        } else {
+          console.error(`[ExecutionAgent.retry] ❌ No more retries left, returning false`);
+          return false;
+        }
+      }
 
-      if (this.aborted) return false;
+      if (this.aborted) {
+        console.log(`[ExecutionAgent.retry] Aborted during step execution`);
+        return false;
+      }
 
       // Validate the step
+      console.log(`[ExecutionAgent.retry] Validating step result...`);
       const validation = await validatorService.check(browserState, step, attempt);
+      console.log(`[ExecutionAgent.retry] Validation result: isValid=${validation.isValid}, shouldRetry=${validation.shouldRetry}`);
 
       if (validation.isValid) {
         // Step succeeded
+        console.log(`[ExecutionAgent.retry] ✅ Step validated successfully!`);
         this.updateLastLog({ status: 'ok' });
         return true;
       } else {
         // Step failed
         const errorDetails = validation.issues.join('; ');
+        console.warn(`[ExecutionAgent.retry] ⚠️ Validation failed: ${errorDetails}`);
         
         if (attempt < maxRetries && validation.shouldRetry) {
+          console.log(`[ExecutionAgent.retry] Marking as retrying and waiting 1 second...`);
           this.updateLastLog({ 
             status: 'retrying',
             error: errorDetails
@@ -375,6 +410,7 @@ class ExecutionAgentService {
           // Wait before retry
           await new Promise(resolve => setTimeout(resolve, 1000));
         } else {
+          console.error(`[ExecutionAgent.retry] ❌ Final failure: ${errorDetails}`);
           this.updateLastLog({ 
             status: 'fail',
             error: errorDetails
@@ -384,6 +420,7 @@ class ExecutionAgentService {
       }
     }
 
+    console.error(`[ExecutionAgent.retry] ❌ Exhausted all retries, returning false`);
     return false;
   }
 
