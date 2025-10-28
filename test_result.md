@@ -468,6 +468,9 @@ metadata:
 
 test_plan:
   current_focus:
+    - "Browser Automation viewer stability (pinch-zoom blocked in viewer)"
+    - "Automation smoke-check, click-cell, screenshot endpoints"
+
     - "POST /api/chat endpoint - Chat Mode"
     - "Chat Interface - Message Display"
     - "Message Management - Delete/Edit/Regenerate"
