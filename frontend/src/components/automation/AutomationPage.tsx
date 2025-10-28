@@ -432,8 +432,6 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
     if (x < 0 || x > 1 || y < 0 || y > 1) return;
     const [cols, rows] = (gridPreset || '24x16').split('x').map(n => parseInt(n, 10));
     const colIndex = Math.min(Math.max(Math.floor(x * cols), 0), cols - 1);
-          {/* Disable native pinch zoom inside viewer to avoid overlay resets */
-          <div className="absolute inset-0" style={{touchAction:'none'}} />
     const rowIndex = Math.min(Math.max(Math.floor(y * rows), 0), rows - 1);
     const colLetter = (() => {
       // number to excel letters
