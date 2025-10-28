@@ -204,6 +204,23 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
               <h1 className="text-xl md:text-2xl font-bold text-white">Browser Automation</h1>
               <p className="text-xs md:text-sm text-gray-400">Agent live view, steps and controls</p>
             </div>
+          <div className="flex items-center gap-2">
+            <label className="text-[10px] text-gray-400">Grid</label>
+            <select value={gridPreset} onChange={async (e:any)=>{
+              const v = e.target.value as typeof gridPreset;
+              setGridPreset(v);
+              const [cols, rows] = v.split('x').map((n)=>parseInt(n,10));
+              try {
+                await fetch(`${BASE_URL}/api/automation/grid/set`, { method: 'POST', headers: { 'Content-Type':'application/json' }, body: JSON.stringify({ rows, cols }) });
+              } catch {}
+            }} className="px-2 py-1 text-xs bg-gray-800/60 border border-gray-700 rounded text-gray-300">
+              <option value="8x6">8×6</option>
+              <option value="12x8">12×8</option>
+              <option value="16x12">16×12</option>
+              <option value="24x16">24×16</option>
+              <option value="32x24">32×24</option>
+            </select>
+          </div>
           </div>
           <div className="flex items-center gap-2">
             <span className={`text-[10px] px-2 py-0.5 rounded ${statusPill(agentStatus)}`}>{agentStatus}</span>
