@@ -168,6 +168,7 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
         setAnalysis(ana);
         const warmReady = !!(ana?.analysis?.availability?.profile?.is_warm);
         setShowWarmBanner(!warmReady);
+        if (data.session_id) setSessionId(data.session_id);
       } catch {}
 
           setVision(v);
