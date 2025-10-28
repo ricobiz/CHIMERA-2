@@ -468,6 +468,12 @@ class BrowserAutomationService:
                 cell.style.width = cw + 'px';
                 cell.style.height = ch + 'px';
                 overlay.appendChild(cell);
+                // place blocker
+                hit.style.left = (c * cw) + 'px';
+                hit.style.top = (r * ch) + 'px';
+                hit.style.width = cw + 'px';
+                hit.style.height = ch + 'px';
+                blockers.appendChild(hit);
                 const label = document.createElement('div');
                 label.className = 'chimera-grid-label';
                 label.style.left = (c * cw + 3) + 'px';
