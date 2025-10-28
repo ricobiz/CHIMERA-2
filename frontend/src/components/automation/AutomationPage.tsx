@@ -320,7 +320,7 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
     const vh = snap.viewport?.height || 800;
 
     // Thinner detection borders for clarity on mobile/high-DPI
-    ctx.lineWidth = 1;
+    ctx.lineWidth = 0.75;
     for (let i=0; i<Math.min(v.length, 50); i++) {
       const el = v[i] as any;
       const b = el.bbox || {};
