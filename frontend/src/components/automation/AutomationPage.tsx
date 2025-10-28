@@ -516,7 +516,27 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                 <button onClick={async()=>{
                   try {
                     setIsWarming(true);
-                    setWarmupProgress('Создание профиля...');
+                    setWarmupProgress('🔧 Создание профиля с уникальным fingerprint...');
+                    
+                    // Simulate progress updates
+                    let progressStep = 0;
+                    const progressMessages = [
+                      '🔧 Создание профиля с уникальным fingerprint...',
+                      '🌐 Настройка прокси и проверка IP...',
+                      '🔥 Прогрев: посещение Google...',
+                      '🔥 Прогрев: посещение YouTube...',
+                      '🔥 Прогрев: посещение Reddit...',
+                      '🔥 Прогрев: посещение Amazon...',
+                      '💾 Сохранение cookies и storage...',
+                      '✅ Финализация профиля...'
+                    ];
+                    
+                    const progressInterval = setInterval(() => {
+                      if (progressStep < progressMessages.length - 1) {
+                        progressStep++;
+                        setWarmupProgress(progressMessages[progressStep]);
+                      }
+                    }, 8000); // Update every 8 seconds
                     
                     const resp = await fetch(`${BASE_URL}/api/profile/create`, { 
                       method:'POST', 
@@ -524,17 +544,20 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                       body: JSON.stringify({ warmup: true })
                     });
                     
+                    clearInterval(progressInterval);
+                    
                     const d = await resp.json();
                     
                     if (d?.profile_id) { 
-                      setWarmupProgress('✅ Профиль создан и прогрет!');
+                      setWarmupProgress('✅ Профиль создан и прогрет успешно!');
                       setTimeout(() => {
                         setShowWarmBanner(false);
                         setIsWarming(false);
                         setWarmupProgress('');
+                        alert('✅ Профиль готов! Запускаю автоматизацию...');
                         // Auto-start after warmup
                         startTask();
-                      }, 1000);
+                      }, 1500);
                     }
                     else { 
                       setIsWarming(false);
@@ -547,7 +570,7 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                     alert(e.message||'Ошибка прогрева'); 
                   }
                 }} disabled={isWarming} className="px-2 py-1 bg-green-800 hover:bg-green-700 disabled:bg-gray-700 disabled:cursor-not-allowed border border-green-700 rounded text-[12px]">
-                  {isWarming ? 'Прогревается...' : 'Прогреть аккаунт'}
+                  {isWarming ? '⏳ Прогревается...' : '🔥 Прогреть аккаунт'}
                 </button>
                 <button onClick={()=> setShowWarmBanner(false)} disabled={isWarming} className="px-2 py-1 bg-gray-800 hover:bg-gray-700 disabled:bg-gray-700 disabled:cursor-not-allowed border border-gray-700 rounded text-[12px]">Продолжить без прогрева</button>
                 <button onClick={()=> setImportModalOpen(true)} disabled={isWarming} className="px-2 py-1 bg-blue-800 hover:bg-blue-700 disabled:bg-gray-700 disabled:cursor-not-allowed border border-blue-700 rounded text-[12px]">Импортировать профиль</button>
