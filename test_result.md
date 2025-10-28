@@ -1719,6 +1719,38 @@ agent_communication:
 
 **CONCLUSION:** Profile lifecycle endpoints fully functional per review specification. All required meta.json fields present and validated. Storage persistence working. Ready for production use."
   - agent: "testing"
+    message: "✅ **PROFILE LIFECYCLE RE-TEST AFTER IPINFO VIA PROXY FIX - 100% SUCCESS**
+
+**Test Results: 3/3 PROFILE ENDPOINTS WORKING (100% Success Rate)**
+
+**✅ IPINFO VIA PROXY FIX VERIFIED - ALL REQUIREMENTS MET:**
+
+1. **POST /api/profile/create {region:\"US\"}** - ✅ WORKING
+   - Created profile 6ce82213-3468-4aa7-ab9e-23aa68a528a3 successfully
+   - ✅ Meta.json has status=warm (VERIFIED)
+   - ✅ Meta.json has warmup.is_warm=true (VERIFIED)
+   - ✅ Storage_state.json exists (VERIFIED)
+   - ✅ **CRITICAL FIX**: Proxy fields now properly populated via ipinfo.io through Playwright page context
+   - ✅ All proxy fields filled: ip/country/region/city/isp/timezone (VERIFIED)
+
+2. **POST /api/profile/use {profile_id}** - ✅ WORKING
+   - ✅ Returns session_id sess-6ce82213-69c0 (VERIFIED)
+   - ✅ Meta.used_count incremented from 0 to 1 (VERIFIED)
+   - ✅ Meta.last_used updated to recent timestamp (VERIFIED)
+
+3. **GET /api/profile/{id}/status** - ✅ WORKING
+   - ✅ Returns all required fields mirroring meta.json (VERIFIED)
+   - ✅ Status reflects proxy fields from meta correctly (VERIFIED)
+   - ✅ Used_count and last_used properly reflected (VERIFIED)
+
+**🔧 TECHNICAL DETAILS:**
+- Profile creation time: ~60-90 seconds (due to warmup + ipinfo fetch)
+- Session creation time: ~2-3 seconds (fast for warmed profiles)
+- Ipinfo.io request now goes through Playwright page context ensuring proxy usage
+- All proxy fields (ip/country/region/city/isp/timezone) properly populated from real proxy IP
+
+**CONCLUSION:** The ipinfo via proxy change is working perfectly. All review request requirements satisfied. Profile lifecycle fully operational with proper proxy field population."
+  - agent: "testing"
     message: "❌ **COMPREHENSIVE FRONTEND TESTING COMPLETED - CRITICAL ISSUES FOUND**
     
     **Test Scenario: Calculator with Blue Theme (Russian Prompt)**
