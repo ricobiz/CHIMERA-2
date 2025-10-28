@@ -275,20 +275,26 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
 
     // Size canvas to overlayRect (DPR aware)
     const dpr = (window.devicePixelRatio || 1);
-    cvs.width = Math.max(1, Math.floor(overlayRect.width * dpr));
-    cvs.height = Math.max(1, Math.floor(overlayRect.height * dpr));
-    cvs.style.width = `${overlayRect.width}px`;
-    cvs.style.height = `${overlayRect.height}px`;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-    // Clear
-    ctx.clearRect(0, 0, overlayRect.width, overlayRect.height);
+    const targetW = Math.max(1, Math.floor(overlayRect.width * dpr));
+    const targetH = Math.max(1, Math.floor(overlayRect.height * dpr));
+    if (cvs.width !== targetW || cvs.height !== targetH) {
+      cvs.width = targetW;
+      cvs.height = targetH;
+      cvs.style.width = `${overlayRect.width}px`;
+      cvs.style.height = `${overlayRect.height}px`;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    } else {
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, overlayRect.width, overlayRect.height);
+    }
 
     if (!showDetections) return;
 
-    const v = (overlayVision ?? observation?.vision) || [];
-    const vw = (overlayViewport?.width) || observation?.viewport?.width || 1280;
-    const vh = (overlayViewport?.height) || observation?.viewport?.height || 800;
+    const snap = lastSnapshotRef.current;
+    if (!snap) return;
+    const v = snap.vision || [];
+    const vw = snap.viewport?.width || 1280;
+    const vh = snap.viewport?.height || 800;
 
     ctx.lineWidth = 2;
     for (let i=0; i<Math.min(v.length, 50); i++) {
@@ -319,7 +325,7 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
         ctx.fillText(label, x+pad, Math.max(10,y-4));
       }
     }
-  }, [overlayRect, showDetections, overlayVision, overlayViewport, observation?.vision, observation?.viewport]);
+  }, [overlayRect, showDetections]);
 
   // Redraw when image rect or overlays change
   useEffect(() => { drawCanvas(); }, [drawCanvas]);
