@@ -267,7 +267,7 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
               setGridPreset(v);
               const [cols, rows] = v.split('x').map((n)=>parseInt(n,10));
               try { await fetch(`${BASE_URL}/api/automation/grid/set`, { method: 'POST', headers: { 'Content-Type':'application/json' }, body: JSON.stringify({ rows, cols }) }); } catch {}
-            }} className="px-1.5 py-1 text[11px] bg-gray-800/60 border border-gray-700 rounded text-gray-300 w-20">
+            }} className="px-1.5 py-1 text-[11px] bg-gray-800/60 border border-gray-700 rounded text-gray-300 w-24">
               <option value="8x6">8×6</option>
               <option value="12x8">12×8</option>
               <option value="16x12">16×12</option>
