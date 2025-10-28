@@ -230,23 +230,11 @@ class ProfileService:
         if not self.profile_exists(profile_id):
             raise ValueError("Profile not found")
         meta = self.read_meta(profile_id)
-        fingerprint = meta.get('fingerprint', {})
-        proxy = meta.get('proxy', None)
         session_id = f"sess-{profile_id[:8]}-{uuid.uuid4().hex[:4]}"
-        # Load storage_state if exists
         storage_path = self._storage_path(profile_id)
-        await browser_service.create_session_from_profile(profile_id=profile_id, session_id=session_id, fingerprint=fingerprint, proxy=proxy)
-        try:
-            if os.path.exists(storage_path):
-                ctx = browser_service.sessions[session_id]['context']
-                await ctx.add_cookies([])  # noop to ensure context ready
-                # Best-effort: Playwright Python does not support dynamic storage reload; alternative: new_context with storage_state
-                # For now, storage was applied on creation if we passed path; adjust browser_service to pass storage_state path when exists
-        except Exception:
-            pass
+        await browser_service.create_session_from_profile(profile_id=profile_id, session_id=session_id, meta=meta)
         # Fast sanity navigate
         await browser_service.navigate(session_id, "https://www.google.com")
-
         # Update meta
         meta['last_used'] = datetime.now(timezone.utc).isoformat()
         meta['used_count'] = int(meta.get('used_count', 0)) + 1
