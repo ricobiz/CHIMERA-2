@@ -57,8 +57,11 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
   const [quickSessionId, setQuickSessionId] = useState<string | null>(null);
   const [quickError, setQuickError] = useState<string | null>(null);
 
-  // Freeze observation after manual Map/Smoke to prevent polling from wiping detections
+  // Freeze observation after manual Map/Smoke + persistent overlay payload
   const [freezeObsUntil, setFreezeObsUntil] = useState<number | null>(null);
+  const [overlayVision, setOverlayVision] = useState<Observation['vision'] | null>(null);
+  const [overlayViewport, setOverlayViewport] = useState<Observation['viewport'] | null>(null);
+  const [overlayGrid, setOverlayGrid] = useState<Observation['grid'] | null>(null);
 
   // Detection overlay controls
   const [showDetections, setShowDetections] = useState<boolean>(true);
