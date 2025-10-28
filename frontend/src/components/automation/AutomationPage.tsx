@@ -508,36 +508,6 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
             </div>
           )}
 
-          {/* Subtitles Overlay - показывает текущее действие */}
-          {currentActionSubtitle && (executionStatus === 'executing' || executionStatus === 'planning' || executionStatus === 'paused') && (
-            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-40">
-              <div className="px-4 py-2 bg-black/90 backdrop-blur-sm border border-blue-500/50 rounded-lg shadow-lg max-w-md">
-                <div className="flex items-center gap-2">
-                  {executionStatus === 'executing' && (
-                    <svg className="w-4 h-4 text-blue-400 animate-spin" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                  )}
-                  {executionStatus === 'paused' && (
-                    <svg className="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
-                    </svg>
-                  )}
-                  {executionStatus === 'planning' && (
-                    <svg className="w-4 h-4 text-purple-400 animate-pulse" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9zM4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm9.707 5.707a1 1 0 00-1.414-1.414L9 12.586l-1.293-1.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/>
-                    </svg>
-                  )}
-                  <span className="text-sm text-gray-100">{currentActionSubtitle}</span>
-                </div>
-                {currentStepIndex > 0 && (
-                  <div className="mt-1 text-[10px] text-gray-400">Step {currentStepIndex + 1}</div>
-                )}
-              </div>
-            </div>
-          )}
-
           {ghostCell && overlayRect && (
             <div className="absolute transition-all duration-300" style={{ left: `${overlayRect.left + (ghostPos.left/100)*overlayRect.width}px`, top: `${overlayRect.top + (ghostPos.top/100)*overlayRect.height}px`, transform: 'translate(-50%, -50%)' }}>
               <div className="w-4 h-4 rounded-full bg-white/90 shadow-[0_0_10px_rgba(255,255,255,0.6)] border border-gray-200" />
