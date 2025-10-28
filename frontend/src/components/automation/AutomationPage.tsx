@@ -59,12 +59,11 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
   const [quickSessionId, setQuickSessionId] = useState<string | null>(null);
   const [quickError, setQuickError] = useState<string | null>(null);
 
-  // Overlay model state (persist independent of polling)
-  const [overlayVision, setOverlayVision] = useState<Observation['vision'] | null>(null);
-  const [overlayViewport, setOverlayViewport] = useState<Observation['viewport'] | null>(null);
-  const [overlayGrid, setOverlayGrid] = useState<Observation['grid'] | null>(null);
+  // Overlay model snapshot in ref so React re-renders don't wipe drawing
+  const pinMappingRef = useRef<boolean>(false);
   const [pinMapping, setPinMapping] = useState<boolean>(false);
-  const [lastDrawnShotId, setLastDrawnShotId] = useState<string | null>(null);
+  const lastSnapshotRef = useRef<{ shotId: string | null; vision: NonNullable<Observation['vision']>; viewport: Observation['viewport'] | null; grid: Observation['grid'] | null } | null>(null);
+  const lastDrawnShotIdRef = useRef<string | null>(null);
 
   const viewerRef = useRef<HTMLDivElement | null>(null);
   const imageRef = useRef<HTMLImageElement | null>(null);
