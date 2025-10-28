@@ -35,7 +35,7 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
 
   // Viewer state
   const [showGrid, setShowGrid] = useState<boolean>(true);
-  const [gridPreset, setGridPreset] = useState<'8x6'|'12x8'|'16x12'|'24x16'|'32x24'>('24x16');
+  const [gridPreset, setGridPreset] = useState<'8x6'|'12x8'|'16x12'|'24x16'|'32x24'|'48x32'|'64x48'>('48x32');
   const [showFullscreen, setShowFullscreen] = useState<boolean>(false);
   const [displaySrc, setDisplaySrc] = useState<string | null>(null);
   const [pendingSrc, setPendingSrc] = useState<string | null>(null);
