@@ -208,18 +208,6 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
   // Quick test: create session, navigate and screenshot
   const quickNavigate = async () => {
     try {
-  // Small debug pill for vision counts
-  const renderVisionDebug = () => {
-    const n = observation?.vision?.length || 0;
-    const vw = observation?.viewport?.width;
-    const vh = observation?.viewport?.height;
-    return (
-      <div className="absolute right-2 top-2 text-[10px] px-2 py-1 rounded bg-black/70 border border-gray-700 text-gray-300">
-        Vision: {n}{vw && vh ? ` · ${vw}×${vh}` : ''}
-      </div>
-    );
-  };
-
       setQuickError(null);
       let sid = quickSessionId;
       if (!sid) {
