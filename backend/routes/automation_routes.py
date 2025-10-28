@@ -82,10 +82,6 @@ class GridSetRequest(BaseModel):
     rows: int
     cols: int
 
-class GridGetResponse(BaseModel):
-    rows: int
-    cols: int
-
 class SmokeCheckRequest(BaseModel):
     url: Optional[str] = None
     use_proxy: bool = False
@@ -104,14 +100,12 @@ async def get_screenshot_full(session_id: str):
             "screenshot_base64": screenshot_b64,
             "grid": {"rows": browser_service.grid_rows, "cols": browser_service.grid_cols},
             "vision": vision,
+            "viewport": {"width": dom_data.get('vw', 1280), "height": dom_data.get('vh', 800)},
             "status": "idle"
         }
     except Exception as e:
         logger.error(f"Error capturing screenshot: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
-
-    pageTitle: str
-    description: str
 
 
 # ============= Endpoints =============
@@ -160,14 +154,6 @@ async def click_element(request: ClickRequest):
         raise
     except Exception as e:
         logger.error(f"Error clicking: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-# Small helper to get grid density
-@router.get("/grid")
-async def get_grid():
-    try:
-        return {"rows": browser_service.grid_rows, "cols": browser_service.grid_cols}
-    except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -246,6 +232,7 @@ async def screenshot_query(session_id: str):
             "screenshot_base64": screenshot_b64,
             "grid": {"rows": browser_service.grid_rows, "cols": browser_service.grid_cols},
             "vision": vision,
+            "viewport": {"width": dom_data.get('vw', 1280), "height": dom_data.get('vh', 800)},
             "status": "idle"
         }
     except Exception as e:
@@ -274,6 +261,7 @@ async def click_cell(req: ClickCellRequest):
             "screenshot_base64": screenshot_b64,
             "grid": {"rows": browser_service.grid_rows, "cols": browser_service.grid_cols},
             "vision": vision,
+            "viewport": {"width": dom_data.get('vw', 1280), "height": dom_data.get('vh', 800)},
             "status": "idle",
             "dom_event": {"type": "click", "x": x, "y": y, "cell": req.cell}
         }
@@ -303,6 +291,7 @@ async def type_at_cell(req: TypeAtCellRequest):
             "screenshot_base64": screenshot_b64,
             "grid": {"rows": browser_service.grid_rows, "cols": browser_service.grid_cols},
             "vision": vision,
+            "viewport": {"width": dom_data.get('vw', 1280), "height": dom_data.get('vh', 800)},
             "status": "idle",
             "dom_event": {"type": "type", "x": x, "y": y, "cell": req.cell, "text": req.text[:20]}
         }
@@ -331,6 +320,7 @@ async def hold_drag(req: HoldDragRequest):
             "screenshot_base64": screenshot_b64,
             "grid": {"rows": browser_service.grid_rows, "cols": browser_service.grid_cols},
             "vision": vision,
+            "viewport": {"width": dom_data.get('vw', 1280), "height": dom_data.get('vh', 800)},
             "status": "idle",
             "dom_event": {"type": "drag", "from": req.from_cell, "to": req.to_cell}
         }
@@ -392,6 +382,7 @@ async def get_screenshot_endpoint(session_id: str):
         return {
             "screenshot_base64": screenshot_b64,
             "vision": vision,
+            "viewport": {"width": dom_data.get('vw', 1280), "height": dom_data.get('vh', 800)},
             "grid": {"rows": browser_service.grid_rows, "cols": browser_service.grid_cols}
         }
     except Exception as e:
@@ -402,13 +393,21 @@ async def get_screenshot_endpoint(session_id: str):
 @router.post("/grid/set")
 async def set_grid_density(req: GridSetRequest):
     try:
-        rows = max(4, min(64, req.rows))
-        cols = max(4, min(64, req.cols))
+        rows = max(4, min(128, req.rows))
+        cols = max(4, min(128, req.cols))
         browser_service.grid_rows = rows
         browser_service.grid_cols = cols
         return {"success": True, "rows": rows, "cols": cols}
     except Exception as e:
         logger.error(f"Error setting grid: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Small helper to get grid density
+@router.get("/grid")
+async def get_grid():
+    try:
+        return {"rows": browser_service.grid_rows, "cols": browser_service.grid_cols}
+    except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 # ============= Supervisor (Step Brain) =============
@@ -624,6 +623,7 @@ async def smoke_check(req: SmokeCheckRequest):
             "title": nav.get('title'),
             "screenshot_base64": screenshot_b64,
             "grid": {"rows": browser_service.grid_rows, "cols": browser_service.grid_cols},
+            "viewport": {"width": dom_data.get('vw', 1280), "height": dom_data.get('vh', 800)},
             "vision": vision
         }
     except Exception as e:
