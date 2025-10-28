@@ -135,37 +135,57 @@ class BrowserAutomationService:
         logger.info(f"✅ Created session: {session_id} (proxy={use_proxy})")
         return {'session_id': session_id, 'status': 'ready', 'proxy_enabled': use_proxy}
     
-    async def create_session_from_profile(self, profile_id: str, session_id: str, fingerprint: Dict[str, Any], proxy: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    async def create_session_from_profile(self, profile_id: str, session_id: str, fingerprint: Optional[Dict[str, Any]] = None, proxy: Optional[Dict[str, Any]] = None, meta: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """Create session strictly from profile meta (preferred), fallback to fingerprint dict."""
         await self.initialize()
-        user_agent = fingerprint.get('user_agent')
-        viewport = fingerprint.get('viewport', {'width': 1366, 'height': 768})
-        context_options = {
-            'viewport': viewport,
-            'user_agent': user_agent,
-            'locale': fingerprint.get('locale', 'en-US'),
-            'timezone_id': fingerprint.get('timezone_id', 'America/New_York'),
-            'record_video_dir': None,
-            'storage_state': None,  # will be overridden by profile storage_state if exists
-        }
-        # Apply proxy if provided
-        if proxy:
-            context_options['proxy'] = {
-                'server': proxy['server'],
-                'username': proxy.get('username'),
-                'password': proxy.get('password')
+        context_options: Dict[str, Any] = {}
+        if meta:
+            # New meta structure support
+            browser = meta.get('browser', {})
+            locale = meta.get('locale', {})
+            proxy_meta = meta.get('proxy', {})
+            context_options = {
+                'viewport': browser.get('viewport') or {'width': 1366, 'height': 768},
+                'user_agent': browser.get('user_agent'),
+                'locale': locale.get('locale', 'en-US'),
+                'timezone_id': locale.get('timezone_id', 'America/New_York'),
+                'accept_downloads': True,
             }
-        # Persistent dir
-        user_data_dir = f"/app/runtime/profiles/{profile_id}"
-        os.makedirs(user_data_dir, exist_ok=True)
-        # Load storage_state if exists
-        storage_path = f"/app/runtime/profiles/{profile_id}/storage_state.json"
-        if os.path.exists(storage_path):
-            context_options['storage_state'] = storage_path
+            # storage_state
+            storage_path = f"/app/runtime/profiles/{profile_id}/storage_state.json"
+            if os.path.exists(storage_path):
+                context_options['storage_state'] = storage_path
+            # proxy settings
+            if proxy_meta and proxy_meta.get('url'):
+                context_options['proxy'] = {'server': proxy_meta.get('url')}
+        else:
+            # Backward compatibility
+            fp = fingerprint or {}
+            context_options = {
+                'viewport': fp.get('viewport', {'width': 1366, 'height': 768}),
+                'user_agent': fp.get('user_agent'),
+                'locale': fp.get('locale', 'en-US'),
+                'timezone_id': fp.get('timezone_id', 'America/New_York'),
+                'record_video_dir': None,
+            }
+            if proxy:
+                context_options['proxy'] = {
+                    'server': proxy['server'],
+                    'username': proxy.get('username'),
+                    'password': proxy.get('password')
+                }
+            storage_path = f"/app/runtime/profiles/{profile_id}/storage_state.json"
+            if os.path.exists(storage_path):
+                context_options['storage_state'] = storage_path
         # Create context
         context = await self.browser.new_context(**context_options)
-        await AntiDetectFingerprint.apply_profile(context, fingerprint)
+        # Apply anti-detect patches based on provided data
+        try:
+            await AntiDetectFingerprint.apply_profile(context, meta or fingerprint or {})
+        except Exception as e:
+            logger.warning(f"apply_profile failed: {e}")
         page = await context.new_page()
-        self.sessions[session_id] = {'context': context, 'page': page, 'history': [], 'use_proxy': bool(proxy), 'profile_id': profile_id}
+        self.sessions[session_id] = {'context': context, 'page': page, 'history': [], 'use_proxy': bool(proxy or (meta and meta.get('proxy'))), 'profile_id': profile_id}
         logger.info(f"✅ Session from profile created: {session_id} (profile={profile_id})")
         return {'session_id': session_id, 'status': 'ready', 'profile_id': profile_id}
 
@@ -589,7 +609,7 @@ class BrowserAutomationService:
             raise ValueError(f"Session {session_id} not found")
         page = self.sessions[session_id]['page']
         try:
-            await page.mouse.wheel(dx, dy)
+            await HumanBehaviorSimulator.human_scroll(page, dy)
             await human_like_delay(200, 500)
             screenshot_b64 = await self.capture_screenshot(session_id)
             dom_data = await self._collect_dom_clickables(page)
