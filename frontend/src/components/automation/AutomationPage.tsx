@@ -214,6 +214,18 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
             <span className={`text-[10px] px-2 py-0.5 rounded ${agentStatus==='ERROR'?'bg-red-900/40 text-red-300': agentStatus==='ACTIVE'?'bg-green-900/40 text-green-300': 'bg-gray-900/40 text-gray-300'}`}>{agentStatus}</span>
           <div className="flex items-center gap-2">
             <label className="text-[10px] text-gray-400">Grid</label>
+          {/* Compact controls row for mobile */}
+          <div className="absolute bottom-1 left-2 right-2 flex items-center gap-2 z-10 md:hidden">
+            <button onClick={quickCreate} className="flex-1 px-2 py-1 text-[11px] bg-gray-800/70 hover:bg-gray-700/70 border border-gray-700 rounded text-gray-200">Create</button>
+            <button onClick={quickNavigate} className="flex-1 px-2 py-1 text-[11px] bg-blue-800/70 hover:bg-blue-700/70 border border-blue-700 rounded text-blue-200">Go</button>
+            <button onClick={async()=>{
+              try {
+                const resp = await fetch(`${BASE_URL}/api/automation/smoke-check`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url: quickUrl, use_proxy: false }) });
+                const data = await resp.json();
+                if (data?.screenshot_base64) setPendingSrc(data.screenshot_base64);
+              } catch (e:any) { alert(e.message || 'Smoke-check failed'); }
+            }} className="px-2 py-1 text-[11px] bg-green-800/70 hover:bg-green-700/70 border border-green-700 rounded text-green-200">Smoke</button>
+          </div>
             <select value={gridPreset} onChange={async (e:any)=>{
               const v = e.target.value as typeof gridPreset;
               setGridPreset(v);
