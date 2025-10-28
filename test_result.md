@@ -356,6 +356,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ VERIFIED: Hook log endpoint working correctly. Returns proper observation object with all required fields (logs, status, job_id, result_ready, total_steps, timestamp, observation, session_id). Agent status tracking operational."
+      - working: true
+        agent: "testing"
+        comment: "✅ RE-VERIFIED: Automation smoke test confirmed hook log working. Successfully retrieved hook log with observation object containing screenshot_id from smoke-check. Agent status tracking and observation logging fully operational."
 
   - task: "POST /api/hook/control - Agent Control System"
     implemented: true
