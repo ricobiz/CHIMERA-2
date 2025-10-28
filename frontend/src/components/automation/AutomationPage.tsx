@@ -436,7 +436,7 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
             <button onClick={()=>{ lastSnapshotRef.current=null; setVision([]); drawCanvas(); }} className="w-8 h-8 bg-gray-900/70 hover:bg-gray-800/70 border border-gray-700 rounded text-[10px] text-gray-200">Clr</button>
             <button onClick={()=> setShowDetections(v=>!v)} className="w-8 h-8 bg-gray-900/70 hover:bg-gray-800/70 border border-gray-700 rounded text-[10px] text-gray-200">Hide</button>
           </div>
-          <div className="absolute right-2 top-[60%] -translate-y-1/2 flex flex-col gap-2 z-20">
+          <div className="absolute right-1 top-[55%] -translate-y-1/2 flex flex-col gap-1.5 z-20">
             <button onClick={()=> setShowGrid(s=>!s)} className="w-8 h-8 bg-gray-900/70 hover:bg-gray-800/70 border border-gray-700 rounded text-[10px] text-gray-200">Grid</button>
             <button onClick={()=> setShowPlan(v=>!v)} className="w-8 h-8 bg-gray-900/70 hover:bg-gray-800/70 border border-gray-700 rounded text-[10px] text-gray-200">Plan</button>
             <button onClick={()=> {}} className="w-8 h-8 bg-gray-900/70 hover:bg-gray-800/70 border border-gray-700 rounded text-[10px] text-gray-200">MkUp</button>
@@ -449,7 +449,7 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
               <button onClick={()=>{ lastSnapshotRef.current=null; setVision([]); drawCanvas(); }} className="w-8 h-8 bg-gray-900/70 hover:bg-gray-800/70 border border-gray-700 rounded text-[10px] text-gray-200">Clr</button>
               <button onClick={()=> setShowDetections(v=>!v)} className="w-8 h-8 bg-gray-900/70 hover:bg-gray-800/70 border border-gray-700 rounded text-[10px] text-gray-200">Hide</button>
             </div>
-            <div className="absolute right-2 top-[60%] -translate-y-1/2 flex flex-col gap-2 z-20">
+            <div className="absolute right-1 top-[55%] -translate-y-1/2 flex flex-col gap-1.5 z-20">
               <button onClick={()=> setShowGrid(s=>!s)} className="w-8 h-8 bg-gray-900/70 hover:bg-gray-800/70 border border-gray-700 rounded text-[10px] text-gray-200">Grid</button>
               <button onClick={()=> setShowPlan(v=>!v)} className="w-8 h-8 bg-gray-900/70 hover:bg-gray-800/70 border border-gray-700 rounded text-[10px] text-gray-200">Plan</button>
               <button onClick={()=> {}} className="w-8 h-8 bg-gray-900/70 hover:bg-gray-800/70 border border-gray-700 rounded text-[10px] text-gray-200">MkUp</button>
