@@ -489,7 +489,7 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
           )}
 
           {displaySrc ? (
-            <img ref={imageRef} onLoad={updateOverlayRect} onClick={handleImageClick} src={`data:image/png;base64,${displaySrc}`} alt="screenshot" className="max-h-full object-contain cursor-crosshair select-none" style={{ maxWidth: 'calc(100% - 96px)' }} />
+            <img ref={imageRef} onLoad={updateOverlayRect} onClick={handleImageClick} src={`data:image/png;base64,${displaySrc}`} alt="screenshot" className="max-h-full object-contain cursor-crosshair select-none" style={{ maxWidth: 'calc(100% - 144px)' }} />
           ) : (
             <div className="text-xs text-gray-600" style={{ width: 'calc(100% - 96px)', textAlign: 'center' }}>No screenshot</div>
           )}
