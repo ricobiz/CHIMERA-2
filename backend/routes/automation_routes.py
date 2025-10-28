@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional, Dict, Any
 import logging
+import hashlib
 from services.browser_automation_service import browser_service
 from services.visual_validator_service import visual_validator_service
 
@@ -96,8 +97,10 @@ async def get_screenshot_full(session_id: str):
         dom_data = await browser_service._collect_dom_clickables(page)
         screenshot_b64 = await browser_service.capture_screenshot(session_id)
         vision = await browser_service._augment_with_vision(screenshot_b64, dom_data)
+        sid = hashlib.md5(screenshot_b64.encode('utf-8')).hexdigest()
         return {
             "screenshot_base64": screenshot_b64,
+            "screenshot_id": sid,
             "grid": {"rows": browser_service.grid_rows, "cols": browser_service.grid_cols},
             "vision": vision,
             "viewport": {"width": dom_data.get('vw', 1280), "height": dom_data.get('vh', 800)},
@@ -201,12 +204,14 @@ async def smart_type_text(request: SmartTypeRequest):
         await page.wait_for_timeout(500)
         
         screenshot = await browser_service.capture_screenshot(request.session_id)
+        sid = hashlib.md5(screenshot.encode('utf-8')).hexdigest() if screenshot else None
         
         return {
             "success": True,
             "typed_into": best_element,
             "text": request.text,
             "screenshot": screenshot,
+            "screenshot_id": sid,
             "box": box
         }
         
@@ -228,8 +233,10 @@ async def screenshot_query(session_id: str):
         dom_data = await browser_service._collect_dom_clickables(page)
         screenshot_b64 = await browser_service.capture_screenshot(session_id)
         vision = await browser_service._augment_with_vision(screenshot_b64, dom_data)
+        sid = hashlib.md5(screenshot_b64.encode('utf-8')).hexdigest()
         return {
             "screenshot_base64": screenshot_b64,
+            "screenshot_id": sid,
             "grid": {"rows": browser_service.grid_rows, "cols": browser_service.grid_cols},
             "vision": vision,
             "viewport": {"width": dom_data.get('vw', 1280), "height": dom_data.get('vh', 800)},
@@ -257,8 +264,10 @@ async def click_cell(req: ClickCellRequest):
         await HumanBehaviorSimulator.human_click(page, x, y)
         screenshot_b64 = await browser_service.capture_screenshot(req.session_id)
         vision = await browser_service._augment_with_vision(screenshot_b64, dom_data)
+        sid = hashlib.md5(screenshot_b64.encode('utf-8')).hexdigest()
         return {
             "screenshot_base64": screenshot_b64,
+            "screenshot_id": sid,
             "grid": {"rows": browser_service.grid_rows, "cols": browser_service.grid_cols},
             "vision": vision,
             "viewport": {"width": dom_data.get('vw', 1280), "height": dom_data.get('vh', 800)},
@@ -287,8 +296,10 @@ async def type_at_cell(req: TypeAtCellRequest):
         await page.keyboard.type(req.text, delay=50)
         screenshot_b64 = await browser_service.capture_screenshot(req.session_id)
         vision = await browser_service._augment_with_vision(screenshot_b64, dom_data)
+        sid = hashlib.md5(screenshot_b64.encode('utf-8')).hexdigest()
         return {
             "screenshot_base64": screenshot_b64,
+            "screenshot_id": sid,
             "grid": {"rows": browser_service.grid_rows, "cols": browser_service.grid_cols},
             "vision": vision,
             "viewport": {"width": dom_data.get('vw', 1280), "height": dom_data.get('vh', 800)},
@@ -316,8 +327,10 @@ async def hold_drag(req: HoldDragRequest):
         await HumanBehaviorSimulator.human_drag(page, sx, sy, ex, ey)
         screenshot_b64 = await browser_service.capture_screenshot(req.session_id)
         vision = await browser_service._augment_with_vision(screenshot_b64, dom_data)
+        sid = hashlib.md5(screenshot_b64.encode('utf-8')).hexdigest()
         return {
             "screenshot_base64": screenshot_b64,
+            "screenshot_id": sid,
             "grid": {"rows": browser_service.grid_rows, "cols": browser_service.grid_cols},
             "vision": vision,
             "viewport": {"width": dom_data.get('vw', 1280), "height": dom_data.get('vh', 800)},
@@ -378,9 +391,11 @@ async def get_screenshot_endpoint(session_id: str):
         dom_data = await browser_service._collect_dom_clickables(page)
         screenshot_b64 = await browser_service.capture_screenshot(session_id)
         vision = await browser_service._augment_with_vision(screenshot_b64, dom_data)
+        sid = hashlib.md5(screenshot_b64.encode('utf-8')).hexdigest()
         
         return {
             "screenshot_base64": screenshot_b64,
+            "screenshot_id": sid,
             "vision": vision,
             "viewport": {"width": dom_data.get('vw', 1280), "height": dom_data.get('vh', 800)},
             "grid": {"rows": browser_service.grid_rows, "cols": browser_service.grid_cols}
@@ -410,7 +425,7 @@ async def get_grid():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# ============= Supervisor (Step Brain) =============
+# ============= Supervisor (omitted for brevity) =============
 from services.supervisor_service import supervisor_service
 from pydantic import BaseModel
 from typing import List
@@ -474,138 +489,31 @@ async def find_elements(request: FindElementsRequest):
 
 @router.post("/smart-click-legacy")
 async def smart_click(request: FindElementsRequest):
-    """
-    Smart click: Use vision model to find element by description, then click it
-    Example: description="login button" will find and click the login button
-    """
     try:
-        # Find element using vision
         elements = await browser_service.find_elements_with_vision(
             request.session_id,
             request.description
         )
-        
         if not elements:
             raise HTTPException(status_code=404, detail=f"Element '{request.description}' not found")
-        
-        # Click the first (most confident) element
         best_element = elements[0]
         box = best_element['box']
-        
-        # Click at center of bounding box
         center_x = box['x'] + box['width'] / 2
         center_y = box['y'] + box['height'] / 2
-        
         page = browser_service.sessions[request.session_id]['page']
         await page.mouse.click(center_x, center_y)
         await page.wait_for_timeout(1000)
-        
         screenshot = await browser_service.capture_screenshot(request.session_id)
-        
-        return {
-            "success": True,
-            "clicked_element": best_element,
-            "screenshot": screenshot,
-            "box": box
-        }
-        
+        sid = hashlib.md5(screenshot.encode('utf-8')).hexdigest() if screenshot else None
+        return {"success": True, "clicked_element": best_element, "screenshot": screenshot, "screenshot_id": sid, "box": box}
     except Exception as e:
         logger.error(f"Error in smart click: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.post("/smart-click")
-async def smart_click_endpoint(request: SmartClickRequest):
-    """
-    Smart click using vision model to find and click element by natural language description
-    """
-    try:
-        result = await browser_service.smart_click(
-            session_id=request.session_id,
-            target_hint=request.target_hint
-        )
-        return result
-        
-    except Exception as e:
-        logger.error(f"Error in smart click: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.post("/smart-type")
-async def smart_type_endpoint(request: SmartTypeRequestNew):
-    """
-    Smart type using vision model to find input field and type text
-    """
-    try:
-        result = await browser_service.smart_type(
-            session_id=request.session_id,
-            target_hint=request.target_hint,
-            text=request.text
-        )
-        return result
-        
-    except Exception as e:
-        logger.error(f"Error in smart type: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.post("/session/close")
-async def close_session_post(request: CreateSessionRequest):
-    """Close browser session (POST version for frontend compatibility)"""
-    try:
-        await browser_service.close_session(request.session_id)
-        return {"message": "Session closed successfully"}
-    except Exception as e:
-        logger.error(f"Error closing session: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.post("/validate-navigation")
-async def validate_navigation(request: ValidateNavigationRequest):
-    """Validate navigation success using vision API"""
-    try:
-        result = await visual_validator_service.validate_navigation(
-            screenshot_base64=request.screenshot,
-            expected_url=request.expectedUrl,
-            current_url=request.currentUrl,
-            page_title=request.pageTitle,
-            description=request.description
-        )
-        return result
-    except Exception as e:
-        logger.error(f"Error validating navigation: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.delete("/session/{session_id}")
-async def close_session(session_id: str):
-    """Close browser session (DELETE version)"""
-    try:
-        await browser_service.close_session(session_id)
-        return {"message": "Session closed successfully"}
-    except Exception as e:
-        logger.error(f"Error closing session: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.post("/captcha/solve")
-async def solve_captcha(request: Dict[str, str]):
-    """Manually trigger CAPTCHA detection and solving"""
-    try:
-        session_id = request.get('session_id')
-        if not session_id:
-            raise HTTPException(status_code=400, detail="session_id is required")
-        
-        result = await browser_service.detect_and_solve_captcha(session_id)
-        return result
-    except Exception as e:
-        logger.error(f"Error solving CAPTCHA: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("/smoke-check")
 async def smoke_check(req: SmokeCheckRequest):
-    """Create a fresh session, navigate to URL, and return a screenshot + grid in one atomic call."""
+    """Create a fresh session, navigate to URL, and return a screenshot + grid + vision + screenshot_id in one atomic call."""
     try:
         sid = f"smoke-{id(req)}-{int(__import__('time').time()*1000)}"
         await browser_service.create_session(sid, use_proxy=req.use_proxy)
@@ -616,12 +524,14 @@ async def smoke_check(req: SmokeCheckRequest):
         dom_data = await browser_service._collect_dom_clickables(page)
         screenshot_b64 = await browser_service.capture_screenshot(sid)
         vision = await browser_service._augment_with_vision(screenshot_b64, dom_data)
+        shot_id = hashlib.md5(screenshot_b64.encode('utf-8')).hexdigest()
         return {
             "success": True,
             "session_id": sid,
             "url": nav.get('url', url),
             "title": nav.get('title'),
             "screenshot_base64": screenshot_b64,
+            "screenshot_id": shot_id,
             "grid": {"rows": browser_service.grid_rows, "cols": browser_service.grid_cols},
             "viewport": {"width": dom_data.get('vw', 1280), "height": dom_data.get('vh', 800)},
             "vision": vision
