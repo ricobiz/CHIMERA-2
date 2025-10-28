@@ -476,6 +476,10 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
               </div>
             </div>
           )}
+          <div className="mt-2 flex items-center gap-2">
+            <button onClick={()=> setShowPlan(v=>!v)} className="px-2 py-1 text-[11px] border rounded bg-gray-800/60 border-gray-700 text-gray-300">{showPlan ? 'Hide Plan' : 'Show Plan'}</button>
+          </div>
+
 
 
           {showGrid && overlayRect && (
