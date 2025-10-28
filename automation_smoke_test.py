@@ -142,6 +142,7 @@ class AutomationSmokeTest:
                             "session_id": self.session_id,
                             "screenshot_length": len(str(data.get('screenshot_base64', ''))),
                             "vision_count": len(data.get('vision', [])),
+                            "vision_empty_ok": True,  # Vision can be empty
                             "has_viewport": bool(data.get('viewport')),
                             "has_grid": bool(data.get('grid'))
                         }
