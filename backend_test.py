@@ -1456,6 +1456,376 @@ export default App;""",
                 {"error_type": type(e).__name__}
             )
     
+    def test_profile_lifecycle_endpoints(self):
+        """Test Profile Lifecycle Endpoints per Review Request Specification"""
+        print("\n🧪 Testing Profile Lifecycle Endpoints - REVIEW REQUEST SPECIFICATION...")
+        
+        created_profile_id = None
+        
+        # Step 1: Create a profile with region="US"
+        print("   Step 1: Creating profile with region=US...")
+        create_payload = {
+            "region": "US"
+        }
+        
+        try:
+            response = self.session.post(
+                f"{BACKEND_URL}/profile/create",
+                json=create_payload,
+                timeout=60  # Profile creation takes time due to warmup
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check required fields per spec
+                required_fields = ['profile_id', 'is_warm']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if not missing_fields:
+                    created_profile_id = data['profile_id']
+                    is_warm = data.get('is_warm')
+                    
+                    if is_warm == True:
+                        self.log_test(
+                            "Profile Create - Success",
+                            True,
+                            f"Profile created with ID: {created_profile_id}, is_warm=true",
+                            {"profile_id": created_profile_id, "is_warm": is_warm}
+                        )
+                        
+                        # Validate meta.json file exists and has correct fields
+                        self.validate_profile_meta_file(created_profile_id)
+                        
+                    else:
+                        self.log_test(
+                            "Profile Create - Not Warm",
+                            False,
+                            f"Profile created but is_warm={is_warm}, expected true",
+                            {"profile_id": created_profile_id, "is_warm": is_warm}
+                        )
+                else:
+                    self.log_test(
+                        "Profile Create - Missing Fields",
+                        False,
+                        f"Response missing required fields: {missing_fields}",
+                        {"missing_fields": missing_fields, "response_keys": list(data.keys())}
+                    )
+                    return
+            else:
+                self.log_test(
+                    "Profile Create - HTTP Error",
+                    False,
+                    f"HTTP {response.status_code}: {response.text}",
+                    {"status_code": response.status_code}
+                )
+                return
+                
+        except requests.exceptions.Timeout:
+            self.log_test(
+                "Profile Create - Timeout",
+                False,
+                "Profile creation timed out after 60 seconds",
+                {"timeout": 60}
+            )
+            return
+        except Exception as e:
+            self.log_test(
+                "Profile Create - Exception",
+                False,
+                f"Unexpected error: {str(e)}",
+                {"error_type": type(e).__name__}
+            )
+            return
+        
+        if not created_profile_id:
+            return
+        
+        # Step 2: Use the profile
+        print("   Step 2: Using profile to create session...")
+        use_payload = {
+            "profile_id": created_profile_id
+        }
+        
+        session_id = None
+        
+        try:
+            response = self.session.post(
+                f"{BACKEND_URL}/profile/use",
+                json=use_payload,
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if 'session_id' in data:
+                    session_id = data['session_id']
+                    self.log_test(
+                        "Profile Use - Success",
+                        True,
+                        f"Session created: {session_id}",
+                        {"session_id": session_id, "profile_id": created_profile_id}
+                    )
+                    
+                    # Validate meta updates (used_count++, last_used updated)
+                    self.validate_profile_meta_updates(created_profile_id)
+                    
+                else:
+                    self.log_test(
+                        "Profile Use - Missing Session ID",
+                        False,
+                        "Response missing session_id field",
+                        {"response_keys": list(data.keys())}
+                    )
+            else:
+                self.log_test(
+                    "Profile Use - HTTP Error",
+                    False,
+                    f"HTTP {response.status_code}: {response.text}",
+                    {"status_code": response.status_code}
+                )
+                
+        except Exception as e:
+            self.log_test(
+                "Profile Use - Exception",
+                False,
+                f"Unexpected error: {str(e)}",
+                {"error_type": type(e).__name__}
+            )
+        
+        # Step 3: Check profile status
+        print("   Step 3: Checking profile status...")
+        try:
+            response = self.session.get(
+                f"{BACKEND_URL}/profile/{created_profile_id}/status",
+                timeout=15
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check required fields per spec
+                required_fields = ['profile_id', 'created_at', 'last_used', 'used_count', 'proxy']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if not missing_fields:
+                    used_count = data.get('used_count', 0)
+                    proxy_info = data.get('proxy', {})
+                    
+                    # Validate proxy fields are present
+                    proxy_fields = ['ip', 'country', 'region', 'city', 'isp']
+                    missing_proxy_fields = [field for field in proxy_fields if not proxy_info.get(field)]
+                    
+                    if used_count >= 1 and not missing_proxy_fields:
+                        self.log_test(
+                            "Profile Status - Success",
+                            True,
+                            f"Status reflects usage: used_count={used_count}, proxy fields present",
+                            {"used_count": used_count, "proxy_fields": list(proxy_info.keys())}
+                        )
+                    else:
+                        issues = []
+                        if used_count < 1:
+                            issues.append(f"used_count={used_count} (expected >=1)")
+                        if missing_proxy_fields:
+                            issues.append(f"missing proxy fields: {missing_proxy_fields}")
+                        
+                        self.log_test(
+                            "Profile Status - Validation Failed",
+                            False,
+                            f"Status validation issues: {'; '.join(issues)}",
+                            {"used_count": used_count, "missing_proxy_fields": missing_proxy_fields}
+                        )
+                else:
+                    self.log_test(
+                        "Profile Status - Missing Fields",
+                        False,
+                        f"Response missing required fields: {missing_fields}",
+                        {"missing_fields": missing_fields, "response_keys": list(data.keys())}
+                    )
+            else:
+                self.log_test(
+                    "Profile Status - HTTP Error",
+                    False,
+                    f"HTTP {response.status_code}: {response.text}",
+                    {"status_code": response.status_code}
+                )
+                
+        except Exception as e:
+            self.log_test(
+                "Profile Status - Exception",
+                False,
+                f"Unexpected error: {str(e)}",
+                {"error_type": type(e).__name__}
+            )
+    
+    def validate_profile_meta_file(self, profile_id):
+        """Validate /app/runtime/profiles/{profile_id}/meta.json exists and has correct fields"""
+        print(f"   Validating meta.json file for profile {profile_id}...")
+        
+        import os
+        import json
+        
+        try:
+            meta_path = f"/app/runtime/profiles/{profile_id}/meta.json"
+            storage_path = f"/app/runtime/profiles/{profile_id}/storage_state.json"
+            
+            # Check if meta.json exists
+            if os.path.exists(meta_path):
+                with open(meta_path, 'r') as f:
+                    meta = json.load(f)
+                
+                # Check required fields per spec
+                required_checks = [
+                    ('status', 'warm'),
+                    ('warmup.is_warm', True),
+                    ('warmup.warmed_at', lambda x: x is not None),
+                    ('warmup.sites_visited', lambda x: isinstance(x, list) and len(x) > 0),
+                    ('browser.user_agent', lambda x: x is not None and len(x) > 0),
+                    ('locale.timezone_id', lambda x: x is not None),
+                    ('locale.locale', lambda x: x is not None),
+                    ('locale.languages', lambda x: isinstance(x, list) and len(x) > 0),
+                    ('proxy.ip', lambda x: x is not None),
+                    ('proxy.country', lambda x: x is not None),
+                    ('proxy.region', lambda x: x is not None),
+                    ('proxy.city', lambda x: x is not None),
+                    ('proxy.isp', lambda x: x is not None),
+                    ('proxy.timezone', lambda x: x is not None)
+                ]
+                
+                validation_results = []
+                for field_path, expected in required_checks:
+                    try:
+                        # Navigate nested fields
+                        value = meta
+                        for key in field_path.split('.'):
+                            value = value[key]
+                        
+                        if callable(expected):
+                            is_valid = expected(value)
+                        else:
+                            is_valid = value == expected
+                        
+                        validation_results.append((field_path, is_valid, value))
+                    except (KeyError, TypeError):
+                        validation_results.append((field_path, False, None))
+                
+                # Check if storage_state.json exists
+                storage_exists = os.path.exists(storage_path)
+                
+                failed_validations = [f for f, valid, _ in validation_results if not valid]
+                
+                if not failed_validations and storage_exists:
+                    sites_visited = meta.get('warmup', {}).get('sites_visited', [])
+                    expected_sites = ['google.com', 'youtube.com', 'reddit.com', 'amazon.com']
+                    sites_match = any(site in str(sites_visited) for site in expected_sites)
+                    
+                    self.log_test(
+                        "Profile Meta Validation - Success",
+                        True,
+                        f"Meta.json valid: status=warm, warmup.is_warm=true, storage_state.json exists, sites_visited includes expected sites",
+                        {"sites_visited": sites_visited, "storage_exists": storage_exists}
+                    )
+                else:
+                    issues = []
+                    if failed_validations:
+                        issues.append(f"failed fields: {failed_validations}")
+                    if not storage_exists:
+                        issues.append("storage_state.json missing")
+                    
+                    self.log_test(
+                        "Profile Meta Validation - Failed",
+                        False,
+                        f"Meta validation issues: {'; '.join(issues)}",
+                        {"failed_fields": failed_validations, "storage_exists": storage_exists}
+                    )
+            else:
+                self.log_test(
+                    "Profile Meta Validation - File Missing",
+                    False,
+                    f"Meta.json file not found at {meta_path}",
+                    {"meta_path": meta_path}
+                )
+                
+        except Exception as e:
+            self.log_test(
+                "Profile Meta Validation - Exception",
+                False,
+                f"Error validating meta file: {str(e)}",
+                {"error_type": type(e).__name__}
+            )
+    
+    def validate_profile_meta_updates(self, profile_id):
+        """Validate that meta.json was updated after profile use (used_count++, last_used updated)"""
+        print(f"   Validating meta.json updates for profile {profile_id}...")
+        
+        import os
+        import json
+        from datetime import datetime, timezone
+        
+        try:
+            meta_path = f"/app/runtime/profiles/{profile_id}/meta.json"
+            
+            if os.path.exists(meta_path):
+                with open(meta_path, 'r') as f:
+                    meta = json.load(f)
+                
+                used_count = meta.get('used_count', 0)
+                last_used = meta.get('last_used')
+                
+                # Check if used_count is incremented (should be >= 1 after use)
+                # Check if last_used is recent (within last 5 minutes)
+                if used_count >= 1 and last_used:
+                    try:
+                        last_used_dt = datetime.fromisoformat(last_used.replace('Z', '+00:00'))
+                        now = datetime.now(timezone.utc)
+                        time_diff = (now - last_used_dt).total_seconds()
+                        
+                        if time_diff < 300:  # Within 5 minutes
+                            self.log_test(
+                                "Profile Meta Updates - Success",
+                                True,
+                                f"Meta updated correctly: used_count={used_count}, last_used recent",
+                                {"used_count": used_count, "last_used": last_used, "time_diff_seconds": time_diff}
+                            )
+                        else:
+                            self.log_test(
+                                "Profile Meta Updates - Stale Timestamp",
+                                False,
+                                f"last_used timestamp too old: {time_diff} seconds ago",
+                                {"used_count": used_count, "time_diff_seconds": time_diff}
+                            )
+                    except Exception as dt_error:
+                        self.log_test(
+                            "Profile Meta Updates - Timestamp Parse Error",
+                            False,
+                            f"Could not parse last_used timestamp: {str(dt_error)}",
+                            {"last_used": last_used}
+                        )
+                else:
+                    self.log_test(
+                        "Profile Meta Updates - Not Updated",
+                        False,
+                        f"Meta not properly updated: used_count={used_count}, last_used={last_used}",
+                        {"used_count": used_count, "last_used": last_used}
+                    )
+            else:
+                self.log_test(
+                    "Profile Meta Updates - File Missing",
+                    False,
+                    f"Meta.json file not found for validation",
+                    {"meta_path": meta_path}
+                )
+                
+        except Exception as e:
+            self.log_test(
+                "Profile Meta Updates - Exception",
+                False,
+                f"Error validating meta updates: {str(e)}",
+                {"error_type": type(e).__name__}
+            )
+
     def test_chat_endpoint_critical_flow(self):
         """Test POST /api/chat endpoint - CRITICAL STUCK TASK (stuck_count: 2)"""
         print("\n🧪 Testing Chat Endpoint - CRITICAL SEQUENTIAL MESSAGES...")
