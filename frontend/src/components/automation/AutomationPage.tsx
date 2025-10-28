@@ -425,7 +425,7 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
             </select>
             <button onClick={() => setShowGrid(s => !s)} className="px-2 py-1 text-[11px] bg-gray-800/60 hover:bg-gray-700/60 border border-gray-700 rounded text-gray-300">{showGrid ? 'Hide' : 'Show'}</button>
             <button onClick={() => setPinMapping(p => !p)} className={`px-2 py-1 text-[11px] border rounded ${pinMapping? 'bg-teal-900/40 border-teal-700 text-teal-300' : 'bg-gray-800/60 border-gray-700 text-gray-300'}`}>{pinMapping? 'Pinned' : 'Pin'}</button>
-            <button onClick={() => { setOverlayVision(null); setOverlayViewport(null); setOverlayGrid(null); setLastDrawnShotId(null); drawCanvas(); }} className="px-2 py-1 text-[11px] bg-gray-800/60 hover:bg-gray-700/60 border border-gray-700 rounded text-gray-300">Clear</button>
+            <button onClick={() => { lastSnapshotRef.current = null; setVision([]); drawCanvas(); }} className="px-2 py-1 text-[11px] bg-gray-800/60 hover:bg-gray-700/60 border border-gray-700 rounded text-gray-300">Clear</button>
             <button onClick={quickNavigate} className="px-2 py-1 text-[11px] bg-blue-800/60 hover:bg-blue-700/60 border border-blue-700 rounded text-blue-300">Map</button>
             <button onClick={() => setShowFullscreen(true)} className="px-2 py-1 text-[11px] bg-gray-800/60 hover:bg-gray-700/60 border border-gray-700 rounded text-gray-300">Full</button>
           </div>
