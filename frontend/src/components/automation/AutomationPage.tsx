@@ -508,6 +508,20 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
           {displaySrc ? (
             <img ref={imageRef} onLoad={updateOverlayRect} onClick={handleImageClick} src={`data:image/png;base64,${displaySrc}`} alt="screenshot" className="max-w-full max-h-full object-contain cursor-crosshair select-none" />
           ) : (
+          {/* Zoom lens canvas */}
+          {overlayRect && lensEnabled && lensPos && (
+            <canvas
+              ref={lensCanvasRef}
+              className="absolute pointer-events-none rounded-full shadow-[0_0_12px_rgba(0,0,0,0.6)]"
+              style={{
+                left: overlayRect.left + Math.max(lensRadius, Math.min(overlayRect.width - lensRadius, lensPos.x)) - lensRadius,
+                top: overlayRect.top + Math.max(lensRadius, Math.min(overlayRect.height - lensRadius, lensPos.y)) - lensRadius,
+                width: lensRadius*2,
+                height: lensRadius*2
+              }}
+            />
+          )}
+
             <div className="text-xs text-gray-600">No screenshot</div>
           )}
 
