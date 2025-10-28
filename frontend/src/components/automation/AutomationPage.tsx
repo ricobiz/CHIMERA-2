@@ -66,6 +66,9 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
   const lastDrawnShotIdRef = useRef<string | null>(null);
   // Single source of truth for current vision for lists/UI (not for canvas)
   const [vision, setVision] = useState<any[]>([]);
+  const [planner, setPlanner] = useState<{strategy: string|null, steps: any[]}>({ strategy: null, steps: [] });
+  const [showPlan, setShowPlan] = useState<boolean>(true);
+
 
   const viewerRef = useRef<HTMLDivElement | null>(null);
   const imageRef = useRef<HTMLImageElement | null>(null);
