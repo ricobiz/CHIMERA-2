@@ -8,6 +8,7 @@ import asyncio
 import logging
 from typing import List, Tuple, Dict, Any, Optional
 from playwright.async_api import Page
+import os
 
 logger = logging.getLogger(__name__)
 
