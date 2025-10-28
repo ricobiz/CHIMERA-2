@@ -261,7 +261,7 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
 
       {/* Top: Live Viewer */}
       <div className="px-4 md:px-6 py-3 md:py-4 border-b border-gray-800 flex-shrink-0">
-        <div className="relative w-full h-72 md:h-[420px] border border-gray-800 rounded bg-black/60 overflow-hidden flex items-center justify-center pb-8">
+        <div className="relative w-full h-72 md:h-[420px] border border-gray-800 rounded bg-black/60 overflow-hidden flex items-center justify-center pb-10">
           {/* Quick test controls */}
           <div className="absolute top-2 left-2 right-2 hidden md:flex items-center gap-2 flex-wrap z-10">
             <input value={quickUrl} onChange={(e:any)=>setQuickUrl(e.target.value)} className="flex-1 px-2 py-1 text-xs bg-black/60 border border-gray-700 rounded text-gray-200 placeholder-gray-500" placeholder="https://..." />
