@@ -53,6 +53,7 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
   const [showFullscreen, setShowFullscreen] = useState<boolean>(false);
   const [displaySrc, setDisplaySrc] = useState<string | null>(null);
   const [pendingSrc, setPendingSrc] = useState<string | null>(null);
+  const [showDetections, setShowDetections] = useState<boolean>(true);
   // Quick test controls
   const [quickUrl, setQuickUrl] = useState<string>('https://google.com');
   const [quickSessionId, setQuickSessionId] = useState<string | null>(null);
