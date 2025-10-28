@@ -82,6 +82,10 @@ class GridSetRequest(BaseModel):
     rows: int
     cols: int
 
+class GridGetResponse(BaseModel):
+    rows: int
+    cols: int
+
 class SmokeCheckRequest(BaseModel):
     url: Optional[str] = None
     use_proxy: bool = False
