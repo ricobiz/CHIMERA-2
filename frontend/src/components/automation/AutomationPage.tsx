@@ -677,47 +677,6 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
 
         {/* Bottom toolbar - все кнопки в один ряд ПОД viewer'ом */}
         <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
-          {/* ExecutionAgent Controls */}
-          {!isExecuting ? (
-            <button 
-              onClick={startAutomation} 
-              disabled={!taskText.trim()}
-              className="px-4 py-2 text-sm font-medium bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 disabled:from-gray-700 disabled:to-gray-600 disabled:cursor-not-allowed border border-green-500 disabled:border-gray-600 rounded-lg text-white shadow-lg transition-all"
-            >
-              <span className="flex items-center gap-2">
-                <PlayIcon className="w-4 h-4" />
-                Start Automation
-              </span>
-            </button>
-          ) : (
-            <>
-              <button 
-                onClick={togglePause}
-                className="px-4 py-2 text-sm font-medium bg-yellow-600/90 hover:bg-yellow-500/90 border border-yellow-500 rounded-lg text-white shadow-lg transition-all"
-              >
-                <span className="flex items-center gap-2">
-                  {executionStatus === 'paused' ? (
-                    <><PlayIcon className="w-4 h-4" /> Resume</>
-                  ) : (
-                    <><PauseIcon className="w-4 h-4" /> Pause</>
-                  )}
-                </span>
-              </button>
-              <button 
-                onClick={stopAutomation}
-                className="px-4 py-2 text-sm font-medium bg-red-600/90 hover:bg-red-500/90 border border-red-500 rounded-lg text-white shadow-lg transition-all"
-              >
-                <span className="flex items-center gap-2">
-                  <StopIcon className="w-4 h-4" />
-                  Stop
-                </span>
-              </button>
-            </>
-          )}
-          
-          {/* Divider */}
-          <div className="h-8 w-px bg-gray-700"></div>
-          
           {/* Existing buttons */}
           <button onClick={quickNavigate} className="px-3 py-1.5 text-xs bg-blue-900/70 hover:bg-blue-800/70 border border-blue-800 rounded text-blue-200">Map</button>
           <button onClick={()=> setPinMapping(p => !p)} className={`px-3 py-1.5 text-xs border rounded ${pinMapping? 'bg-teal-900/40 border-teal-700 text-teal-300' : 'bg-gray-900/70 border-gray-700 text-gray-200'}`}>{pinMapping? 'Pinned' : 'Pin'}</button>
