@@ -393,8 +393,8 @@ async def get_screenshot_endpoint(session_id: str):
 @router.post("/grid/set")
 async def set_grid_density(req: GridSetRequest):
     try:
-        rows = max(4, min(128, req.rows))
-        cols = max(4, min(128, req.cols))
+        rows = max(4, min(256, req.rows))
+        cols = max(4, min(256, req.cols))
         browser_service.grid_rows = rows
         browser_service.grid_cols = cols
         return {"success": True, "rows": rows, "cols": cols}
