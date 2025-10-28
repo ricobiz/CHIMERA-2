@@ -186,31 +186,7 @@ class ProfileService:
 
         await browser_service.create_session_from_profile(profile_id=profile_id, session_id=session_id, meta=meta)
 
-        # Optional Warmup
-        if warmup:
-            await self._warmup(session_id)
-            # Save storage_state after warmup
-            try:
-                ctx = browser_service.sessions[session_id]['context']
-                await ctx.storage_state(path=self._storage_path(profile_id))
-            except Exception as e:
-                logger.warning(f"storage_state save error: {e}")
-            # Update meta
-            meta = self.read_meta(profile_id)
-            meta['warmup'] = {"is_warm": True, "warmed_at": datetime.now(timezone.utc).isoformat(), "sites_visited": ["google.com","youtube.com","reddit.com","amazon.com"]}
-            meta['status'] = 'warm'
-            self.write_meta(profile_id, meta)
-            # Close session after warmup to flush data
-            await browser_service.close_session(session_id)
-        else:
-            # No warmup: leave as fresh
-            meta = self.read_meta(profile_id)
-            meta['status'] = 'fresh'
-            meta['warmup'] = {"is_warm": False, "warmed_at": None, "sites_visited": []}
-            self.write_meta(profile_id, meta)
-            await browser_service.close_session(session_id)
-
-        # After context created, fetch ipinfo via Playwright (ensures request goes through proxy)
+        # Fetch ipinfo via Playwright (ensures request goes through proxy)
         try:
             page = browser_service.sessions[session_id]['page']
             resp = await page.request.get(IPINFO_URL)
@@ -237,6 +213,30 @@ class ProfileService:
                 self.write_meta(profile_id, meta)
         except Exception as e:
             logger.warning(f"ipinfo via page failed: {e}")
+
+        # Optional Warmup
+        if warmup:
+            await self._warmup(session_id)
+            # Save storage_state after warmup
+            try:
+                ctx = browser_service.sessions[session_id]['context']
+                await ctx.storage_state(path=self._storage_path(profile_id))
+            except Exception as e:
+                logger.warning(f"storage_state save error: {e}")
+            # Update meta
+            meta = self.read_meta(profile_id)
+            meta['warmup'] = {"is_warm": True, "warmed_at": datetime.now(timezone.utc).isoformat(), "sites_visited": ["google.com","youtube.com","reddit.com","amazon.com"]}
+            meta['status'] = 'warm'
+            self.write_meta(profile_id, meta)
+        else:
+            # No warmup: leave as fresh
+            meta = self.read_meta(profile_id)
+            meta['status'] = 'fresh'
+            meta['warmup'] = {"is_warm": False, "warmed_at": None, "sites_visited": []}
+            self.write_meta(profile_id, meta)
+
+        # Close session after warmup/setup to flush data
+        await browser_service.close_session(session_id)
 
         # Response summary
         summary = {
