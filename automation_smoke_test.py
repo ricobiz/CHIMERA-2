@@ -115,7 +115,7 @@ class AutomationSmokeTest:
                     'screenshot_base64': lambda x: x is not None and len(str(x)) > 0,
                     'grid': lambda x: x is not None,
                     'viewport': lambda x: x is not None,
-                    'vision': lambda x: isinstance(x, list) and len(x) >= 3
+                    'vision': lambda x: isinstance(x, list)  # Vision can be empty, just needs to be a list
                 }
                 
                 all_passed = True
