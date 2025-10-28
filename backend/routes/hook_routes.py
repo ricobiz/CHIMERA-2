@@ -92,6 +92,7 @@ async def observe(session_id: str):
             "status": "idle",
             "url": page.url,
             "page_state": page_state,
+            "analysis": current_analysis,
             "plan": {
                 "strategy": current_plan.get('strategy') if current_plan else None,
                 "steps": current_plan.get('steps') if current_plan else []
