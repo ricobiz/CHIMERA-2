@@ -163,6 +163,13 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
           lastSnapshotRef.current = { shotId: obs.screenshot_id || null, vision: v, viewport: obs.viewport || null, grid: obs.grid || null };
           if (obs.screenshot_base64) setPendingSrc(obs.screenshot_base64);
           lastDrawnShotIdRef.current = obs.screenshot_id || null;
+      try {
+        const ana = (data.analysis || data.observation?.analysis || null);
+        setAnalysis(ana);
+        const warmReady = !!(ana?.analysis?.availability?.profile?.is_warm);
+        setShowWarmBanner(!warmReady);
+      } catch {}
+
           setVision(v);
         }
       // Capture plan for overlay
