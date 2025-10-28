@@ -68,6 +68,11 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
   const [vision, setVision] = useState<any[]>([]);
   const [planner, setPlanner] = useState<{strategy: string|null, steps: any[]}>({ strategy: null, steps: [] });
   const [showPlan, setShowPlan] = useState<boolean>(true);
+  const [analysis, setAnalysis] = useState<any>(null);
+  const [showWarmBanner, setShowWarmBanner] = useState<boolean>(false);
+  const [importModalOpen, setImportModalOpen] = useState<boolean>(false);
+  const [adjustMsg, setAdjustMsg] = useState<string>("");
+
 
 
   const viewerRef = useRef<HTMLDivElement | null>(null);
