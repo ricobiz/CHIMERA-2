@@ -224,7 +224,7 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
     const y = (e.clientY - rect.top) / rect.height;
     if (x < 0 || x > 1 || y < 0 || y > 1) return;
     const [cols, rows] = (gridPreset || '24x16').split('x').map(n => parseInt(n, 10));
-    const colIndex = Math.min(Math.max(Math.floor(x * cols), 0), Math.min(cols - 1, 25)); // cap to Z
+    const colIndex = Math.min(Math.max(Math.floor(x * cols), 0), cols - 1);
     const rowIndex = Math.min(Math.max(Math.floor(y * rows), 0), rows - 1);
     const colLetter = String.fromCharCode('A'.charCodeAt(0) + colIndex);
     const cell = `${colLetter}${rowIndex + 1}`;
