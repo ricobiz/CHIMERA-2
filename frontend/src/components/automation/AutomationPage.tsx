@@ -256,6 +256,100 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
     }
   };
 
+  // ExecutionAgent: Start automation with real browser execution
+  const startAutomation = useCallback(async () => {
+    if (!taskText.trim() || isExecuting) return;
+    
+    console.log('[AutomationPage] Starting automation with ExecutionAgent');
+    setIsExecuting(true);
+    setExecutionStatus('planning');
+    setCurrentStepIndex(0);
+    setAgentLogs([]);
+    setCurrentActionSubtitle('Initializing automation...');
+
+    // Setup state callback for ExecutionAgent
+    executionAgent.setStateCallback((updates) => {
+      console.log('[AutomationPage] ExecutionAgent state update:', updates);
+      
+      if (updates.status) {
+        setExecutionStatus(updates.status);
+        if (updates.status === 'planning') {
+          setCurrentActionSubtitle('Analyzing task and creating plan...');
+        } else if (updates.status === 'executing') {
+          setCurrentActionSubtitle('Executing automation steps...');
+        } else if (updates.status === 'completed') {
+          setCurrentActionSubtitle('✅ Automation completed successfully!');
+          setIsExecuting(false);
+        } else if (updates.status === 'failed') {
+          setCurrentActionSubtitle('❌ Automation failed');
+          setIsExecuting(false);
+        }
+      }
+      
+      if (updates.browserState) {
+        setBrowserState(updates.browserState);
+        // Update screenshot display
+        if (updates.browserState.screenshot) {
+          setDisplaySrc(updates.browserState.screenshot);
+        }
+      }
+      
+      if (updates.logEntries && updates.logEntries.length > 0) {
+        setAgentLogs(prev => [...prev, ...updates.logEntries]);
+        // Update subtitle with current action
+        const lastLog = updates.logEntries[updates.logEntries.length - 1];
+        if (lastLog && lastLog.details) {
+          setCurrentActionSubtitle(lastLog.details);
+        }
+      }
+      
+      if (typeof updates.currentStepIndex === 'number') {
+        setCurrentStepIndex(updates.currentStepIndex);
+      }
+    });
+
+    // Start automation
+    try {
+      await executionAgent.startAutomation(taskText, {
+        browserState,
+        logEntries: [],
+        currentStepIndex: 0,
+        status: 'idle',
+        requiresUserInput: null,
+        result: null
+      });
+    } catch (error: any) {
+      console.error('[AutomationPage] Automation error:', error);
+      setCurrentActionSubtitle(`❌ Error: ${error.message}`);
+      setIsExecuting(false);
+      setExecutionStatus('failed');
+    }
+  }, [taskText, isExecuting, browserState]);
+
+  // Pause/Resume execution
+  const togglePause = useCallback(() => {
+    if (executionAgent.isPaused()) {
+      console.log('[AutomationPage] Resuming automation');
+      executionAgent.resume();
+      setExecutionStatus('executing');
+      setCurrentActionSubtitle('▶️ Resuming automation...');
+    } else {
+      console.log('[AutomationPage] Pausing automation');
+      executionAgent.pause();
+      setExecutionStatus('paused');
+      setCurrentActionSubtitle('⏸️ Automation paused');
+    }
+  }, []);
+
+  // Stop execution
+  const stopAutomation = useCallback(() => {
+    console.log('[AutomationPage] Stopping automation');
+    executionAgent.abort();
+    setIsExecuting(false);
+    setExecutionStatus('idle');
+    setCurrentActionSubtitle('⏹️ Automation stopped');
+  }, []);
+
   const recheckProfile = async () => {
     const id = profileId || prompt('Profile ID to re-check');
     if (!id) return;
