@@ -1489,6 +1489,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ VERIFIED: Profile use endpoint working perfectly. Successfully creates browser session from existing profile. Returns session_id for automation use. Session creation fast (~2-3 seconds) as profile is already warmed up. Updates profile metadata (last_used, used_count)."
+      - working: true
+        agent: "testing"
+        comment: "✅ RE-VERIFIED: Profile use per review spec working correctly. Used profile cb6b3215-4fe7-4286-9f72-96a6644047a3, returned session_id sess-cb6b3215-afc0. Quick navigation to google.com completed inside service as required. Meta updated: used_count incremented from 0 to 1, last_used timestamp updated to 2025-10-28T15:08:08.805664+00:00. Session creation fast (~2-3 seconds)."
 
   - task: "GET /api/automation/screenshot/{session_id} - Screenshot with Vision"
     implemented: true
