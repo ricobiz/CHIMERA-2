@@ -345,6 +345,7 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
         ctx.shadowBlur = 0;
         ctx.fillRect(x, Math.max(0,y-th-2), tw, th);
   // Draw zoom lens
+  useEffect(() => { drawLens(); }, [drawLens]);
   const drawLens = useCallback(() => {
     const lens = lensCanvasRef.current;
     const img = imageRef.current;
