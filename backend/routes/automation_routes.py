@@ -162,6 +162,14 @@ async def click_element(request: ClickRequest):
         logger.error(f"Error clicking: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+# Small helper to get grid density
+@router.get("/grid")
+async def get_grid():
+    try:
+        return {"rows": browser_service.grid_rows, "cols": browser_service.grid_cols}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 @router.post("/type")
 async def type_text(request: TypeRequest):
