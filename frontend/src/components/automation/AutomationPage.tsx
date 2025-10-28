@@ -45,8 +45,12 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
   const [quickError, setQuickError] = useState<string | null>(null);
 
   const viewerRef = useRef<HTMLDivElement | null>(null);
+  const imageRef = useRef<HTMLImageElement | null>(null);
   const logsEndRef = useRef<HTMLDivElement | null>(null);
   const pollRef = useRef<any>(null);
+
+  // Tap feedback on grid
+  const [tapCell, setTapCell] = useState<{cell: string; left: number; top: number} | null>(null);
 
   // Smooth screenshot swapping
   useEffect(() => {
@@ -139,7 +143,7 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
   // Ghost cursor position from last action
   const ghostCell = useMemo(() => {
     const step = [...(logs||[])].reverse().find(l => l?.action?.includes('CLICK_CELL') || l?.action?.includes('TYPE_AT_CELL') || l?.action?.includes('HOLD_DRAG'));
-    const match = step?.action?.match(/[A-H][0-9]{1,2}/)?.[0];
+    const match = step?.action?.match(/[A-Z][0-9]{1,2}/)?.[0];
     return match || null;
   }, [logs]);
 
@@ -155,19 +159,6 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
   };
 
   // Quick test: create session, navigate and screenshot
-  const quickCreate = async () => {
-    try {
-      const sid = 'auto-' + Date.now();
-      setQuickError(null);
-      const resp = await fetch(`${BASE_URL}/api/automation/session/create`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ session_id: sid, use_proxy: false }) });
-      const data = await resp.json();
-      if (!resp.ok || !data.session_id) throw new Error(data.detail || 'create failed');
-      setQuickSessionId(data.session_id || sid);
-    } catch (e: any) {
-      alert(e.message || 'Quick create failed');
-    }
-  };
-
   const quickNavigate = async () => {
     try {
       setQuickError(null);
@@ -205,6 +196,24 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
     }
   };
 
+  // Click handler on the screenshot to show calculated cell
+  const handleImageClick = (e: React.MouseEvent<HTMLImageElement>) => {
+    const img = imageRef.current;
+    if (!img) return;
+    const rect = img.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width;
+    const y = (e.clientY - rect.top) / rect.height;
+    if (x < 0 || x > 1 || y < 0 || y > 1) return;
+    const [cols, rows] = (gridPreset || '24x16').split('x').map(n => parseInt(n, 10));
+    const colIndex = Math.min(Math.max(Math.floor(x * cols), 0), Math.min(cols - 1, 25)); // cap to Z
+    const rowIndex = Math.min(Math.max(Math.floor(y * rows), 0), rows - 1);
+    const colLetter = String.fromCharCode('A'.charCodeAt(0) + colIndex);
+    const cell = `${colLetter}${rowIndex + 1}`;
+    setTapCell({ cell, left: ((colIndex + 0.5) / cols) * 100, top: ((rowIndex + 0.5) / rows) * 100 });
+    // auto hide
+    setTimeout(() => setTapCell(null), 1200);
+  };
+
   return (
     <div className="flex flex-col bg-[#0f0f10] text-gray-100 overflow-x-hidden" style={{ height: '100dvh' }}>
       {/* Header */}
@@ -231,7 +240,7 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
               setGridPreset(v);
               const [cols, rows] = v.split('x').map((n)=>parseInt(n,10));
               try { await fetch(`${BASE_URL}/api/automation/grid/set`, { method: 'POST', headers: { 'Content-Type':'application/json' }, body: JSON.stringify({ rows, cols }) }); } catch {}
-            }} className="px-1.5 py-1 text-[11px] bg-gray-800/60 border border-gray-700 rounded text-gray-300 w-20">
+            }} className="px-1.5 py-1 text[11px] bg-gray-800/60 border border-gray-700 rounded text-gray-300 w-20">
               <option value="8x6">8×6</option>
               <option value="12x8">12×8</option>
               <option value="16x12">16×12</option>
@@ -252,13 +261,18 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
           )}
 
           {displaySrc ? (
-            <img src={`data:image/png;base64,${displaySrc}`} alt="screenshot" className="max-w-full max-h-full object-contain" />
+            <img ref={imageRef} onClick={handleImageClick} src={`data:image/png;base64,${displaySrc}`} alt="screenshot" className="max-w-full max-h-full object-contain cursor-crosshair" />
           ) : (
             <div className="text-xs text-gray-600">No screenshot</div>
           )}
           {showGrid && (
             <div className="absolute inset-0 pointer-events-none">
               <div className="w-full h-full" style={{ backgroundImage: `linear-gradient(rgba(200,200,200,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(200,200,200,0.08) 1px, transparent 1px)`, backgroundSize: `${(100/((gridPreset.split('x')[0] as any)|0 || 16))}% ${(100/((gridPreset.split('x')[1] as any)|0 || 24))}%` }} />
+            </div>
+          )}
+          {tapCell && (
+            <div className="absolute" style={{ left: `${tapCell.left}%`, top: `${tapCell.top}%`, transform: 'translate(-50%, -50%)' }}>
+              <div className="px-1.5 py-0.5 text-[10px] rounded bg-black/80 border border-gray-600 text-gray-100">{tapCell.cell}</div>
             </div>
           )}
           {ghostCell && (
@@ -268,12 +282,12 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
           )}
         </div>
 
-        {/* URL + actions under viewer, universally (mobile + desktop) */}
+        {/* URL + actions under viewer */}
         <div className="mt-3">
           <input value={quickUrl} onChange={(e:any)=>setQuickUrl(e.target.value)} className="w-full px-3 py-2 text-[12px] bg-black/60 border border-gray-700 rounded text-gray-200 placeholder-gray-500" placeholder="https://..." />
           <div className="mt-2 grid grid-cols-2 gap-2">
             <button onClick={quickNavigate} className="px-2 py-2 text-[12px] bg-blue-800/70 hover:bg-blue-700/70 border border-blue-700 rounded text-blue-200 flex items-center justify-center gap-1"><span>Go</span></button>
-            <button onClick={async()=>{ try{ const resp = await fetch(`${BASE_URL}/api/automation/smoke-check`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ url: quickUrl, use_proxy:false }) }); const data = await resp.json(); if (data?.screenshot_base64) setPendingSrc(data.screenshot_base64);} catch(e:any){ alert(e.message||'Smoke failed');}}} className="px-2 py-2 text-[12px] bg-green-800/70 hover:bg-green-700/70 border border-green-700 rounded text-green-200 flex items-center justify-center gap-1"><span>Smoke</span></button>
+            <button onClick={async()=>{ try{ const resp = await fetch(`${BASE_URL}/api/automation/smoke-check`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ url: quickUrl, use_proxy:false }) }); const data = await resp.json(); if (data?.screenshot_base64) setPendingSrc(data.screenshot_base64);} catch(e:any){ alert(e.message||'Smoke failed');}}} className="px-2 py-2 text-[12px] bg-green-800/70 hover:bg-green-700/70 border border-green-700 rounded text-green-200 flex items-center justify-center gap-1"><BeakerIcon className="w-4 h-4"/><span>Smoke</span></button>
           </div>
         </div>
       </div>
@@ -282,7 +296,7 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
       <div className="flex-1 overflow-y-auto flex flex-col lg:flex-row gap-4 p-4 md:p-6">
         {/* Left Column */}
         <div className="lg:w-1/3 space-y-4">
-          {/* Controls (keep for desktop; on mobile, header icons suffice) */}
+          {/* Controls (desktop) */}
           <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-4 hidden md:block">
             <div className="text-sm text-gray-400 font-medium mb-2">Controls</div>
             <div className="flex gap-2">
