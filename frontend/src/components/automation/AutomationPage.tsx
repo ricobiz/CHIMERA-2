@@ -445,19 +445,7 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
           )}
 
           {/* Grid overlay aligned to image rect */}
-          {/* Zoom lens canvas */}
-          {overlayRect && lensEnabled && lensPos && (
-            <canvas
-              ref={lensCanvasRef}
-              className="absolute pointer-events-none rounded-full shadow-[0_0_12px_rgba(0,0,0,0.6)]"
-              style={{
-                left: overlayRect.left + Math.max(lensRadius, Math.min(overlayRect.width - lensRadius, lensPos.x)) - lensRadius,
-                top: overlayRect.top + Math.max(lensRadius, Math.min(overlayRect.height - lensRadius, lensPos.y)) - lensRadius,
-                width: lensRadius*2,
-                height: lensRadius*2
-              }}
-            />
-          )}
+          {/* Zoom lens disabled */}
 
           {showGrid && overlayRect && (
             <div ref={overlayRef} className="absolute pointer-events-none" style={{ left: overlayRect.left, top: overlayRect.top, width: overlayRect.width, height: overlayRect.height }}>
