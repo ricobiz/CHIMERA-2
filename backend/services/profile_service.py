@@ -191,6 +191,7 @@ class ProfileService:
                 "region": proxy_info.get('region'),
                 "city": proxy_info.get('city'),
                 "isp": proxy_info.get('org'),
+                "timezone": proxy_info.get('timezone'),
                 "proxy_type": "residential" if proxy_info.get('org','').lower().find('residential')!=-1 else "datacenter",
                 "risk_score": 0.2
             },
