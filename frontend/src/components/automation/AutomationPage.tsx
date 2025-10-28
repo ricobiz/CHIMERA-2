@@ -56,6 +56,7 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
   }, [pendingSrc]);
 
   const scrollToBottom = () => {
+    if (userReadingLogs) return; // don't jump while user reads
     try { logsEndRef.current?.scrollIntoView({ behavior: 'smooth' }); } catch {}
   };
   useEffect(() => { scrollToBottom(); }, [logs]);
