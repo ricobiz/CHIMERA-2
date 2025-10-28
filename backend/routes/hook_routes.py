@@ -56,6 +56,9 @@ class UserInputRequest(BaseModel):
     field: str
     value: str
 
+class AdjustRequest(BaseModel):
+    message: str
+
 # -------- Utilities --------
 
 def log_step(action: str, status: str = "ok", error: Optional[str] = None):
@@ -95,7 +98,8 @@ async def observe(session_id: str):
             "analysis": current_analysis,
             "plan": {
                 "strategy": current_plan.get('strategy') if current_plan else None,
-                "steps": current_plan.get('steps') if current_plan else []
+                "steps": current_plan.get('steps') if current_plan else [],
+                "hints": current_plan.get('hints') if current_plan else []
             }
         }
         return last_observation
@@ -103,73 +107,6 @@ async def observe(session_id: str):
         logger.error(f"[HOOK] observe error: {e}")
         last_observation = {"screenshot_base64": None, "vision": [], "grid": {"rows": 12, "cols": 8}, "status": "error"}
         return last_observation
-
-async def auto_solve_captcha(session_id: str) -> bool:
-    """Attempt automatic CAPTCHA solving without user involvement.
-       Heuristics: try checkbox/slider/puzzle via grid moves; fallback to VLM solver.
-    """
-    try:
-        obs = await observe(session_id)
-        vision = obs.get('vision', [])
-        # Simple heuristic: look for captcha keywords
-        keywords = ['captcha', "i'm not a robot", 'robot', 'verify', 'challenge']
-        slider_types = ['slider']
-        checkbox_types = ['checkbox']
-        found_keyword = any(any(k in (v.get('label','').lower()) for k in keywords) for v in vision)
-        found_slider = any(v.get('type') in slider_types for v in vision)
-        found_checkbox = any(v.get('type') in checkbox_types for v in vision)
-
-        # Try checkbox click
-        if found_checkbox:
-            target = next(v for v in vision if v.get('type') in checkbox_types)
-            from services.grid_service import GridConfig
-            grid = GridConfig(rows=browser_service.grid_rows, cols=browser_service.grid_cols)
-            await browser_service.wait(300)
-            page = browser_service.sessions[session_id]['page']
-            dom_data = await browser_service._collect_dom_clickables(page)
-            vw, vh = dom_data.get('vw', 1280), dom_data.get('vh', 800)
-            x, y = grid.cell_to_xy(target['cell'], vw, vh)
-            await HumanBehaviorSimulator.human_click(page, x, y)
-            await browser_service.wait(600)
-            await observe(session_id)
-            log_step(f"CAPTCHA checkbox clicked at {target['cell']}")
-
-            return True
-
-        # Try slider drag (drag right within same row by 2 columns)
-        if found_slider:
-            target = next(v for v in vision if v.get('type') in slider_types)
-            from services.grid_service import GridConfig
-            grid = GridConfig(rows=browser_service.grid_rows, cols=browser_service.grid_cols)
-            cell = target['cell']
-            col_letter = cell[0]
-            row_num = int(cell[1:])
-            to_col_index = min(ord(col_letter) - ord('A') + 2, browser_service.grid_cols - 1)
-            to_cell = f"{chr(ord('A') + to_col_index)}{row_num}"
-            page = browser_service.sessions[session_id]['page']
-            dom_data = await browser_service._collect_dom_clickables(page)
-            vw, vh = dom_data.get('vw', 1280), dom_data.get('vh', 800)
-            sx, sy = grid.cell_to_xy(cell, vw, vh)
-            ex, ey = grid.cell_to_xy(to_cell, vw, vh)
-            await HumanBehaviorSimulator.human_drag(page, sx, sy, ex, ey)
-            await browser_service.wait(800)
-            await observe(session_id)
-            log_step(f"CAPTCHA slider drag {cell} → {to_cell}")
-            return True
-
-        # Fallback to solver (vision VLM)
-        try:
-            solved = await browser_service.detect_and_solve_captcha(session_id)
-            if solved.get('success'):
-                log_step("CAPTCHA solved via VLM solver")
-                await observe(session_id)
-                return True
-        except Exception as e:
-            logger.warning(f"[HOOK] captcha solver fallback error: {e}")
-
-    except Exception as e:
-        logger.warning(f"[HOOK] auto_solve_captcha error: {e}")
-    return False
 
 @router.post('/control')
 async def control(req: ControlRequest):
@@ -202,39 +139,31 @@ async def exec_task(req: TaskRequest):
         global current_analysis, current_plan
         current_analysis = (await planner_analyze(AnalyzeRequest(goal=req.text)))
         log_step("Goal analyzed")
-        if not current_analysis.get('analysis', {}).get('decision', {}).get('can_proceed'):
-            reason = current_analysis.get('analysis', {}).get('decision', {}).get('reason') or 'cannot proceed'
-            log_step(f"Analysis denied: {reason}", status="error")
-            return {"status": "ABORTED", "reason": reason, "analysis": current_analysis}
-
         # Step 2: Generate plan
         current_plan = (await planner_generate(GenerateRequest(task_id=current_analysis['task_id'], analysis=current_analysis['analysis'])))
+        current_plan.setdefault('hints', [])
         log_step("Plan generated")
-
-        # Step 3: Prepare profile/session
-        from services.profile_service import profile_service
-        warm_meta = current_analysis['analysis']['availability']
-        # Use found warm profile if any; else create one
-        prof_id = warm_meta.get('profile_id') if warm_meta.get('profile_id') else None
-        if not prof_id:
-            prof = await profile_service.create_profile(region=None, proxy_tier=None)
-            prof_id = prof['profile_id']
-        use = await profile_service.use_profile(prof_id)
-        global current_session_id, current_profile_id
-        current_profile_id = prof_id
-        current_session_id = use['session_id']
-        log_step(f"Session from profile {prof_id} created")
-
-        # Navigate initial if plan says so
-        first_step = current_plan.get('steps', [{}])[0]
-        if first_step and first_step.get('action') == 'NAVIGATE' and first_step.get('target'):
-            await browser_service.navigate(current_session_id, first_step['target'])
-            await observe(current_session_id)
-            log_step(f"Navigated to {first_step['target']}")
 
         return {"status": "PLANNED", "job_id": job_id, "analysis": current_analysis, "plan": current_plan}
     except Exception as e:
         logger.error(f"exec error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post('/adjust')
+async def adjust(req: AdjustRequest):
+    """User adjustments to current plan during automation run."""
+    try:
+        global current_plan
+        if current_plan is None:
+            raise HTTPException(status_code=400, detail="No plan to adjust")
+        hint = {"ts": datetime.now().isoformat(), "message": req.message}
+        current_plan.setdefault('hints', []).append(hint)
+        # Insert a USER_HINT step as a no-op marker the executor can read
+        current_plan.setdefault('steps', []).insert(0, {"id": f"hint_{len(current_plan['hints'])}", "action": "USER_HINT", "note": req.message})
+        log_step(f"Plan adjusted: {req.message}")
+        return {"ok": True, "plan": current_plan}
+    except Exception as e:
+        logger.error(f"adjust error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get('/log')
