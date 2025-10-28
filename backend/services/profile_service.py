@@ -88,6 +88,24 @@ class ProfileService:
             # Keyword/phrases
             flagged_kw = any(k in body_text for k in KEYWORDS_FLAG)
             safe_ok = any(p in body_text for p in SAFE_PHRASES)
+        # Pre-check proxy quality
+        proxy_info = {}
+        try:
+            import httpx
+            async with httpx.AsyncClient(timeout=15) as client:
+                r = await client.get(IPINFO_URL, proxies=proxy['server'] if proxy else None)
+                if r.status_code == 200:
+                    ipd = r.json()
+                    proxy_info = {
+                        "ip": ipd.get('ip'),
+                        "country": ipd.get('country'),
+                        "region": ipd.get('region'),
+                        "city": ipd.get('city'),
+                        "isp": ipd.get('org')
+                    }
+        except Exception as e:
+            logger.warning(f"proxy info fetch failed: {e}")
+
             # Final flag: webdriver true OR strong keywords AND not overridden by safe phrases
             flagged = (bool(wd) or flagged_kw) and not safe_ok
             notes = body_text[:600]
