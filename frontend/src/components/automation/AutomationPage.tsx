@@ -94,11 +94,29 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
     updateOverlayRect();
     const viewer = viewerRef.current;
     if (!viewer) return;
-    const ro = new (window as any).ResizeObserver?.(() => updateOverlayRect());
-    if (ro && viewer) ro.observe(viewer);
+
+    // Safe ResizeObserver creation without optional chaining after new
+    const ResizeObs: any = (window as any).ResizeObserver;
+    let ro: any = null;
+    if (ResizeObs) {
+      ro = new ResizeObs(() => {
+        updateOverlayRect();
+      });
+      try {
+        ro.observe(viewer);
+      } catch {}
+    }
+
     const onResize = () => updateOverlayRect();
     window.addEventListener('resize', onResize);
-    return () => { window.removeEventListener('resize', onResize); if (ro && viewer) ro.unobserve(viewer); };
+
+    return () => {
+      try { window.removeEventListener('resize', onResize); } catch {}
+      if (ro && viewer) {
+        try { ro.unobserve(viewer); } catch {}
+        try { ro.disconnect(); } catch {}
+      }
+    };
   }, [updateOverlayRect]);
 
   // Smooth screenshot swapping
