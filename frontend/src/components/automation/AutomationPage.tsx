@@ -244,13 +244,11 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
       const shot = await fetch(`${BASE_URL}/api/automation/screenshot?session_id=${encodeURIComponent(sid)}`);
       const js: Observation & {screenshot_id?: string} = await shot.json();
       if (js.screenshot_base64) {
-        setPendingSrc(js.screenshot_base64);
+        const imgSrc = js.screenshot_base64;
+        setPendingSrc(imgSrc);
         setObservation(js);
-        setOverlayVision(js.vision || []);
-        setOverlayViewport(js.viewport || null);
-        setOverlayGrid(js.grid || null);
-        setShowDetections(true);
-        setLastDrawnShotId(js.screenshot_id || null);
+        lastSnapshotRef.current = { shotId: js.screenshot_id || null, vision: (js.vision || []) as any, viewport: js.viewport || null, grid: js.grid || null };
+        lastDrawnShotIdRef.current = js.screenshot_id || null;
       } else setQuickError('No screenshot returned');
     } catch (e: any) {
       alert(e.message || 'Quick navigate failed');
