@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { PlayIcon, PauseIcon, StopIcon, BeakerIcon } from '../Icons';
+import { executionAgent } from '../../agent/executionAgent';
+import type { BrowserState, AgentLogEntry } from '../../agent/types';
 const BASE_URL: string = (import.meta as any)?.env?.REACT_APP_BACKEND_URL || '';
 
 type LogEntry = { ts: number; step: number; action: string; status?: 'ok'|'error'|'warning'|'info'; error?: string };
