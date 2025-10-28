@@ -10,7 +10,7 @@ import time
 from datetime import datetime
 
 # Backend URL from frontend/.env
-BACKEND_URL = "https://ai-browser-auto.preview.emergentagent.com/api"
+BACKEND_URL = "https://canvasoverlay.preview.emergentagent.com/api"
 
 class OpenRouterTester:
     def __init__(self):
