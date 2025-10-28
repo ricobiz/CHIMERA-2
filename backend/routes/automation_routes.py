@@ -291,9 +291,8 @@ async def type_at_cell(req: TypeAtCellRequest):
         grid = GridConfig(rows=browser_service.grid_rows, cols=browser_service.grid_cols)
         x, y = grid.cell_to_xy(req.cell, vw, vh)
         from services.anti_detect import HumanBehaviorSimulator
-        await HumanBehaviorSimulator.human_move(page, x, y)
-        await page.mouse.click(x, y)
-        await page.keyboard.type(req.text, delay=50)
+        await HumanBehaviorSimulator.human_click(page, x, y)
+        await HumanBehaviorSimulator.human_type(page, None, req.text)
         screenshot_b64 = await browser_service.capture_screenshot(req.session_id)
         vision = await browser_service._augment_with_vision(screenshot_b64, dom_data)
         sid = hashlib.md5(screenshot_b64.encode('utf-8')).hexdigest()
