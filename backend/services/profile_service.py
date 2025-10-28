@@ -56,11 +56,10 @@ class ProfileService:
     async def _warmup(self, session_id: str) -> None:
         try:
             urls = [
+                "https://www.google.com/",
                 "https://www.youtube.com/",
-                "https://www.reddit.com/",
-                "https://www.amazon.com/",
-                "https://www.wikipedia.org/",
-                "https://news.ycombinator.com/"
+                "https://www.reddit.com/r/popular",
+                "https://www.amazon.com/"
             ]
             page = browser_service.sessions[session_id]['page']
             for url in urls:
@@ -88,8 +87,6 @@ class ProfileService:
             # Keyword/phrases
             flagged_kw = any(k in body_text for k in KEYWORDS_FLAG)
             safe_ok = any(p in body_text for p in SAFE_PHRASES)
-        # Pre-check proxy quality
-            # Final flag: webdriver true OR strong keywords AND not overridden by safe phrases
             flagged = (bool(wd) or flagged_kw) and not safe_ok
             notes = body_text[:600]
             return shot, flagged, notes
@@ -109,31 +106,12 @@ class ProfileService:
         # Pick proxy
         proxy = proxy_service.get_proxy_by(region=region, tier=proxy_tier) if hasattr(proxy_service, 'get_proxy_by') else None
 
-        # Prepare proxy_info placeholder; will fetch via page after context creation
-        proxy_info = {}
-
-        # Determine locale/timezone/languages baseline (will refine after ipinfo)
+        # Determine locale baseline
         country = 'US'
-        tz_default = 'America/New_York'
-        tz_map = {
-            'US': 'America/New_York', 'CA': 'America/Toronto', 'GB': 'Europe/London', 'DE': 'Europe/Berlin', 'FR': 'Europe/Paris', 'RU': 'Europe/Moscow', 'AU': 'Australia/Sydney'
-        }
-        timezone_id = proxy_info.get('timezone') or tz_map.get(country, tz_default)
-        locale_map = {'US':'en-US','GB':'en-GB','DE':'de-DE','FR':'fr-FR','RU':'ru-RU','CA':'en-CA','AU':'en-AU'}
-        locale_str = locale_map.get(country, 'en-US')
-        languages = [locale_str.split('-')[0] if '-' in locale_str else locale_str]
-        if locale_str not in languages:
-            languages.insert(0, locale_str)
+        timezone_id = 'America/New_York'
+        locale_str = 'en-US'
+        languages = ['en-US','en']
 
-        # Prefer UA from proxy service if available
-        try:
-            from services.proxy_service import proxy_service as _ps
-            ua = _ps.get_random_user_agent()
-        except Exception:
-            ua = AntiDetectFingerprint.generate_profile(region=region).get('user_agent')
-
-        # Launch persistent-like context as a session linked to this profile
-        session_id = f"sess-{profile_id[:8]}"
         # Build meta.json (extended schema)
         meta = {
             "profile_id": profile_id,
@@ -142,11 +120,11 @@ class ProfileService:
             "used_count": 0,
             "status": "fresh",
             "browser": {
-                "user_agent": ua,
+                "user_agent": fingerprint.get('user_agent'),
                 "viewport": fingerprint.get('viewport'),
                 "platform": fingerprint.get('platform', 'Win32'),
                 "vendor": "Google Inc.",
-                "app_version": ua
+                "app_version": fingerprint.get('user_agent')
             },
             "locale": {
                 "timezone_id": timezone_id,
@@ -170,13 +148,12 @@ class ProfileService:
             ],
             "proxy": {
                 "url": proxy['server'] if proxy else None,
-                "ip": proxy_info.get('ip'),
-                "country": proxy_info.get('country'),
-                "region": proxy_info.get('region'),
-                "city": proxy_info.get('city'),
-                "isp": proxy_info.get('org'),
-                "timezone": proxy_info.get('timezone'),
-                "proxy_type": "residential" if proxy_info.get('org','').lower().find('residential')!=-1 else "datacenter",
+                "ip": None,
+                "country": country,
+                "region": None,
+                "city": None,
+                "isp": None,
+                "proxy_type": None,
                 "risk_score": 0.2
             },
             "warmup": {"is_warm": False, "warmed_at": None, "sites_visited": []},
@@ -184,31 +161,23 @@ class ProfileService:
         }
         self.write_meta(profile_id, meta)
 
+        # Create session from meta
+        session_id = f"sess-{profile_id[:8]}"
         await browser_service.create_session_from_profile(profile_id=profile_id, session_id=session_id, meta=meta)
 
-        # Fetch ipinfo via Playwright (ensures request goes through proxy)
+        # Fetch ipinfo via proxy inside context
         try:
             page = browser_service.sessions[session_id]['page']
             resp = await page.request.get(IPINFO_URL)
             if resp and resp.ok:
                 ipd = await resp.json()
-                proxy_info = {
+                meta = self.read_meta(profile_id)
+                meta['proxy'].update({
                     "ip": ipd.get('ip'),
                     "country": ipd.get('country'),
                     "region": ipd.get('region'),
                     "city": ipd.get('city'),
-                    "isp": ipd.get('org'),
-                    "timezone": ipd.get('timezone')
-                }
-                # Patch meta proxy info with real values
-                meta = self.read_meta(profile_id)
-                meta['proxy'].update({
-                    "ip": proxy_info.get('ip'),
-                    "country": proxy_info.get('country'),
-                    "region": proxy_info.get('region'),
-                    "city": proxy_info.get('city'),
-                    "isp": proxy_info.get('isp'),
-                    "timezone": proxy_info.get('timezone')
+                    "isp": ipd.get('org')
                 })
                 self.write_meta(profile_id, meta)
         except Exception as e:
@@ -235,10 +204,9 @@ class ProfileService:
             meta['warmup'] = {"is_warm": False, "warmed_at": None, "sites_visited": []}
             self.write_meta(profile_id, meta)
 
-        # Close session after warmup/setup to flush data
+        # Close session after setup
         await browser_service.close_session(session_id)
 
-        # Response summary
         summary = {
             "user_agent": meta['browser'].get('user_agent'),
             "timezone": meta['locale'].get('timezone_id'),
@@ -248,13 +216,10 @@ class ProfileService:
         }
         return {
             "profile_id": profile_id,
-            "is_warm": True,
+            "is_warm": meta['warmup']['is_warm'],
             "is_clean": True,
             "fingerprint_summary": summary,
-            "bot_signals": {
-                "flashid_flagged": False,
-                "fingerprint_flagged": False
-            }
+            "bot_signals": {"flashid_flagged": False, "fingerprint_flagged": False}
         }
 
     async def use_profile(self, profile_id: str) -> Dict[str, Any]:
@@ -262,11 +227,8 @@ class ProfileService:
             raise ValueError("Profile not found")
         meta = self.read_meta(profile_id)
         session_id = f"sess-{profile_id[:8]}-{uuid.uuid4().hex[:4]}"
-        storage_path = self._storage_path(profile_id)
         await browser_service.create_session_from_profile(profile_id=profile_id, session_id=session_id, meta=meta)
-        # Fast sanity navigate
         await browser_service.navigate(session_id, "https://www.google.com")
-        # Update meta
         meta['last_used'] = datetime.now(timezone.utc).isoformat()
         meta['used_count'] = int(meta.get('used_count', 0)) + 1
         self.write_meta(profile_id, meta)
@@ -275,17 +237,11 @@ class ProfileService:
     async def check_profile(self, profile_id: str) -> Dict[str, Any]:
         if not self.profile_exists(profile_id):
             raise ValueError("Profile not found")
-        # Use profile to get session
         use = await self.use_profile(profile_id)
         session_id = use['session_id']
-        # Checker 1
         shot1, flag1, notes1 = await self._check_url(session_id, CHECK_URL1)
-        # Checker 2
         shot2, flag2, notes2 = await self._check_url(session_id, CHECK_URL2)
-
         is_clean = not (flag1 or flag2)
-
-        # Update meta
         meta = self.read_meta(profile_id)
         meta['is_clean'] = is_clean
         meta['bot_signals'] = {
@@ -294,10 +250,7 @@ class ProfileService:
             'notes': (notes1[:300] + '\n---\n' + notes2[:300])
         }
         self.write_meta(profile_id, meta)
-
-        # Close checker session
         await browser_service.close_session(session_id)
-
         return {
             'session_id': session_id,
             'profile_id': profile_id,
@@ -307,10 +260,8 @@ class ProfileService:
         }
 
     def status(self, profile_id: str) -> Dict[str, Any]:
-        """Get profile status information"""
         if not self.profile_exists(profile_id):
             raise ValueError("Profile not found")
-        
         meta = self.read_meta(profile_id)
         return {
             "profile_id": profile_id,
@@ -320,8 +271,85 @@ class ProfileService:
             "created_at": meta.get('created_at'),
             "last_used": meta.get('last_used'),
             "used_count": meta.get('used_count', 0),
-            "is_warm": meta.get('is_warm', False),
+            "is_warm": meta.get('warmup',{}).get('is_warm', False),
             "is_clean": meta.get('is_clean', False)
         }
+
+    async def save_from_session(self, session_id: str, alias: Optional[str] = None) -> Dict[str, Any]:
+        if session_id not in browser_service.sessions:
+            raise ValueError("Session not found")
+        page = browser_service.sessions[session_id]['page']
+        ctx = browser_service.sessions[session_id]['context']
+        profile_id = str(uuid.uuid4())
+        os.makedirs(self._profile_path(profile_id), exist_ok=True)
+        # Extract runtime fingerprint from page
+        try:
+            info = await page.evaluate("""
+                () => ({
+                  ua: navigator.userAgent,
+                  platform: navigator.platform,
+                  vendor: navigator.vendor,
+                  lang: navigator.language,
+                  languages: navigator.languages,
+                  tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                  hwc: navigator.hardwareConcurrency || 4,
+                  dm: navigator.deviceMemory || 4,
+                  mtp: navigator.maxTouchPoints || 0
+                })
+            """)
+        except Exception:
+            info = { 'ua':'Mozilla/5.0','platform':'Win32','vendor':'Google Inc.','lang':'en-US','languages':['en-US','en'],'tz':'America/New_York','hwc':8,'dm':8,'mtp':0 }
+        vp = page.viewport_size or { 'width': 1366, 'height': 768 }
+        # Save storage state
+        await ctx.storage_state(path=self._storage_path(profile_id))
+        meta = {
+            "profile_id": profile_id,
+            "alias": alias,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "last_used": datetime.now(timezone.utc).isoformat(),
+            "used_count": 0,
+            "status": "warm",
+            "browser": {
+                "user_agent": info.get('ua'),
+                "viewport": vp,
+                "platform": info.get('platform'),
+                "vendor": info.get('vendor'),
+                "app_version": info.get('ua')
+            },
+            "locale": {
+                "timezone_id": info.get('tz'),
+                "locale": info.get('lang'),
+                "languages": info.get('languages')
+            },
+            "hardware": {
+                "hardware_concurrency": info.get('hwc'),
+                "device_memory": info.get('dm'),
+                "max_touch_points": info.get('mtp')
+            },
+            "webgl": {
+                "vendor": "Intel Inc.",
+                "renderer": "Intel Iris OpenGL Engine",
+                "canvas_noise_seed": str(uuid.uuid4())
+            },
+            "fonts": ["Arial","Helvetica","Times New Roman","Verdana","Courier New","Georgia","Tahoma","Trebuchet MS"],
+            "plugins": [
+                {"name": "PDF Viewer", "filename": "internal-pdf-viewer"},
+                {"name": "Chrome PDF Viewer", "filename": "mhjfbmdgcfjbbpaeojofohoefgiehjai"}
+            ],
+            "proxy": {
+                "url": None,
+                "ip": None,
+                "country": None,
+                "region": None,
+                "city": None,
+                "isp": None,
+                "proxy_type": None,
+                "risk_score": 0.2
+            },
+            "warmup": {"is_warm": True, "warmed_at": datetime.now(timezone.utc).isoformat(), "sites_visited": []},
+            "captcha": {"last_failed_at": None, "failed_attempts_count": 0, "cooldown_until": None}
+        }
+        self.write_meta(profile_id, meta)
+        return { "profile_id": profile_id, "is_warm": True }
 
 profile_service = ProfileService()

@@ -19,6 +19,10 @@ class UseProfileRequest(BaseModel):
 class CheckProfileRequest(BaseModel):
     profile_id: str
 
+class SaveFromSessionRequest(BaseModel):
+    session_id: str
+    alias: Optional[str] = None
+
 @router.post("/create")
 async def create_profile(req: CreateProfileRequest):
     try:
@@ -53,4 +57,13 @@ async def status_profile(profile_id: str):
         return result
     except Exception as e:
         logger.error(f"Profile status error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/save_from_session")
+async def save_from_session(req: SaveFromSessionRequest):
+    try:
+        result = await profile_service.save_from_session(req.session_id, req.alias)
+        return result
+    except Exception as e:
+        logger.error(f"Profile save_from_session error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
