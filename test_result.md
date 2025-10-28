@@ -482,6 +482,9 @@ metadata:
   run_ui: true
 
 test_plan:
+  - agent: "main"
+    message: "Please run frontend AutomationPage sanity: verify viewer renders screenshot without jitter; thin blue detection boxes visible; grid toggle works; Map/Go buttons use smoke-check and update screenshot_id; pinch-zoom within viewer does not scroll or reload overlay; logs update; no console errors."
+
   current_focus:
     - "Browser Automation viewer stability (pinch-zoom blocked in viewer)"
     - "Automation smoke-check, click-cell, screenshot endpoints"
