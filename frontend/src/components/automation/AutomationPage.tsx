@@ -385,8 +385,8 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
 
   // Helper for listing detections
   const currentDetections = useMemo(() => {
-    return (overlayVision ?? observation?.vision) || [];
-  }, [overlayVision, observation?.vision]);
+    return vision || [];
+  }, [vision]);
 
   return (
     <div className="flex flex-col bg-[#0f0f10] text-gray-100 overflow-x-hidden" style={{ height: '100dvh' }}>
