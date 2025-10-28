@@ -169,13 +169,22 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
   };
 
   const quickNavigate = async () => {
-    if (!quickSessionId) return alert('Create session first');
     try {
       setQuickError(null);
-      const resp = await fetch(`${BASE_URL}/api/automation/navigate`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ session_id: quickSessionId, url: quickUrl }) });
+      let sid = quickSessionId;
+      if (!sid) {
+        // Auto-create a session if none exists
+        const newId = 'auto-' + Date.now();
+        const respCreate = await fetch(`${BASE_URL}/api/automation/session/create`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ session_id: newId, use_proxy: false }) });
+        const dataCreate = await respCreate.json();
+        if (!respCreate.ok || !dataCreate.session_id) throw new Error(dataCreate.detail || 'create failed');
+        sid = dataCreate.session_id;
+        setQuickSessionId(sid);
+      }
+      const resp = await fetch(`${BASE_URL}/api/automation/navigate`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ session_id: sid, url: quickUrl }) });
       const data = await resp.json();
       if (!resp.ok || data.success === false) throw new Error(data.error || data.detail || 'navigate failed');
-      const shot = await fetch(`${BASE_URL}/api/automation/screenshot?session_id=${encodeURIComponent(quickSessionId)}`);
+      const shot = await fetch(`${BASE_URL}/api/automation/screenshot?session_id=${encodeURIComponent(sid)}`);
       const js = await shot.json();
       if (js.screenshot_base64) setPendingSrc(js.screenshot_base64);
       else setQuickError('No screenshot returned');
