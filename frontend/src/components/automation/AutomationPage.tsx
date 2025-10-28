@@ -246,6 +246,7 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
         setPendingSrc(js.screenshot_base64);
         setObservation(js);
         setShowDetections(true);
+        setFreezeObsUntil(Date.now() + 3000); // freeze 3s so overlays stay visible
       } else setQuickError('No screenshot returned');
     } catch (e: any) {
       alert(e.message || 'Quick navigate failed');
