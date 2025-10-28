@@ -1486,6 +1486,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ RE-VERIFIED: Profile status per review spec working correctly. GET /api/profile/cb6b3215-4fe7-4286-9f72-96a6644047a3/status returns all required fields. Status reflects meta.json content: profile_id, created_at, last_used, used_count=1 (incremented after use), proxy fields present (though null due to proxy service issue). Status endpoint accurately reflects profile usage and metadata."
+      - working: true
+        agent: "testing"
+        comment: "✅ IPINFO VIA PROXY FIX VERIFIED: Profile status after ipinfo via proxy change working perfectly. GET /api/profile/6ce82213-3468-4aa7-ab9e-23aa68a528a3/status returns all required fields. Status correctly mirrors meta.json fields: used_count=1 (incremented after use), proxy fields now properly populated with real values (ip/country/region/city/isp). Status endpoint accurately reflects profile usage and proxy information from ipinfo.io."
 
   - task: "POST /api/profile/use - Profile Session Creation"
     implemented: true
