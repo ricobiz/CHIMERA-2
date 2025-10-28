@@ -246,6 +246,8 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
               <option value="16x12">16×12</option>
               <option value="24x16">24×16</option>
               <option value="32x24">32×24</option>
+              <option value="48x32">48×32</option>
+              <option value="64x48">64×48</option>
             </select>
             <button onClick={() => setShowGrid(s => !s)} className="px-2 py-1 text-[11px] bg-gray-800/60 hover:bg-gray-700/60 border border-gray-700 rounded text-gray-300">{showGrid ? 'Hide' : 'Show'}</button>
             <button onClick={() => setShowFullscreen(true)} className="px-2 py-1 text-[11px] bg-gray-800/60 hover:bg-gray-700/60 border border-gray-700 rounded text-gray-300">Full</button>
