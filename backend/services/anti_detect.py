@@ -259,3 +259,8 @@ class AntiDetectFingerprint:
         except Exception as e:
             logger.error(f"Error applying fingerprinting evasion: {str(e)}")
             return False
+
+class CaptchaSolver:
+    """Placeholder to keep import path stable; real implementation can be reattached later"""
+    def __init__(self, *args, **kwargs):
+        pass
