@@ -485,8 +485,8 @@ class BrowserAutomationService:
           }
 
           window.__chimeraGrid = {
-            show: (rows, cols) => { layoutGrid(rows, cols); overlay.style.display = 'block'; },
-            hide: () => { overlay.style.display = 'none'; },
+            show: (rows, cols) => { layoutGrid(rows, cols); overlay.style.display = 'block'; blockers.style.display = 'block'; },
+            hide: () => { overlay.style.display = 'none'; blockers.style.display = 'none'; },
             collect: () => {
               const vw = window.innerWidth, vh = window.innerHeight;
               const clickables = [];
