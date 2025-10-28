@@ -126,6 +126,11 @@ class HumanBehaviorSimulator:
             await page.keyboard.type(char, delay=delay_ms)
 
     @staticmethod
+    async def human_key_press(page: Page, key: str):
+        await asyncio.sleep(random.uniform(0.08, 0.25))
+        await page.keyboard.press(key)
+
+    @staticmethod
     async def human_drag(page: Page, sx: int, sy: int, ex: int, ey: int, speed_factor: float = 1.0):
         try:
             await HumanBehaviorSimulator.human_mouse_move(page, sx, sy, speed_factor)
@@ -261,6 +266,95 @@ class AntiDetectFingerprint:
             return False
 
 class CaptchaSolver:
-    """Placeholder to keep import path stable; real implementation can be reattached later"""
-    def __init__(self, *args, **kwargs):
-        pass
+    """AI-powered CAPTCHA solving using vision models via OpenRouter"""
+    def __init__(self, openrouter_service):
+        self.openrouter_service = openrouter_service
+        # Fast and affordable vision model; can be overridden via env later
+        self.vision_model = os.environ.get('AUTOMATION_VISION_MODEL', 'google/gemini-2.5-flash-image')
+
+    async def detect_captcha(self, page: Page) -> Dict[str, Any]:
+        try:
+            captcha_selectors = [
+                'iframe[src*="recaptcha"]',
+                'iframe[src*="hcaptcha"]',
+                'iframe[src*="captcha"]',
+                '.g-recaptcha',
+                '.h-captcha',
+                '[class*="captcha"]',
+                '#captcha'
+            ]
+            for selector in captcha_selectors:
+                element = await page.query_selector(selector)
+                if element:
+                    captcha_type = 'recaptcha' if 'recaptcha' in selector else \
+                                  'hcaptcha' if 'hcaptcha' in selector else 'unknown'
+                    return {'present': True, 'type': captcha_type, 'selector': selector}
+            return {'present': False}
+        except Exception as e:
+            logger.error(f"CAPTCHA detection failed: {e}")
+            return {'present': False}
+
+    async def solve_image_captcha(self, page: Page, captcha_element) -> Dict[str, Any]:
+        try:
+            screenshot = await page.screenshot(full_page=False)
+            screenshot_base64 = screenshot.decode('utf-8') if isinstance(screenshot, bytes) else screenshot
+            prompt = (
+                "You are a CAPTCHA solver. Analyze this CAPTCHA image and provide the solution.\n\n"
+                "Instructions:\n1. Identify the type of CAPTCHA (text, math, image selection, puzzle, etc.)\n2. Solve it accurately\n"
+                "3. Respond ONLY with the solution in this JSON format:\n\n{\n  \"type\": \"text|math|selection|puzzle\",\n  \"solution\": \"your solution here\",\n  \"confidence\": 0-100\n}\n\nBe precise and accurate."
+            )
+            messages = [{
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": prompt},
+                    {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{screenshot_base64}"}}
+                ]
+            }]
+            response = await self.openrouter_service.chat_completion(
+                messages=messages, model=self.vision_model, temperature=0.1
+            )
+            result_text = response['choices'][0]['message']['content']
+            import json, re
+            json_match = re.search(r'\{[^{}]*\}', result_text)
+            if json_match:
+                result = json.loads(json_match.group(0))
+                return {
+                    'solved': True,
+                    'type': result.get('type', 'unknown'),
+                    'answer': result.get('solution', ''),
+                    'confidence': result.get('confidence', 50)
+                }
+            logger.warning(f"Failed to parse CAPTCHA solution: {result_text}")
+            return {'solved': False, 'reason': 'Failed to parse AI response'}
+        except Exception as e:
+            logger.error(f"CAPTCHA solving failed: {e}")
+            return {'solved': False, 'reason': str(e)}
+
+    async def auto_solve(self, page: Page) -> bool:
+        try:
+            captcha_info = await self.detect_captcha(page)
+            if not captcha_info['present']:
+                return True
+            logger.info(f"CAPTCHA detected: {captcha_info['type']}")
+            solution = await self.solve_image_captcha(page, captcha_info['selector'])
+            if solution['solved']:
+                logger.info(f"✅ CAPTCHA solved with {solution['confidence']}% confidence")
+                if solution['type'] == 'text':
+                    input_selector = 'input[type="text"], input[type="tel"], input'
+                    el = await page.query_selector(input_selector)
+                    if el:
+                        await el.click()
+                        await asyncio.sleep(random.uniform(0.1, 0.3))
+                        await page.keyboard.type(solution['answer'], delay=80)
+                        submit_btn = await page.query_selector('button[type="submit"], input[type="submit"]')
+                        if submit_btn:
+                            box = await submit_btn.bounding_box()
+                            if box:
+                                await HumanBehaviorSimulator.human_click(page, int(box['x']+box['width']/2), int(box['y']+box['height']/2))
+                return True
+            else:
+                logger.warning(f"CAPTCHA solving failed: {solution.get('reason')}")
+                return False
+        except Exception as e:
+            logger.error(f"Auto-solve failed: {e}")
+            return False
