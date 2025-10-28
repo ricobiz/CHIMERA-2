@@ -158,16 +158,16 @@ class ProfileService:
             "used_count": 0,
             "status": "fresh",
             "browser": {
-                "user_agent": fingerprint.get('user_agent'),
+                "user_agent": ua,
                 "viewport": fingerprint.get('viewport'),
                 "platform": fingerprint.get('platform', 'Win32'),
                 "vendor": "Google Inc.",
-                "app_version": fingerprint.get('user_agent')
+                "app_version": ua
             },
             "locale": {
-                "timezone_id": fingerprint.get('timezone_id', 'America/New_York'),
-                "locale": fingerprint.get('locale', 'en-US'),
-                "languages": fingerprint.get('languages', ['en-US','en'])
+                "timezone_id": timezone_id,
+                "locale": locale_str,
+                "languages": languages
             },
             "hardware": {
                 "hardware_concurrency": fingerprint.get('hardwareConcurrency', 8),
