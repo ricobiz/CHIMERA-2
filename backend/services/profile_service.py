@@ -89,6 +89,10 @@ class ProfileService:
             flagged_kw = any(k in body_text for k in KEYWORDS_FLAG)
             safe_ok = any(p in body_text for p in SAFE_PHRASES)
         # Pre-check proxy quality
+            flagged = (bool(wd) or flagged_kw) and not safe_ok
+            notes = body_text[:600]
+            return shot, flagged, notes
+
         proxy_info = {}
         try:
             import httpx
