@@ -219,6 +219,15 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
               <option value="16x12">16×12</option>
               <option value="24x16">24×16</option>
               <option value="32x24">32×24</option>
+            <button onClick={async()=>{
+              try {
+                const resp = await fetch(`${BASE_URL}/api/automation/smoke-check`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url: quickUrl, use_proxy: false }) });
+                const data = await resp.json();
+                if (data?.screenshot_base64) {
+                  setPendingSrc(data.screenshot_base64);
+                }
+              } catch (e:any) { alert(e.message || 'Smoke-check failed'); }
+            }} className="px-2 py-1 text-xs bg-green-800/60 hover:bg-green-700/60 border border-green-700 rounded text-green-300">Smoke</button>
             </select>
           </div>
           </div>
