@@ -263,14 +263,17 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
       <div className="px-4 md:px-6 py-3 md:py-4 border-b border-gray-800 flex-shrink-0">
         <div className="relative w-full h-72 md:h-[420px] border border-gray-800 rounded bg-black/60 overflow-hidden flex items-center justify-center pb-8">
           {/* Quick test controls */}
-          <div className="absolute top-2 left-2 right-2 flex items-center gap-2 z-10">
+          <div className="absolute top-2 left-2 right-2 hidden md:flex items-center gap-2 z-10">
             <input value={quickUrl} onChange={(e:any)=>setQuickUrl(e.target.value)} className="flex-1 px-2 py-1 text-xs bg-black/60 border border-gray-700 rounded text-gray-200 placeholder-gray-500" placeholder="https://..." />
             <button onClick={quickCreate} className="px-2 py-1 text-xs bg-gray-800/60 hover:bg-gray-700/60 border border-gray-700 rounded text-gray-300">Create</button>
-            <div className="flex items-center gap-2 mt-2">
-              <label className="text-[10px] text-gray-500">Auto-scroll</label>
-              <input type="checkbox" checked={autoScrollLogs && !userReadingLogs} onChange={(e)=> setAutoScrollLogs(e.target.checked)} />
-            </div>
             <button onClick={quickNavigate} className="px-2 py-1 text-xs bg-blue-800/60 hover:bg-blue-700/60 border border-blue-700 rounded text-blue-300">Go</button>
+            <button onClick={async()=>{
+              try {
+                const resp = await fetch(`${BASE_URL}/api/automation/smoke-check`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url: quickUrl, use_proxy: false }) });
+                const data = await resp.json();
+                if (data?.screenshot_base64) setPendingSrc(data.screenshot_base64);
+              } catch (e:any) { alert(e.message || 'Smoke-check failed'); }
+            }} className="px-2 py-1 text-xs bg-green-800/60 hover:bg-green-700/60 border border-green-700 rounded text-green-300">Smoke</button>
           </div>
 
         {quickError && (
