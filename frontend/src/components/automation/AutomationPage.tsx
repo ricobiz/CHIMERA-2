@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import { useCallback } from 'react';
-import { PlayIcon, PauseIcon, StopIcon, PlusIcon, ArrowRightIcon, BeakerIcon } from '../Icons';
+import { PlayIcon, PauseIcon, StopIcon, BeakerIcon } from '../Icons';
 const BASE_URL: string = (import.meta as any)?.env?.REACT_APP_BACKEND_URL || '';
 
 type LogEntry = { ts: number; step: number; action: string; status?: 'ok'|'error'|'warning'|'info'; error?: string };
