@@ -497,29 +497,60 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
           {showWarmBanner && (
             <div className="absolute left-2 right-2 top-2 bg-yellow-900/70 text-yellow-100 border border-yellow-700 rounded p-3 z-20">
               <div className="text-[12px] mb-2">Нет прогретого профиля. Можно продолжить без прогрева (рекомендуется прогреть).</div>
+              
+              {/* Warmup Progress */}
+              {isWarming && (
+                <div className="mb-3 p-2 bg-black/40 rounded border border-yellow-600">
+                  <div className="flex items-center gap-2 mb-1">
+                    <svg className="w-4 h-4 text-yellow-400 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span className="text-[11px] font-semibold">Прогрев аккаунта...</span>
+                  </div>
+                  <div className="text-[10px] text-yellow-200">{warmupProgress}</div>
+                </div>
+              )}
+              
               <div className="flex gap-2">
                 <button onClick={async()=>{
                   try {
-                    setShowWarmBanner(false);
-                    alert('⏳ Прогрев аккаунта начался... Это займет 30-60 секунд.');
-                    const resp = await fetch(`${BASE_URL}/api/profile/create`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ warmup: true })});
+                    setIsWarming(true);
+                    setWarmupProgress('Создание профиля...');
+                    
+                    const resp = await fetch(`${BASE_URL}/api/profile/create`, { 
+                      method:'POST', 
+                      headers:{'Content-Type':'application/json'}, 
+                      body: JSON.stringify({ warmup: true })
+                    });
+                    
                     const d = await resp.json();
+                    
                     if (d?.profile_id) { 
-                      alert('✅ Аккаунт прогрет и готов! Запускаю автоматизацию...'); 
-                      // Auto-start after warmup
-                      startTask();
+                      setWarmupProgress('✅ Профиль создан и прогрет!');
+                      setTimeout(() => {
+                        setShowWarmBanner(false);
+                        setIsWarming(false);
+                        setWarmupProgress('');
+                        // Auto-start after warmup
+                        startTask();
+                      }, 1000);
                     }
                     else { 
-                      setShowWarmBanner(true);
+                      setIsWarming(false);
+                      setWarmupProgress('');
                       alert('❌ Не удалось прогреть профиль'); 
                     }
                   } catch(e:any){ 
-                    setShowWarmBanner(true);
+                    setIsWarming(false);
+                    setWarmupProgress('');
                     alert(e.message||'Ошибка прогрева'); 
                   }
-                }} className="px-2 py-1 bg-green-800 hover:bg-green-700 border border-green-700 rounded text-[12px]">Прогреть аккаунт</button>
-                <button onClick={()=> setShowWarmBanner(false)} className="px-2 py-1 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded text-[12px]">Продолжить без прогрева</button>
-                <button onClick={()=> setImportModalOpen(true)} className="px-2 py-1 bg-blue-800 hover:bg-blue-700 border border-blue-700 rounded text-[12px]">Импортировать профиль</button>
+                }} disabled={isWarming} className="px-2 py-1 bg-green-800 hover:bg-green-700 disabled:bg-gray-700 disabled:cursor-not-allowed border border-green-700 rounded text-[12px]">
+                  {isWarming ? 'Прогревается...' : 'Прогреть аккаунт'}
+                </button>
+                <button onClick={()=> setShowWarmBanner(false)} disabled={isWarming} className="px-2 py-1 bg-gray-800 hover:bg-gray-700 disabled:bg-gray-700 disabled:cursor-not-allowed border border-gray-700 rounded text-[12px]">Продолжить без прогрева</button>
+                <button onClick={()=> setImportModalOpen(true)} disabled={isWarming} className="px-2 py-1 bg-blue-800 hover:bg-blue-700 disabled:bg-gray-700 disabled:cursor-not-allowed border border-blue-700 rounded text-[12px]">Импортировать профиль</button>
               </div>
             </div>
           )}
