@@ -130,9 +130,15 @@ class ExecutionAgentService {
       
       // Wrap execution loop in try-catch
       try {
+        console.log(`[ExecutionAgent] ⚡ STARTING EXECUTION LOOP - Total steps: ${plan.steps.length}`);
+        console.log(`[ExecutionAgent] All steps:`, JSON.stringify(plan.steps.map(s => `${s.actionType}: ${s.targetDescription}`), null, 2));
+        
         for (let i = 0; i < plan.steps.length; i++) {
-          console.log(`[ExecutionAgent] 📍 Loop iteration ${i + 1}/${plan.steps.length}`);
-          console.log(`[ExecutionAgent] Current step object:`, plan.steps[i]);
+          console.log(`\n[ExecutionAgent] ═══════════════════════════════════════`);
+          console.log(`[ExecutionAgent] 📍 STEP ${i + 1}/${plan.steps.length}`);
+          console.log(`[ExecutionAgent] Action: ${plan.steps[i].actionType}`);
+          console.log(`[ExecutionAgent] Description: ${plan.steps[i].targetDescription}`);
+          console.log(`[ExecutionAgent] ═══════════════════════════════════════\n`);
         
         if (this.aborted) {
           console.log('[ExecutionAgent] Automation aborted by user');
