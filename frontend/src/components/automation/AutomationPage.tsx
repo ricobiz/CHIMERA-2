@@ -445,9 +445,6 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
         <div className="flex items-center justify-between gap-2 min-w-0">
           <div className="flex items-center gap-2 min-w-0">
             {onClose && (
-          {/* Disable native pinch zoom inside viewer to avoid overlay resets */
-          <div className="absolute inset-0" style={{touchAction:'none'}} />
-
               <button onClick={onClose} className="px-2 py-1 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors flex items-center gap-1 text-[12px]">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
                 Back
