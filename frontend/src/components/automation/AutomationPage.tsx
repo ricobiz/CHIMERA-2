@@ -329,8 +329,8 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
       const w = (b.w || 0) * overlayRect.width / vw;
       const h = (b.h || 0) * overlayRect.height / vh;
       // Box
-      ctx.strokeStyle = 'rgba(255, 64, 160, 0.95)';
-      ctx.shadowColor = 'rgba(255, 64, 160, 0.7)';
+      ctx.strokeStyle = 'rgba(80, 140, 255, 0.95)';
+      ctx.shadowColor = 'rgba(80, 140, 255, 0.5)';
       ctx.shadowBlur = 2;
       ctx.strokeRect(x, y, Math.max(1,w), Math.max(1,h));
       // Label
