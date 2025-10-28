@@ -1,6 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-
-import { useCallback } from 'react';
+import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { PlayIcon, PauseIcon, StopIcon, BeakerIcon } from '../Icons';
 const BASE_URL: string = (import.meta as any)?.env?.REACT_APP_BACKEND_URL || '';
 
