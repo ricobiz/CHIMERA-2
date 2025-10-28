@@ -1203,6 +1203,28 @@ frontend:
     - ✅ Backend restarted successfully with all changes
     
     **CONCLUSION:** All OpenRouter integration changes are working perfectly. Frontend model separation is functional, overview endpoint provides 300+ models with proper structure, balance endpoint returns correct format, and regression testing confirms existing functionality is preserved."
+  - agent: "testing"
+    message: "✅ **AUTOMATION SMOKE TESTS COMPLETE - ALL TESTS PASSED**
+    
+    **Test Results: 5/5 PASSED (100% Success Rate)**
+    
+    **✅ AUTOMATION ENDPOINTS WORKING PERFECTLY:**
+    1. **POST /api/automation/grid/set** - ✅ Successfully set grid to 48x64, returns success=true with echoed rows/cols
+    2. **POST /api/automation/smoke-check** - ✅ Creates session, navigates to google.com, returns screenshot_base64, grid config, viewport, vision array (empty but valid)
+    3. **POST /api/automation/click-cell** - ✅ Successfully clicks mid-screen cell M12, returns screenshot_base64 and dom_event.cell=M12
+    4. **GET /api/hook/log** - ✅ Returns observation object with proper structure (logs, status, observation, session_id)
+    5. **POST /api/hook/control** - ✅ PAUSED and STOP modes working correctly, proper run_mode and agent_status management
+    
+    **Key Findings:**
+    - ✅ Grid configuration system operational (48x64 grid set successfully)
+    - ✅ Browser automation session creation and navigation working
+    - ✅ Screenshot capture and base64 encoding functional
+    - ✅ Grid-based cell clicking system operational
+    - ✅ Agent control and status management working correctly
+    - ✅ Vision array can be empty (valid behavior for some pages)
+    - ✅ All required response fields present and properly formatted
+    
+    **CONCLUSION:** Complete automation system is fully operational. All smoke test endpoints pass validation. Browser automation, grid system, agent control, and hook logging systems are working correctly and ready for production use."
 
     needs_retesting: false
     status_history:

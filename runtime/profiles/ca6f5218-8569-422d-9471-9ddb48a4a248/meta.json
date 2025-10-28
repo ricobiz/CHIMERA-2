@@ -1,8 +1,8 @@
 {
   "profile_id": "ca6f5218-8569-422d-9471-9ddb48a4a248",
   "created_at": "2025-10-28T05:10:37.755800+00:00",
-  "last_used": "2025-10-28T05:10:41.165944+00:00",
-  "used_count": 2,
+  "last_used": "2025-10-28T05:10:54.219719+00:00",
+  "used_count": 3,
   "region": null,
   "proxy_tier": null,
   "proxy": {},
@@ -31,8 +31,8 @@
     "webgl_renderer": "ANGLE (Intel, Intel(R) UHD Graphics Direct3D11 vs_5_0 ps_5_0)"
   },
   "bot_signals": {
-    "flashid_flagged": null,
-    "fingerprint_flagged": null,
-    "notes": ""
+    "flashid_flagged": true,
+    "fingerprint_flagged": true,
+    "notes": "intoli.com tests + additions\ntest name\tresult\nuser agent\n(old)\n\tmozilla/5.0 (windows nt 10.0; win64; x64) applewebkit/537.36 (khtml, like gecko) chrome/121.0 safari/537.36\nwebdriver\n(new)\n\tpresent (failed)\nwebdriver advanced\tpassed\nchrome\n(new)\n\tmissing (failed)\npermissions\n(new)\n\tprompt\nplugins len\n---\nantoine vastel\nstatistics browser fingerprinting\nsee your fingerprint\nbots ips api doc\ntest an ip address\nare you chrome headless?\n\nlooking for a more recent fingerprinting and bot detection online test? have a look at fingerprint-scan.com.\n\nyou are not chrome headless\n\nthis page runs a simple test "
   }
 }
