@@ -490,21 +490,35 @@ class BrowserAutomationService:
             collect: () => {
               const vw = window.innerWidth, vh = window.innerHeight;
               const clickables = [];
+              function push(el, offX, offY, label, type, score=0.8) {
+                const rect = el.getBoundingClientRect();
+                if (!rect || rect.width < 4 || rect.height < 4) return;
+                const x = Math.max(0, Math.floor(rect.left + offX));
+                const y = Math.max(0, Math.floor(rect.top + offY));
+                const w = Math.floor(rect.width);
+                const h = Math.floor(rect.height);
+                clickables.push({ bbox: { x, y, w, h }, label: (label||'').slice(0,64), type: type||'node', confidence: score });
+              }
               function collectIn(doc, offX, offY) {
-                const nodes = Array.from(doc.querySelectorAll('a,button,input,textarea,select,[role="button"], [onclick]'));
+                const nodes = Array.from(doc.querySelectorAll('a,button,input,textarea,select,[role="button"], [onclick], [role="link"], input[type="submit"], input[type="search"]'));
                 for (const el of nodes) {
-                  const rect = el.getBoundingClientRect();
-                  if (!rect || rect.width < 4 || rect.height < 4) continue;
                   const style = doc.defaultView.getComputedStyle(el);
+                  if (!style) continue;
                   if (style.visibility === 'hidden' || style.display === 'none' || style.pointerEvents === 'none') continue;
-                  const label = (el.innerText || el.value || el.getAttribute('aria-label') || el.getAttribute('title') || el.name || '').slice(0, 64);
-                  const type = (el.tagName || 'button').toLowerCase();
-                  clickables.push({
-                    bbox: { x: Math.max(0, Math.floor(rect.left + offX)), y: Math.max(0, Math.floor(rect.top + offY)), w: Math.floor(rect.width), h: Math.floor(rect.height) },
-                    label,
-                    type,
-                    confidence: 0.8
-                  });
+                  const label = (el.innerText || el.value || el.getAttribute('aria-label') || el.getAttribute('title') || el.name || '').trim();
+                  const type = (el.tagName || 'node').toLowerCase();
+                  push(el, offX, offY, label, type, 0.8);
+                }
+                // Aggressive: specific known targets
+                const specialQueries = [
+                  '[aria-label*="Sign in" i]','a[href*="ServiceLogin"]','a[href*="accounts.google"]','button:has-text("Sign in")','a:has-text("Sign in")',
+                  'input[name="q"]','form[role="search"] input','[aria-label*="Search" i] input','input[type="search"]'
+                ];
+                for (const q of specialQueries) {
+                  try {
+                    const els = doc.querySelectorAll(q);
+                    els.forEach(el => push(el, offX, offY, (el.getAttribute('aria-label')||el.getAttribute('title')||el.innerText||el.getAttribute('name')||q), 'special', 0.9));
+                  } catch (e) { /* unsupported selector */ }
                 }
               }
               // Top document
