@@ -827,7 +827,10 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
           <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-4">
             <label className="block text-sm text-gray-400 font-medium mb-2">Task</label>
             <textarea className="w-full h-24 bg-gray-950 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500 resize-none" value={taskText} onChange={(e) => setTaskText(e.target.value)} />
-            <button onClick={startTask} disabled={isSubmitting || !taskText.trim()} className="mt-3 w-full px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all">{isSubmitting ? 'Starting...' : 'Run Task'}</button>
+            <div className="mt-3 flex gap-2">
+              <button onClick={startTask} disabled={isSubmitting || !taskText.trim()} className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all">{isSubmitting ? 'Starting...' : '▶️ Run Task'}</button>
+              <button onClick={resetTask} className="px-4 py-2 bg-red-600/80 hover:bg-red-500/80 text-white rounded-lg font-semibold transition-all" title="Сбросить задачу и очистить всё">🔄 Сброс</button>
+            </div>
           </div>
         </div>
 
