@@ -483,6 +483,9 @@ metadata:
 
 test_plan:
   - agent: "main"
+    message: "Re-run profile lifecycle tests after ipinfo via proxy fix: create profile → verify meta.proxy fields populated; warmup set; storage_state.json exists; use profile increments counters; status reflects meta."
+
+  - agent: "main"
     message: "Run backend tests for profile lifecycle: POST /api/profile/create (region=US) → expect meta.status=warm, warmup.is_warm=true, storage_state.json exists; POST /api/profile/use → expect session_id, meta.used_count++, last_used updated; verify meta.locale/timezone/languages consistent with proxy; verify proxy fields ip/country/region/city/isp present."
 
   - agent: "main"
