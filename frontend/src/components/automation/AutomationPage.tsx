@@ -266,8 +266,10 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
         const imgSrc = js.screenshot_base64;
         setPendingSrc(imgSrc);
         setObservation(js);
-        lastSnapshotRef.current = { shotId: js.screenshot_id || null, vision: (js.vision || []) as any, viewport: js.viewport || null, grid: js.grid || null };
+        const v = (js.vision || []) as any[];
+        lastSnapshotRef.current = { shotId: js.screenshot_id || null, vision: v, viewport: js.viewport || null, grid: js.grid || null };
         lastDrawnShotIdRef.current = js.screenshot_id || null;
+        setVision(v);
       } else setQuickError('No screenshot returned');
     } catch (e: any) {
       alert(e.message || 'Quick navigate failed');
