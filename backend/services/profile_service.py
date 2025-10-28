@@ -98,7 +98,7 @@ class ProfileService:
             shot = await browser_service.capture_screenshot(session_id)
             return shot or "", True, f"checker_error:{str(e)[:120]}"
 
-    async def create_profile(self, region: Optional[str] = None, proxy_tier: Optional[str] = None) -> Dict[str, Any]:
+    async def create_profile(self, region: Optional[str] = None, proxy_tier: Optional[str] = None, warmup: bool = True) -> Dict[str, Any]:
         profile_id = str(uuid.uuid4())
         profile_dir = self._profile_path(profile_id)
         os.makedirs(profile_dir, exist_ok=True)
