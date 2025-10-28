@@ -326,23 +326,24 @@ class AutomationSmokeTest:
             if response.status_code == 200:
                 data = response.json()
                 
-                # Check if agent_status is updated accordingly
-                if 'agent_status' in data:
+                # Check if run_mode is updated accordingly (agent_status may remain IDLE when not active)
+                if 'run_mode' in data and 'agent_status' in data:
+                    run_mode = data.get('run_mode')
                     agent_status = data.get('agent_status')
-                    if 'PAUSED' in str(agent_status).upper() or 'PAUSE' in str(agent_status).upper():
+                    if run_mode == "PAUSED":
                         self.log_test(
                             "Hook Control - PAUSED Mode",
                             True,
-                            f"Agent status updated to paused: {agent_status}",
-                            {"mode": "PAUSED", "agent_status": agent_status}
+                            f"Control mode set to PAUSED, agent status: {agent_status}",
+                            {"mode": "PAUSED", "run_mode": run_mode, "agent_status": agent_status}
                         )
                         paused_success = True
                     else:
                         self.log_test(
                             "Hook Control - PAUSED Mode Failed",
                             False,
-                            f"Agent status not updated to paused: {agent_status}",
-                            {"mode": "PAUSED", "agent_status": agent_status}
+                            f"Control mode not set to PAUSED: {run_mode}",
+                            {"mode": "PAUSED", "run_mode": run_mode, "agent_status": agent_status}
                         )
                         paused_success = False
                 else:
