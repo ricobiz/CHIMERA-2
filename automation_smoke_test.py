@@ -386,23 +386,24 @@ class AutomationSmokeTest:
             if response.status_code == 200:
                 data = response.json()
                 
-                # Check if agent_status returns to IDLE
-                if 'agent_status' in data:
+                # Check if run_mode is set to STOP and agent_status is IDLE
+                if 'run_mode' in data and 'agent_status' in data:
+                    run_mode = data.get('run_mode')
                     agent_status = data.get('agent_status')
-                    if 'IDLE' in str(agent_status).upper():
+                    if run_mode == "STOP" and agent_status == "IDLE":
                         self.log_test(
                             "Hook Control - STOP Mode",
                             True,
-                            f"Agent status returned to idle: {agent_status}",
-                            {"mode": "STOP", "agent_status": agent_status}
+                            f"Control mode set to STOP, agent status: {agent_status}",
+                            {"mode": "STOP", "run_mode": run_mode, "agent_status": agent_status}
                         )
                         stop_success = True
                     else:
                         self.log_test(
                             "Hook Control - STOP Mode Failed",
                             False,
-                            f"Agent status not returned to idle: {agent_status}",
-                            {"mode": "STOP", "agent_status": agent_status}
+                            f"Control mode not properly set: run_mode={run_mode}, agent_status={agent_status}",
+                            {"mode": "STOP", "run_mode": run_mode, "agent_status": agent_status}
                         )
                         stop_success = False
                 else:
