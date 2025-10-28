@@ -215,7 +215,7 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
           <div className="flex items-center gap-2 flex-wrap">
             <label className="text-[10px] text-gray-400">Grid</label>
           {/* Compact controls row for mobile */}
-          <div className="absolute bottom-1 left-2 right-2 flex items-center gap-2 z-10 md:hidden">
+          <div className="absolute bottom-1 left-2 right-2 flex items-center gap-2 flex-wrap z-10 md:hidden">
             <button onClick={quickCreate} className="flex-1 px-2 py-1 text-[11px] bg-gray-800/70 hover:bg-gray-700/70 border border-gray-700 rounded text-gray-200">Create</button>
             <button onClick={quickNavigate} className="flex-1 px-2 py-1 text-[11px] bg-blue-800/70 hover:bg-blue-700/70 border border-blue-700 rounded text-blue-200">Go</button>
             <button onClick={async()=>{
