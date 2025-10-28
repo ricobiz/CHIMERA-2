@@ -1,0 +1,80 @@
+{
+  "profile_id": "f673e31c-89c5-4d9b-836e-503dd44dd44a",
+  "created_at": "2025-10-28T23:50:45.063473+00:00",
+  "last_used": "2025-10-28T23:50:45.063485+00:00",
+  "used_count": 0,
+  "status": "warm",
+  "browser": {
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0 Safari/537.36",
+    "viewport": {
+      "width": 1352,
+      "height": 869
+    },
+    "platform": "Win32",
+    "vendor": "Google Inc.",
+    "app_version": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0 Safari/537.36"
+  },
+  "locale": {
+    "timezone_id": "America/New_York",
+    "locale": "en-US",
+    "languages": [
+      "en-US",
+      "en"
+    ]
+  },
+  "hardware": {
+    "hardware_concurrency": 8,
+    "device_memory": 8,
+    "max_touch_points": 0
+  },
+  "webgl": {
+    "vendor": "Intel Inc.",
+    "renderer": "Intel Iris OpenGL Engine",
+    "canvas_noise_seed": "126514"
+  },
+  "fonts": [
+    "Arial",
+    "Helvetica",
+    "Times New Roman",
+    "Verdana",
+    "Courier New",
+    "Georgia",
+    "Tahoma",
+    "Trebuchet MS"
+  ],
+  "plugins": [
+    {
+      "name": "PDF Viewer",
+      "filename": "internal-pdf-viewer"
+    },
+    {
+      "name": "Chrome PDF Viewer",
+      "filename": "mhjfbmdgcfjbbpaeojofohoefgiehjai"
+    }
+  ],
+  "proxy": {
+    "url": null,
+    "ip": "35.184.53.215",
+    "country": "US",
+    "region": "Iowa",
+    "city": "Council Bluffs",
+    "isp": "AS396982 Google LLC",
+    "proxy_type": null,
+    "risk_score": 0.2
+  },
+  "warmup": {
+    "is_warm": true,
+    "warmed_at": "2025-10-28T23:52:08.476612+00:00",
+    "sites_visited": [
+      "google.com",
+      "youtube.com",
+      "reddit.com",
+      "amazon.com"
+    ]
+  },
+  "captcha": {
+    "last_failed_at": null,
+    "failed_attempts_count": 0,
+    "cooldown_until": null
+  }
+}
