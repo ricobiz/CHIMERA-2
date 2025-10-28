@@ -344,6 +344,64 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
         ctx.strokeStyle = 'rgba(80, 140, 255, 0.85)';
         ctx.shadowBlur = 0;
         ctx.fillRect(x, Math.max(0,y-th-2), tw, th);
+  // Draw zoom lens
+  const drawLens = useCallback(() => {
+    const lens = lensCanvasRef.current;
+    const img = imageRef.current;
+    if (!lens || !overlayRect || !displaySrc || !img || !lensPos || !lensEnabled) return;
+    const ctx = lens.getContext('2d');
+    if (!ctx) return;
+
+    const dpr = window.devicePixelRatio || 1;
+    const r = lensRadius;
+    const size = r * 2;
+    const targetW = Math.floor(size * dpr);
+    const targetH = Math.floor(size * dpr);
+    if (lens.width !== targetW || lens.height !== targetH) {
+      lens.width = targetW;
+      lens.height = targetH;
+      lens.style.width = `${size}px`;
+      lens.style.height = `${size}px`;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    } else {
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0,0,size,size);
+    }
+
+    // Compute source box in image coords
+    const vw = overlayRect.width;
+    const vh = overlayRect.height;
+
+    // Convert lensPos (px within overlay) to normalized image coords
+    const nx = lensPos.x / vw;
+    const ny = lensPos.y / vh;
+
+    // Draw actual image into lens using scaling
+    const sx = (nx * img.naturalWidth) - (r / lensScale);
+    const sy = (ny * img.naturalHeight) - (r / lensScale);
+    const sw = (size / lensScale);
+    const sh = (size / lensScale);
+
+    // Clip to circle
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(r, r, r - 1, 0, Math.PI * 2);
+    ctx.closePath();
+    ctx.clip();
+
+    try {
+      ctx.drawImage(img, Math.max(0, sx), Math.max(0, sy), sw, sh, 0, 0, size, size);
+    } catch {}
+
+    ctx.restore();
+
+    // Border
+    ctx.beginPath();
+    ctx.arc(r, r, r - 1, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(80, 140, 255, 0.9)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }, [lensEnabled, lensPos, lensRadius, lensScale, displaySrc, overlayRect]);
         ctx.strokeRect(x, Math.max(0,y-th-2), tw, th);
         ctx.fillStyle = 'rgba(200,220,255,0.95)';
         ctx.fillText(label, x+pad, Math.max(10,y-4));
