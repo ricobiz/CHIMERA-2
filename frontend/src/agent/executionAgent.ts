@@ -451,12 +451,19 @@ class ExecutionAgentService {
             status: 'fail',
             error: errorDetails
           });
+          
+          console.log(`[ExecutionAgent.retry] ╔════════════════════════════════════════════╗`);
+          console.log(`[ExecutionAgent.retry] ║  RETRY LOOP END - RETURNING FALSE (FAIL)   ║`);
+          console.log(`[ExecutionAgent.retry] ╚════════════════════════════════════════════╝\n`);
           return false;
         }
       }
     }
 
     console.error(`[ExecutionAgent.retry] ❌ Exhausted all retries, returning false`);
+    console.log(`[ExecutionAgent.retry] ╔════════════════════════════════════════════╗`);
+    console.log(`[ExecutionAgent.retry] ║  RETRY LOOP END - RETURNING FALSE (RETRIES)║`);
+    console.log(`[ExecutionAgent.retry] ╚════════════════════════════════════════════╝\n`);
     return false;
   }
 
