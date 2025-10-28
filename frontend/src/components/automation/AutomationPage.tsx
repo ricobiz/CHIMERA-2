@@ -429,17 +429,17 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
             <span className={`text-[10px] px-1.5 py-0.5 rounded ${statusPill(agentStatus)}`}>{agentStatus}</span>
           </div>
           {/* Side icon strips */}
-            <div className="absolute left-2 top-1/2 -translate-y-1/2 flex flex-col gap-2 z-20">
+            <div className="absolute left-2 top-[60%] -translate-y-1/2 flex flex-col gap-2 z-20">
               <button onClick={quickNavigate} className="w-8 h-8 bg-gray-900/70 hover:bg-gray-800/70 border border-gray-700 rounded text-[10px] text-gray-200">Map</button>
               <button onClick={()=> setPinMapping(p => !p)} className={`w-8 h-8 border rounded text-[10px] ${pinMapping? 'bg-teal-900/40 border-teal-700 text-teal-300' : 'bg-gray-900/70 border-gray-700 text-gray-200'}`}>Pin</button>
               <button onClick={()=>{ lastSnapshotRef.current=null; setVision([]); drawCanvas(); }} className="w-8 h-8 bg-gray-900/70 hover:bg-gray-800/70 border border-gray-700 rounded text-[10px] text-gray-200">Clr</button>
               <button onClick={()=> setShowDetections(v=>!v)} className="w-8 h-8 bg-gray-900/70 hover:bg-gray-800/70 border border-gray-700 rounded text-[10px] text-gray-200">Hide</button>
             </div>
-            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex flex-col gap-2 z-20">
+            <div className="absolute right-2 top-[60%] -translate-y-1/2 flex flex-col gap-2 z-20">
               <button onClick={()=> setShowGrid(s=>!s)} className="w-8 h-8 bg-gray-900/70 hover:bg-gray-800/70 border border-gray-700 rounded text-[10px] text-gray-200">Grid</button>
               <button onClick={()=> setShowPlan(v=>!v)} className="w-8 h-8 bg-gray-900/70 hover:bg-gray-800/70 border border-gray-700 rounded text-[10px] text-gray-200">Plan</button>
-              <button onClick={()=> {/* placeholder for markup toggle */}} className="w-8 h-8 bg-gray-900/70 hover:bg-gray-800/70 border border-gray-700 rounded text-[10px] text-gray-200">MkUp</button>
-              <button onClick={()=> {/* placeholder for logs toggle */}} className="w-8 h-8 bg-gray-900/70 hover:bg-gray-800/70 border border-gray-700 rounded text-[10px] text-gray-200">Logs</button>
+              <button onClick={()=> {}} className="w-8 h-8 bg-gray-900/70 hover:bg-gray-800/70 border border-gray-700 rounded text-[10px] text-gray-200">MkUp</button>
+              <button onClick={()=> {}} className="w-8 h-8 bg-gray-900/70 hover:bg-gray-800/70 border border-gray-700 rounded text-[10px] text-gray-200">Logs</button>
             </div>
 
             <button onClick={() => setPinMapping(p => !p)} className={`px-2 py-1 text-[11px] border rounded ${pinMapping? 'bg-teal-900/40 border-teal-700 text-teal-300' : 'bg-gray-800/60 border-gray-700 text-gray-300'}`}>{pinMapping? 'Pinned' : 'Pin'}</button>
