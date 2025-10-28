@@ -176,9 +176,17 @@ class ExecutionAgentService {
         console.log(`[ExecutionAgent] 🎯 Executing step ${i+1}: ${step.actionType} - ${step.targetDescription}`);
 
         // Execute step with retry logic
-        const stepSuccess = await this.executeStepWithRetry(step, initialState.browserState);
+        console.log(`[ExecutionAgent] 🔧 Calling executeStepWithRetry for step ${i+1}...`);
+        let stepSuccess = false;
+        try {
+          stepSuccess = await this.executeStepWithRetry(step, initialState.browserState);
+          console.log(`[ExecutionAgent] 🔧 executeStepWithRetry returned: ${stepSuccess}`);
+        } catch (retryError: any) {
+          console.error(`[ExecutionAgent] ❌ executeStepWithRetry threw error:`, retryError);
+          stepSuccess = false;
+        }
         
-        console.log(`[ExecutionAgent] Step ${i+1} result: ${stepSuccess ? '✅ SUCCESS' : '❌ FAILED'}`);
+        console.log(`[ExecutionAgent] Step ${i+1} final result: ${stepSuccess ? '✅ SUCCESS' : '❌ FAILED'}`);
         
         if (stepSuccess) {
           completedSteps++;
@@ -187,6 +195,7 @@ class ExecutionAgentService {
           // Step failed after all retries
           console.error(`[ExecutionAgent] ❌ Step ${i + 1} FAILED after all retries`);
           console.error(`[ExecutionAgent] Failed step details:`, step);
+          console.error(`[ExecutionAgent] Stopping automation due to failure`);
           await this.cleanupSession(sessionId);
           this.updateState({
             status: 'failed',
@@ -200,8 +209,20 @@ class ExecutionAgentService {
           return;
         }
         
-        console.log(`[ExecutionAgent] ➡️  Moving to next step (if any)...\n`);
+        console.log(`[ExecutionAgent] ➡️  Step ${i+1} complete, checking if more steps...`);
+        console.log(`[ExecutionAgent] ➡️  Current: ${i+1}, Total: ${plan.steps.length}, Has more: ${i+1 < plan.steps.length}`);
+        
+        if (i + 1 < plan.steps.length) {
+          console.log(`[ExecutionAgent] ➡️  Moving to step ${i+2}...\n`);
+        } else {
+          console.log(`[ExecutionAgent] ✅ This was the last step!\n`);
+        }
       }
+      
+      console.log(`[ExecutionAgent] ═══════════════════════════════════════`);
+      console.log(`[ExecutionAgent] 🎉 EXECUTION LOOP COMPLETED SUCCESSFULLY`);
+      console.log(`[ExecutionAgent] Total steps completed: ${completedSteps}/${plan.steps.length}`);
+      console.log(`[ExecutionAgent] ═══════════════════════════════════════\n`);
 
       console.log('[ExecutionAgent] ✅ Execution loop completed successfully');
       
