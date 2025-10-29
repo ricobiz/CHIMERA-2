@@ -159,7 +159,24 @@ async def exec_task(req: TaskRequest):
             }
         
         # Вызываем головной мозг для анализа и планирования
-        head_analysis = await head_brain_service.analyze_and_plan(goal, profile_info, req.user_data)
+        auto_generate = req.user_data is not None  # Если данные переданы - не спрашиваем, если нет - спрашиваем
+        head_analysis = await head_brain_service.analyze_and_plan(goal, profile_info, req.user_data, auto_generate)
+        
+        # Проверяем статус
+        if head_analysis.get('status') == 'NEEDS_USER_DATA':
+            log_step(f"⏸️ [HEAD BRAIN] Waiting for user data")
+            log_step(f"📋 Required fields: {', '.join(head_analysis['required_fields'])}")
+            agent_status = "IDLE"
+            return {
+                "status": "NEEDS_USER_DATA",
+                "job_id": job_id,
+                "task_id": head_analysis['task_id'],
+                "target_url": head_analysis.get('target_url'),
+                "understood_task": head_analysis.get('understood_task'),
+                "required_fields": head_analysis['required_fields'],
+                "optional_fields": head_analysis.get('optional_fields', []),
+                "message": head_analysis['message']
+            }
         
         # Сохраняем результаты анализа
         current_analysis = {
