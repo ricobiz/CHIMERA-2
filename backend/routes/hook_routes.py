@@ -200,8 +200,7 @@ async def exec_task(req: TaskRequest):
                     value = step.get('value') or data_bundle.get(field, '')
                     target_desc = f"field for {field}"
                     # Use smart-type (which uses vision + human typing)
-                    from routes.automation_routes import smart_type_endpoint
-                    await smart_type_endpoint(SmartTypeRequest(
+                    await smart_type_text(SmartTypeRequest(
                         session_id=session_id,
                         description=target_desc,
                         text=value
@@ -211,8 +210,7 @@ async def exec_task(req: TaskRequest):
                 elif action == "CLICK":
                     target_desc = step.get('target', 'next button')
                     # Use smart-click (which uses vision + human clicking)
-                    from routes.automation_routes import smart_click_endpoint
-                    await smart_click_endpoint(SmartClickRequest(
+                    await smart_click(FindElementsRequest(
                         session_id=session_id,
                         description=target_desc
                     ))
