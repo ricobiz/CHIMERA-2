@@ -144,18 +144,49 @@ class HeadBrainService:
                 # Fallback на простую логику
                 return self._fallback_analysis(goal, has_warm_profile)
             
-            # Генерируем данные
-            fn = random.choice(FIRST_NAMES)
-            ln = random.choice(LAST_NAMES)
-            data_bundle = {
-                "first_name": fn,
-                "last_name": ln,
-                "username": _gen_username(fn, ln),
-                "password": _gen_password(),
-                "birthday": _gen_birthday(),
-                "phone_number": None,
-                "recovery_email": None
-            }
+            # Генерируем или используем данные пользователя
+            data_source = "generated"
+            
+            if user_data:
+                # Используем данные пользователя + дополняем недостающее
+                fn = user_data.get('first_name') or random.choice(FIRST_NAMES)
+                ln = user_data.get('last_name') or random.choice(LAST_NAMES)
+                
+                data_bundle = {
+                    "first_name": user_data.get('first_name', fn),
+                    "last_name": user_data.get('last_name', ln),
+                    "username": user_data.get('username') or user_data.get('email') or _gen_username(fn, ln),
+                    "email": user_data.get('email'),
+                    "password": user_data.get('password') or _gen_password(),
+                    "birthday": user_data.get('birthday') or _gen_birthday(),
+                    "phone_number": user_data.get('phone_number'),
+                    "recovery_email": user_data.get('recovery_email'),
+                    "address": user_data.get('address'),
+                    "city": user_data.get('city'),
+                    "country": user_data.get('country'),
+                    "postal_code": user_data.get('postal_code'),
+                }
+                data_source = "user_provided"
+                logger.info(f"✅ [HEAD BRAIN] Using user-provided data (filled {sum(1 for v in user_data.values() if v)} fields)")
+            else:
+                # Полностью генерируем данные
+                fn = random.choice(FIRST_NAMES)
+                ln = random.choice(LAST_NAMES)
+                data_bundle = {
+                    "first_name": fn,
+                    "last_name": ln,
+                    "username": _gen_username(fn, ln),
+                    "email": f"{_gen_username(fn, ln)}@gmail.com",
+                    "password": _gen_password(),
+                    "birthday": _gen_birthday(),
+                    "phone_number": None,
+                    "recovery_email": None,
+                    "address": None,
+                    "city": None,
+                    "country": "US",
+                    "postal_code": None,
+                }
+                logger.info(f"✅ [HEAD BRAIN] Generated all data automatically")
             
             # Формируем финальный ответ
             analysis = {
