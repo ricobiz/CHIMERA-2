@@ -325,7 +325,7 @@ async def exec_task(req: TaskRequest):
                 if last_step.get('needs_visual'):
                     send_screenshot = True
                 # Если в прошлой итерации действие выполнилось но страница НЕ изменилась
-                if last_step.get('page_changed') == False:
+                if last_step.get('page_changed') is False:
                     send_screenshot = True
                     log_step("⚠️ Previous action had NO EFFECT - sending screenshot for analysis")
             
