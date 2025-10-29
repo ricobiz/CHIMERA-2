@@ -1216,6 +1216,9 @@ agent_communication:
       - working: "NA"
         agent: "main"
         comment: "Fixed handleGenerateImage function in App.js: Changed from storing markdown ![Generated Image](${data.image_url}) in content field to storing actual image data in image field. Now creates message with image: data.image_url and content: 'Image generated successfully'. ChatInterface will render this as actual image. Ready for testing."
+      - working: true
+        agent: "main"
+        comment: "✅ VERIFIED via screenshot tool: Image generation button (🖼️) now working correctly! Test: Generated 'A beautiful sunset over mountains' - image displayed as actual visual image (not Base64 text) in chat. Console shows: has_image_url: true, is_image: true, data_length: 1923434, starts_with: data:image/png;base64. Image renders properly in ChatInterface. Issue resolved."
 
 frontend:
   - task: "API Balance Display"
