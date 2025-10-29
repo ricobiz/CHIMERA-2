@@ -134,13 +134,10 @@ Style: Modern, clean, professional, high-quality, realistic."""
                     message = choice.message
                     
                     # Проверяем, есть ли images в message (новый формат OpenRouter)
-                    message_dict = message.model_dump() if hasattr(message, 'model_dump') else message.__dict__
-                    logger.info(f"🔍 [IMAGE GEN] Message dict keys: {message_dict.keys()}")
-                    
-                    if 'images' in message_dict and message_dict['images']:
-                        # Images field содержит массив объектов с image_url
-                        images = message_dict['images']
-                        logger.info(f"✅ [IMAGE GEN] Found images in message: {len(images)}")
+                    # Try direct attribute access first, then model_dump
+                    if hasattr(message, 'images') and message.images:
+                        images = message.images
+                        logger.info(f"✅ [IMAGE GEN] Found images via direct access: {len(images)}")
                         
                         # Извлекаем первый image_url
                         first_image = images[0]
@@ -148,6 +145,22 @@ Style: Modern, clean, professional, high-quality, realistic."""
                             mockup_url = first_image['image_url'].get('url') if isinstance(first_image['image_url'], dict) else first_image['image_url']
                         else:
                             mockup_url = first_image
+                    else:
+                        # Fallback to model_dump approach
+                        message_dict = message.model_dump() if hasattr(message, 'model_dump') else message.__dict__
+                        logger.info(f"🔍 [IMAGE GEN] Message dict keys: {message_dict.keys()}")
+                        
+                        if 'images' in message_dict and message_dict['images']:
+                            # Images field содержит массив объектов с image_url
+                            images = message_dict['images']
+                            logger.info(f"✅ [IMAGE GEN] Found images in message dict: {len(images)}")
+                            
+                            # Извлекаем первый image_url
+                            first_image = images[0]
+                            if isinstance(first_image, dict) and 'image_url' in first_image:
+                                mockup_url = first_image['image_url'].get('url') if isinstance(first_image['image_url'], dict) else first_image['image_url']
+                            else:
+                                mockup_url = first_image
                         
                         logger.info(f"✅ [IMAGE GEN] Image generated successfully: {len(str(mockup_url))} chars")
                         
