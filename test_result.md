@@ -1219,6 +1219,12 @@ agent_communication:
       - working: true
         agent: "main"
         comment: "✅ VERIFIED via screenshot tool: Image generation button (🖼️) now working correctly! Test: Generated 'A beautiful sunset over mountains' - image displayed as actual visual image (not Base64 text) in chat. Console shows: has_image_url: true, is_image: true, data_length: 1923434, starts_with: data:image/png;base64. Image renders properly in ChatInterface. Issue resolved."
+      - working: false
+        agent: "user"
+        comment: "User reports: Annotate and Approve Design buttons in code generation (design-first workflow) not working."
+      - working: "NA"
+        agent: "main"
+        comment: "Fixed design approval buttons: (1) Changed ChatInterface.jsx to use props onAnnotateMockup and onApproveDesign instead of window.onAnnotateMockup/window.onApproveDesign. (2) Created handleAnnotateMockup and handleApproveDesign functions in App.js with proper dependency handling. (3) Fixed useEffect to include all dependencies (pendingPrompt, pendingDesign, messages, etc). (4) Added props to ChatInterface component. Added console logging for debugging. Ready for testing."
 
 frontend:
   - task: "API Balance Display"
