@@ -24,7 +24,8 @@ SYSTEM_PROMPT = (
 )
 
 JSON_SCHEMA_EXAMPLE = {
-    "next_action": "CLICK_CELL | TYPE_AT_CELL | HOLD_DRAG | SCROLL | WAIT | DONE | ERROR",
+    "next_action": "NAVIGATE | CLICK_CELL | TYPE_AT_CELL | HOLD_DRAG | SCROLL | WAIT | DONE | ERROR",
+    "url": "https://example.com (for NAVIGATE)",
     "target_cell": "C7",
     "text": "optional for TYPE_AT_CELL",
     "direction": "up|down (for SCROLL)",
