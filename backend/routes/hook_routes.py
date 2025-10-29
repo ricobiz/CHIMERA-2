@@ -201,8 +201,7 @@ async def exec_task(req: TaskRequest):
             try:
                 if action == "NAVIGATE":
                     target_url = step.get('target')
-                    from services.browser_automation_service import navigate
-                    await navigate(session_id, target_url)
+                    await browser_service.navigate(session_id, target_url)
                     log_step(f"✅ Navigated to {target_url}", status="ok")
                     
                 elif action == "TYPE":
@@ -228,8 +227,7 @@ async def exec_task(req: TaskRequest):
                     
                 elif action == "VERIFY_PAGE_STATE":
                     # Check current page state
-                    from services.page_state_service import detect_page_state
-                    page_state = await detect_page_state(session_id)
+                    page_state = await page_state_service.detect_page_state(session_id)
                     log_step(f"📊 Page state: {page_state}", status="ok")
                     
                     # Handle conditional branching
@@ -251,8 +249,7 @@ async def exec_task(req: TaskRequest):
                     log_step(f"⚠️ Unknown action: {action}", status="warning")
                 
                 # Take screenshot after each step
-                from services.browser_automation_service import capture_screenshot
-                screenshot_b64 = await capture_screenshot(session_id)
+                screenshot_b64 = await browser_service.capture_screenshot(session_id)
                 
                 # Store observation
                 last_observation = {
