@@ -4,8 +4,9 @@ import { Button } from './ui/button';
 import { Tabs, TabsList, TabsTrigger } from './ui/tabs';
 import { exportProject } from '../services/api';
 import { toast } from '../hooks/use-toast';
+import AutomationPage from './automation/AutomationPage.tsx';
 
-const PreviewPanel = ({ generatedCode, isGenerating }) => {
+const PreviewPanel = ({ generatedCode, isGenerating, chatMode = 'chat' }) => {
   const [activeTab, setActiveTab] = useState('preview');
   const [previewKey, setPreviewKey] = useState(0);
   const [iframeContent, setIframeContent] = useState('');
