@@ -370,8 +370,28 @@ function App() {
         const updatedMessages = [...newMessages, aiMessage];
         setMessages(updatedMessages);
         
+        let newTotalCost = totalCost;
         if (data.cost) {
-          setTotalCost(totalCost + data.cost.total_cost);
+          newTotalCost = totalCost + data.cost.total_cost;
+          setTotalCost(newTotalCost);
+        }
+        
+        // СОХРАНЯЕМ В БАЗУ!
+        if (currentSessionId) {
+          await updateSession(currentSessionId, {
+            messages: updatedMessages,
+            total_cost: newTotalCost
+          });
+          console.log('✅ Session updated in database');
+        } else {
+          // Создаем новую сессию если её нет
+          const session = await createSession({
+            name: prompt.substring(0, 50),
+            messages: updatedMessages,
+            total_cost: newTotalCost
+          });
+          setCurrentSessionId(session.id);
+          console.log('🆕 New session created:', session.id);
         }
         
         setGenerationStatus('success');
