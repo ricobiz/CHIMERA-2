@@ -86,7 +86,9 @@ class SupervisorService:
             action = 'TYPE_AT_CELL'
         if action in ('DRAG', 'DRAG_DROP'):
             action = 'HOLD_DRAG'
-        if action not in ('CLICK_CELL', 'TYPE_AT_CELL', 'HOLD_DRAG', 'SCROLL', 'WAIT', 'DONE'):
+        if action in ('GO', 'GO_TO', 'GOTO'):
+            action = 'NAVIGATE'
+        if action not in ('NAVIGATE', 'CLICK_CELL', 'TYPE_AT_CELL', 'HOLD_DRAG', 'SCROLL', 'WAIT', 'DONE'):
             # fallback to WAIT to avoid infinite warnings
             return {"next_action": "WAIT", "amount": 400}
 
