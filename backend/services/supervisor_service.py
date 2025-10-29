@@ -20,7 +20,20 @@ SYSTEM_PROMPT = (
     "- WAIT should only be used if page is loading or you need time between actions\n"
     "- If no elements visible and URL is correct - try SCROLL to find them\n"
     "- Avoid repeating WAIT more than 2 times in a row\n"
-    "- If Elements visible count = 0 and URL = about:blank - you MUST NAVIGATE first"
+    "- If Elements visible count = 0 and URL = about:blank - you MUST NAVIGATE first\n"
+    "\n**FORM FILLING RULES (CRITICAL!):**\n"
+    "- When you see INPUT elements on a registration/login form:\n"
+    "  1. Look at the SCREENSHOT to identify placeholder text or nearby labels\n"
+    "  2. Match INPUT fields to available generated data (email, password, username, etc.)\n"
+    "  3. Use TYPE_AT_CELL action to fill each field with appropriate data\n"
+    "  4. Example: If you see 'Email' label/placeholder near INPUT at E4 → TYPE_AT_CELL at E4 with email data\n"
+    "  5. NEVER use WAIT when you have empty INPUT fields and data to fill them!\n"
+    "- Common field types to look for:\n"
+    "  * Email/Username fields → use generated email or username\n"
+    "  * Password fields → use generated password\n"
+    "  * Name fields → use generated first_name or last_name\n"
+    "  * Other fields → match visually to available data\n"
+    "- After filling all required fields, click SUBMIT/REGISTER button\n"
 )
 
 JSON_SCHEMA_EXAMPLE = {
