@@ -23,6 +23,33 @@ DEFAULT_HEAD_MODEL = os.environ.get('HEAD_BRAIN_MODEL', 'openai/gpt-4o')
 # Faker для реалистичной генерации данных
 fake = Faker(['en_US', 'en_GB'])  # Английские локали для реалистичности
 
+# Константы для генерации данных
+FIRST_NAMES = [
+    "John", "Jane", "Michael", "Sarah", "David", "Emily", "Robert", "Jessica",
+    "William", "Ashley", "James", "Amanda", "Christopher", "Stephanie", "Daniel",
+    "Melissa", "Matthew", "Nicole", "Anthony", "Elizabeth", "Mark", "Heather",
+    "Donald", "Tiffany", "Steven", "Michelle", "Paul", "Amber", "Andrew", "Megan"
+]
+
+LAST_NAMES = [
+    "Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis",
+    "Rodriguez", "Martinez", "Hernandez", "Lopez", "Gonzalez", "Wilson", "Anderson",
+    "Thomas", "Taylor", "Moore", "Jackson", "Martin", "Lee", "Perez", "Thompson",
+    "White", "Harris", "Sanchez", "Clark", "Ramirez", "Lewis", "Robinson"
+]
+
+def _gen_username(first_name: str, last_name: str) -> str:
+    """Генерация username"""
+    return f"{first_name.lower()}.{last_name.lower()}.{random.randint(100, 999)}"
+
+def _gen_password() -> str:
+    """Генерация пароля"""
+    return fake.password(length=12, special_chars=True, digits=True, upper_case=True, lower_case=True)
+
+def _gen_birthday() -> str:
+    """Генерация даты рождения"""
+    return fake.date_of_birth(minimum_age=18, maximum_age=65).strftime('%Y-%m-%d')
+
 def _gen_realistic_data() -> Dict[str, str]:
     """Генерация РЕАЛИСТИЧНЫХ данных с помощью Faker"""
     first_name = fake.first_name()
