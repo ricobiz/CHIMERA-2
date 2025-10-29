@@ -27,6 +27,51 @@ mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
+@router.post("/generate-image")
+async def generate_image(request: dict):
+    """
+    Generate image using Gemini Nano Banana (imagen-3)
+    Works in all chat modes - Chat, Code, Automation
+    """
+    try:
+        prompt = request.get("prompt")
+        model = request.get("model", "google/imagen-3.0-generate-002")
+        
+        if not prompt:
+            raise HTTPException(status_code=400, detail="Prompt is required")
+        
+        logger.info(f"🎨 [IMAGE GEN] Generating image with prompt: {prompt[:50]}...")
+        logger.info(f"🎨 [IMAGE GEN] Model: {model}")
+        
+        # Use design_generator_service для генерации изображения
+        # Просто передаем prompt как design_spec
+        result = await design_generator_service.generate_visual_mockup(
+            design_spec=prompt,
+            user_request=prompt,
+            model=model
+        )
+        
+        if result.get('is_image'):
+            logger.info(f"✅ [IMAGE GEN] Image generated successfully")
+            return {
+                "image_url": result.get('mockup_data'),
+                "is_image": True,
+                "cost": {
+                    "total_cost": (result.get('usage', {}).get('total_tokens', 0) * 0.000001)  # Примерная цена
+                }
+            }
+        else:
+            logger.warning(f"⚠️ [IMAGE GEN] Failed to generate image")
+            return {
+                "error": result.get('error', 'Image generation failed'),
+                "is_image": False,
+                "text_response": result.get('mockup_data')
+            }
+            
+    except Exception as e:
+        logger.error(f"❌ [IMAGE GEN] Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Image generation failed: {str(e)}")
+
 @router.post("/generate-code", response_model=GenerateCodeResponse)
 async def generate_code(request: GenerateCodeRequest):
     """Generate code using OpenRouter AI"""
