@@ -106,7 +106,7 @@ Style: Modern, clean, professional, high-quality, realistic."""
             
             logger.info(f"🎨 [IMAGE GEN] Prompt: {image_prompt[:100]}...")
             
-            # ПРАВИЛЬНЫЙ СПОСОБ для Gemini 2.5 Flash Image: chat completions с responseModalities
+            # ПРАВИЛЬНЫЙ СПОСОБ для Gemini 2.5 Flash Image: chat completions с modalities
             try:
                 response = self.client.chat.completions.create(
                     model=selected_model,
@@ -117,28 +117,48 @@ Style: Modern, clean, professional, high-quality, realistic."""
                         }
                     ],
                     extra_body={
-                        "response_modality": "IMAGE"  # Ключевой параметр для генерации изображения
+                        "modalities": ["image", "text"]  # Ключевой параметр для генерации изображения
                     }
                 )
                 
-                # Извлекаем изображение из ответа
-                if response.choices and len(response.choices) > 0:
+                # Извлекаем изображение из ответа - OpenRouter возвращает в images field
+                logger.info(f"🔍 [IMAGE GEN] Response structure: {dir(response)}")
+                
+                # Проверяем наличие images в ответе (через extra поле)
+                response_dict = response.model_dump() if hasattr(response, 'model_dump') else response.__dict__
+                
+                if 'images' in response_dict and response_dict['images']:
+                    # Images field содержит массив base64 data URLs
+                    images = response_dict['images']
+                    mockup_url = images[0] if isinstance(images, list) else images
+                    
+                    logger.info(f"✅ [IMAGE GEN] Image generated successfully: {len(str(mockup_url))} chars")
+                    
+                    return {
+                        "mockup_data": mockup_url,
+                        "design_spec": design_spec,
+                        "is_image": True,
+                        "usage": {
+                            "prompt_tokens": response.usage.prompt_tokens if response.usage else 0,
+                            "completion_tokens": response.usage.completion_tokens if response.usage else 0,
+                            "total_tokens": response.usage.total_tokens if response.usage else 0
+                        }
+                    }
+                elif response.choices and len(response.choices) > 0:
+                    # Fallback: check message content
                     choice = response.choices[0]
                     message_content = choice.message.content
                     
-                    # Gemini возвращает base64 изображение в content
-                    if message_content:
-                        # Проверяем, есть ли data URL или нужно добавить префикс
-                        if message_content.startswith('data:image'):
-                            mockup_url = message_content
-                        elif message_content.startswith('/9j/') or message_content.startswith('iVBOR'):
-                            # Это base64 изображение без префикса
+                    logger.warning(f"⚠️ [IMAGE GEN] No images field, got text response: {message_content[:100]}")
+                    
+                    # Если это base64 изображение в content
+                    if message_content and (message_content.startswith('data:image') or 
+                                          message_content.startswith('/9j/') or 
+                                          message_content.startswith('iVBOR')):
+                        if not message_content.startswith('data:image'):
                             mockup_url = f"data:image/png;base64,{message_content}"
                         else:
-                            # Возможно это URL
                             mockup_url = message_content
-                        
-                        logger.info(f"✅ [IMAGE GEN] Image generated successfully: {len(str(mockup_url))} chars")
                         
                         return {
                             "mockup_data": mockup_url,
@@ -151,11 +171,11 @@ Style: Modern, clean, professional, high-quality, realistic."""
                             }
                         }
                     else:
-                        logger.error("❌ [IMAGE GEN] No content in response")
-                        raise Exception("No content in response")
+                        # Это текстовый ответ, не изображение
+                        raise Exception(f"Model returned text instead of image: {message_content[:200]}")
                 else:
-                    logger.error("❌ [IMAGE GEN] No choices in response")
-                    raise Exception("No choices in response")
+                    logger.error(f"❌ [IMAGE GEN] No images or choices in response")
+                    raise Exception("No images or choices in response")
                     
             except Exception as sdk_error:
                 logger.error(f"❌ [IMAGE GEN] SDK error: {str(sdk_error)}")
