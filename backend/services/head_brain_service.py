@@ -55,40 +55,35 @@ class HeadBrainService:
         if not self.api_key:
             logger.warning("⚠️ OPENROUTER_API_KEY not set, head brain will not work")
     
-    async def analyze_and_plan(self, goal: str, profile_info: Optional[Dict] = None) -> Dict[str, Any]:
+    async def analyze_and_plan(self, goal: str, profile_info: Optional[Dict] = None, user_data: Optional[Dict] = None) -> Dict[str, Any]:
         """
         Главная функция головного мозга:
         1. Анализирует задачу
         2. Определяет требования
         3. Создаёт план для спинного мозга
-        4. Генерирует данные
+        4. Генерирует данные ИЛИ использует данные пользователя
         
         Args:
             goal: Задача пользователя (например "Register Gmail account")
             profile_info: Информация о доступном профиле
+            user_data: Данные от пользователя (опционально)
+                {
+                    "first_name": "John",
+                    "email": "john@example.com",
+                    ...
+                }
             
         Returns:
             {
                 "task_id": str,
+                "target_url": str,
                 "understood_task": str,
-                "requirements": {
-                    "needs_warm_profile": bool,
-                    "needs_phone": bool,
-                    "mandatory_data": List[str],
-                    "optional_data": List[str]
-                },
+                "task_type": str,
+                "requirements": {...},
                 "strategy": str,
-                "plan": {
-                    "steps": List[Dict],
-                    "fallback_actions": Dict
-                },
-                "data_bundle": {
-                    "first_name": str,
-                    "last_name": str,
-                    "username": str,
-                    "password": str,
-                    "birthday": str
-                },
+                "plan_outline": str,
+                "data_bundle": {...},
+                "data_source": "user_provided" | "generated",
                 "can_proceed": bool,
                 "reason": str
             }
