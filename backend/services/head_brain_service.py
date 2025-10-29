@@ -23,24 +23,28 @@ DEFAULT_HEAD_MODEL = os.environ.get('HEAD_BRAIN_MODEL', 'openai/gpt-4o')
 # Faker для реалистичной генерации данных
 fake = Faker(['en_US', 'en_GB'])  # Английские локали для реалистичности
 
-def _gen_username(fn: str, ln: str) -> str:
-    suffix = random.randint(1000, 9999)
-    base = f"{fn}.{ln}".lower()
-    return f"{base}.{suffix}"
-
-def _gen_password() -> str:
-    letters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
-    digits = '0123456789'
-    symbols = '!@#$%^&*'
-    pw = [random.choice(letters) for _ in range(6)] + [random.choice(digits) for _ in range(3)] + [random.choice(symbols)]
-    random.shuffle(pw)
-    return ''.join(pw)
-
-def _gen_birthday() -> str:
-    year = random.randint(1985, 2003)
-    month = random.randint(1, 12)
-    day = random.randint(1, 28)
-    return f"{year:04d}-{month:02d}-{day:02d}"
+def _gen_realistic_data() -> Dict[str, str]:
+    """Генерация РЕАЛИСТИЧНЫХ данных с помощью Faker"""
+    first_name = fake.first_name()
+    last_name = fake.last_name()
+    username = f"{first_name.lower()}.{last_name.lower()}.{random.randint(100, 999)}"
+    
+    return {
+        "first_name": first_name,
+        "last_name": last_name,
+        "username": username,
+        "email": fake.email(),
+        "password": fake.password(length=12, special_chars=True, digits=True, upper_case=True, lower_case=True),
+        "birthday": fake.date_of_birth(minimum_age=18, maximum_age=65).strftime('%Y-%m-%d'),
+        "phone_number": fake.phone_number(),
+        "address": fake.street_address(),
+        "city": fake.city(),
+        "state": fake.state_abbr(),
+        "country": "US",
+        "postal_code": fake.postcode(),
+        "company": fake.company(),
+        "job_title": fake.job(),
+    }
 
 
 class HeadBrainService:
