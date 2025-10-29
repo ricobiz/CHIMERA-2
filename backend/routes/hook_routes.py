@@ -293,6 +293,23 @@ async def exec_task(req: TaskRequest):
             target_cell = brain_result.get('target_cell')
             text_value = brain_result.get('text')
             
+            # Защита от зацикливания на WAIT
+            if action == 'WAIT':
+                consecutive_waits += 1
+                if consecutive_waits >= 3:
+                    log_step(f"⚠️ [ANTI-LOOP] Too many WAITs ({consecutive_waits}), forcing SCROLL or DONE")
+                    if len(vision_elements or []) > 0:
+                        # Есть элементы - пробуем скроллить
+                        action = 'SCROLL'
+                        brain_result['direction'] = 'down'
+                        brain_result['amount'] = 400
+                        consecutive_waits = 0
+                    else:
+                        # Нет элементов вообще - возможно задача завершена
+                        action = 'DONE'
+            else:
+                consecutive_waits = 0
+            
             log_step(f"🧠 [SPINAL CORD] Decision: {action} at {target_cell or 'N/A'}")
             
             # 3. ИСПОЛНИТЕЛЬ: Выполнить действие
