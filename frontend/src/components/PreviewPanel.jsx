@@ -56,6 +56,16 @@ const PreviewPanel = ({ generatedCode, isGenerating }) => {
       .replace(/export\s+default\s+\w+;?/g, '')
       .replace(/export\s+{[^}]*};?/g, '');
     
+    // Extract and convert <style jsx> blocks
+    let extractedStyles = '';
+    cleanCode = cleanCode.replace(
+      /<style\s+jsx(?:\s+global)?>\{`([^`]*)`\}<\/style>/g,
+      (match, styleContent) => {
+        extractedStyles += styleContent;
+        return ''; // Remove the jsx style block
+      }
+    );
+    
     // Convert template literals to string concatenation to avoid Babel parsing errors
     // This converts: className={`base-class ${variable}`} 
     // Into: className={"base-class " + variable}
