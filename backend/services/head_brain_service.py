@@ -165,7 +165,9 @@ class HeadBrainService:
             # Формируем финальный ответ
             analysis = {
                 "task_id": result.get('task_id', 'head-' + str(random.randint(1000, 9999))),
+                "target_url": result.get('target_url', ''),
                 "understood_task": result.get('understood_task', goal),
+                "task_type": result.get('task_type', 'unknown'),
                 "requirements": result.get('requirements', {}),
                 "strategy": result.get('strategy', 'attempt_without_phone'),
                 "success_probability": result.get('success_probability', 0.65),
