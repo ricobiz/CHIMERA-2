@@ -14,11 +14,13 @@ SYSTEM_PROMPT = (
     "Decide the next single action strictly as JSON. "
     "Do not include any prose. Return only a single JSON object with the fields in the schema. "
     "\n\nIMPORTANT RULES:\n"
+    "- CHECK CURRENT URL FIRST: If URL is 'about:blank' or empty - you MUST use NAVIGATE action to go to target site\n"
+    "- If current URL doesn't match goal - use NAVIGATE to correct site\n"
     "- If you see interactive elements (buttons, links, inputs) - ACT on them, don't just WAIT\n"
     "- WAIT should only be used if page is loading or you need time between actions\n"
-    "- If no elements visible - try SCROLL to find them\n"
-    "- If goal requires navigation and current page doesn't match - use NAVIGATE\n"
-    "- Avoid repeating WAIT more than 2 times in a row"
+    "- If no elements visible and URL is correct - try SCROLL to find them\n"
+    "- Avoid repeating WAIT more than 2 times in a row\n"
+    "- If Elements visible count = 0 and URL = about:blank - you MUST NAVIGATE first"
 )
 
 JSON_SCHEMA_EXAMPLE = {
