@@ -93,7 +93,7 @@ Style: Modern, clean, professional UI design suitable for a web application."""
         """Generate visual mockup IMAGE using Gemini 2.5 Flash Image (Nano Banana) via chat completions endpoint"""
         try:
             # Use Gemini 2.5 Flash Image (Nano Banana) for image generation
-            selected_model = model or "google/gemini-2.5-flash-image"
+            selected_model = model or "google/gemini-2.5-flash-image-preview"
             
             logger.info(f"🎨 [IMAGE GEN] Using model: {selected_model}")
             
