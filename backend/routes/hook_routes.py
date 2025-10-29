@@ -258,8 +258,11 @@ async def exec_task(req: TaskRequest):
                 model='qwen/qwen2.5-vl'  # Дешёвая vision модель для спинного мозга
             )
             
-            action = brain_result.get('next_action')
-            log_step(f"🧠 [SPINAL CORD] Decision: {action}")
+            action = brain_result.get('next_action', 'WAIT')
+            target_cell = brain_result.get('target_cell')
+            text_value = brain_result.get('text')
+            
+            log_step(f"🧠 [SPINAL CORD] Decision: {action} at {target_cell or 'N/A'}")
             
             # 3. ИСПОЛНИТЕЛЬ: Выполнить действие
             if action == 'CLICK_CELL':
