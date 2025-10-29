@@ -449,31 +449,49 @@ function App() {
     try {
       // DESIGN-FIRST WORKFLOW: Generate design specification first
       let designSpec = '';
+      let mockupUrls = [];
       
       if (chatMode === 'agent') {
         try {
-          console.log('🎨 Generating design specification...');
+          console.log('🎨 Step 1: Generating design specification...');
           const designResponse = await generateDesign(prompt, visualValidatorModel);
           designSpec = designResponse.design_spec;
           
-          // Show design to user as AI message
-          const designMessage = {
-            role: 'assistant',
-            content: `## 🎨 Design Specification Generated\n\n${designSpec.substring(0, 800)}...\n\n*Full design will be applied to generated code*`,
-            isDesign: true
-          };
+          console.log('✅ Design spec generated');
           
-          // MOCKUP GENERATION DISABLED - directly proceed to code generation
-          // Mockup generation was causing workflow to stop and wait for approval
-          // This was confusing for users as Preview would remain empty
+          // STEP 2: Generate visual mockup (IMAGE)
+          console.log('🖼️ Step 2: Generating visual mockup...');
+          const mockupResponse = await generateMockup(designSpec, prompt, visualValidatorModel);
           
-          // Add design message to history
-          newMessages.push(designMessage);
-          setMessages([...newMessages]);
-          
-          console.log('✅ Design generated:', designSpec.substring(0, 100) + '...');
+          if (mockupResponse.mockup_data) {
+            // mockup_data может быть URL или base64
+            mockupUrls = Array.isArray(mockupResponse.mockup_data) 
+              ? mockupResponse.mockup_data 
+              : [mockupResponse.mockup_data];
+            
+            console.log('✅ Mockup generated:', mockupUrls.length, 'images');
+            
+            // Show mockup to user
+            const mockupMessage = {
+              role: 'assistant',
+              content: `## 🎨 Design Mockup\n\nHere's how your app will look:\n\n![Design Mockup](${mockupUrls[0]})\n\n**Do you approve this design?**\n- Type "yes" or "approve" to proceed with code generation\n- Type "change [details]" to revise the design`,
+              isDesign: true,
+              mockupUrls: mockupUrls
+            };
+            
+            newMessages.push(mockupMessage);
+            setMessages([...newMessages]);
+            
+            // WAIT FOR USER APPROVAL
+            setAwaitingDesignApproval(true);
+            setIsGenerating(false);
+            
+            // Stop here - wait for user to approve/reject
+            console.log('⏸️ Waiting for design approval...');
+            return;
+          }
         } catch (designError) {
-          console.error('Design generation failed:', designError);
+          console.error('Design/Mockup generation failed:', designError);
           // Continue without design if it fails
         }
       }
