@@ -474,7 +474,8 @@ function App() {
       if (chatMode === 'agent') {
         try {
           console.log('🎨 Step 1: Generating design specification...');
-          const designResponse = await generateDesign(prompt, visualValidatorModel);
+          // Use a text-only model for design specification (not image generation model)
+          const designResponse = await generateDesign(prompt, 'google/gemini-2.5-flash-image');
           designSpec = designResponse.design_spec;
           
           console.log('✅ Design spec generated');
