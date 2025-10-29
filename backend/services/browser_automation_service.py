@@ -492,7 +492,9 @@ class BrowserAutomationService:
             
             if human_like:
                 # Человекоподобное движение к точке и клик
-                await HumanBehaviorSimulator.human_move_and_click(page, x, y)
+                await HumanBehaviorSimulator.human_move(page, x, y)
+                await human_like_delay(100, 300)
+                await HumanBehaviorSimulator.human_click(page, x, y)
             else:
                 # Прямой клик
                 await page.mouse.click(x, y)
