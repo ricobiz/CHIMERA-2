@@ -31,21 +31,62 @@ logger.info(f"  Encoder: {FLORENCE_ENCODER}")
 
 class LocalVisionService:
     """
-    Local visual detector (Eyes):
-      - Primary path: ONNX model (if present)
+    Local visual detector (Eyes) using Florence-2:
+      - Primary path: Florence-2 ONNX model for visual understanding
       - Fallback path: DOM-derived clickable elements passed in
     It maps detections to grid cells.
     """
     def __init__(self):
         self.grid = GridConfig(rows=12, cols=8)
-        self.session = None
+        self.vision_session = None
+        self.encoder_session = None
+        self.processor = None
+        self.model_loaded = False
+        logger.info("🧠 [VISION] LocalVisionService initialized")
 
-    def maybe_load_model(self, model_path: Optional[str]) -> None:
-        if model_path and ort and self.session is None and os.path.exists(model_path):
-            try:
-                self.session = ort.InferenceSession(model_path, providers=["CPUExecutionProvider"])  # noqa: E501
-            except Exception:
-                self.session = None
+    def load_florence_model(self) -> bool:
+        """Load Florence-2 ONNX models"""
+        if self.model_loaded:
+            return True
+            
+        if not ort or not Image or not AutoProcessor:
+            logger.warning("⚠️ [VISION] Missing dependencies (onnxruntime/PIL/transformers)")
+            return False
+            
+        try:
+            logger.info("📥 [VISION] Loading Florence-2 models...")
+            
+            # Check if files exist
+            if not os.path.exists(FLORENCE_VISION_ENCODER):
+                logger.error(f"❌ [VISION] Vision encoder not found: {FLORENCE_VISION_ENCODER}")
+                return False
+            
+            # Load vision encoder
+            logger.info(f"Loading vision encoder: {FLORENCE_VISION_ENCODER}")
+            self.vision_session = ort.InferenceSession(
+                FLORENCE_VISION_ENCODER,
+                providers=["CPUExecutionProvider"]
+            )
+            logger.info(f"✅ Vision encoder loaded: {len(self.vision_session.get_inputs())} inputs")
+            
+            # Load processor for image preprocessing
+            logger.info(f"Loading processor from: {FLORENCE_MODEL_DIR}")
+            self.processor = AutoProcessor.from_pretrained(
+                FLORENCE_MODEL_DIR,
+                trust_remote_code=True
+            )
+            logger.info("✅ Processor loaded")
+            
+            self.model_loaded = True
+            logger.info("✅ [VISION] Florence-2 models loaded successfully!")
+            return True
+            
+        except Exception as e:
+            logger.error(f"❌ [VISION] Failed to load Florence-2 models: {e}")
+            import traceback
+            traceback.print_exc()
+            self.model_loaded = False
+            return False
 
     def set_grid(self, rows: int, cols: int) -> None:
         self.grid = GridConfig(rows=rows, cols=cols)
