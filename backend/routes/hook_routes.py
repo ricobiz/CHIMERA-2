@@ -49,6 +49,7 @@ class TaskRequest(BaseModel):
     text: str
     timestamp: int
     nocache: bool = True
+    user_data: Optional[Dict[str, Any]] = None  # Данные пользователя (опционально)
 
 class ControlRequest(BaseModel):
     mode: str  # ACTIVE, PAUSED, STOP
