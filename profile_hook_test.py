@@ -11,7 +11,7 @@ import uuid
 from datetime import datetime
 
 # Backend URL from frontend/.env
-BACKEND_URL = "https://brainwaves-3.preview.emergentagent.com/api"
+BACKEND_URL = "https://chimera-aios-1.preview.emergentagent.com/api"
 
 class ProfileHookTester:
     def __init__(self):
