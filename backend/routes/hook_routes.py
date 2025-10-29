@@ -327,7 +327,7 @@ async def exec_task(req: TaskRequest):
                 # Если в прошлой итерации действие выполнилось но страница НЕ изменилась
                 if last_step.get('page_changed') == False:
                     send_screenshot = True
-                    log_step(f"⚠️ Previous action had NO EFFECT - sending screenshot for analysis")
+                    log_step("⚠️ Previous action had NO EFFECT - sending screenshot for analysis")
             
             brain_result = await supervisor_service.next_step(
                 goal=brain_goal,
