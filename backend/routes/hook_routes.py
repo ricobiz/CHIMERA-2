@@ -44,6 +44,8 @@ pending_user_value: Optional[str] = None
 # Planner state
 current_analysis: Optional[Dict[str, Any]] = None
 current_plan: Optional[Dict[str, Any]] = None
+# Automation chat history (отдельно от main chat)
+automation_chat_history: List[Dict[str, Any]] = []
 
 class TaskRequest(BaseModel):
     text: str
