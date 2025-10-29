@@ -174,7 +174,7 @@ Style: Modern, clean, professional, high-quality, realistic."""
                         # Это текстовый ответ, не изображение
                         raise Exception(f"Model returned text instead of image: {message_content[:200]}")
                 else:
-                    logger.error(f"❌ [IMAGE GEN] No images or choices in response")
+                    logger.error("❌ [IMAGE GEN] No images or choices in response")
                     raise Exception("No images or choices in response")
                     
             except Exception as sdk_error:
