@@ -159,7 +159,7 @@ async def exec_task(req: TaskRequest):
             }
         
         # Вызываем головной мозг для анализа и планирования
-        head_analysis = await head_brain_service.analyze_and_plan(goal, profile_info)
+        head_analysis = await head_brain_service.analyze_and_plan(goal, profile_info, req.user_data)
         
         # Сохраняем результаты анализа
         current_analysis = {
@@ -189,8 +189,10 @@ async def exec_task(req: TaskRequest):
         
         # Get generated data (name, username, password, etc)
         data_bundle = head_analysis['data_bundle']
+        data_source = head_analysis.get('data_source', 'generated')
         log_step(f"✅ [HEAD BRAIN] Strategy: {head_analysis['strategy']}")
-        log_step(f"✅ [HEAD BRAIN] Data generated: {list(data_bundle.keys())}")
+        log_step(f"✅ [HEAD BRAIN] Data source: {data_source}")
+        log_step(f"📋 [HEAD BRAIN] Data: {', '.join([f'{k}={v}' for k, v in data_bundle.items() if v])}")
         
         # Проверяем можем ли продолжить
         if not head_analysis['can_proceed']:
