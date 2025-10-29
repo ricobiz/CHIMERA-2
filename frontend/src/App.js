@@ -1113,6 +1113,8 @@ function App() {
             onDeleteMessage={handleDeleteMessage}
             onEditMessage={handleEditMessage}
             onRegenerateFromMessage={handleRegenerateFromMessage}
+            onApproveDesign={handleApproveDesign}
+            onAnnotateMockup={handleAnnotateMockup}
           />
         </div>
 
