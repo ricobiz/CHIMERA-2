@@ -384,12 +384,14 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
               </button>
               
               {/* Settings Icon - просто иконка */}
-              <button
-                onClick={() => setShowSettingsMenu(!showSettingsMenu)}
-                className="hover:opacity-70 transition-opacity relative"
-                title="Settings"
-              >
-                <Settings className="w-4 h-4 text-gray-400" />
+              <div className="relative settings-menu-container">
+                <button
+                  onClick={() => setShowSettingsMenu(!showSettingsMenu)}
+                  className="hover:opacity-70 transition-opacity"
+                  title="Settings"
+                >
+                  <Settings className="w-4 h-4 text-gray-400" />
+                </button>
                 
                 {/* Settings Dropdown Menu */}
                 {showSettingsMenu && (
