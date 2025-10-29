@@ -82,7 +82,7 @@ const PreviewPanel = ({ generatedCode, isGenerating, chatMode = 'chat', messages
     if (chatMode === 'chat') {
       loadAllArtifacts();
     }
-  }, [chatMode, messages]); // Reload when messages change
+  }, [chatMode]); // Only reload when chatMode changes
 
   const refreshPreview = () => {
     setPreviewKey(prev => prev + 1);
