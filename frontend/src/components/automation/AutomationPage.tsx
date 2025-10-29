@@ -226,14 +226,36 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
       const data = await resp.json();
       if (resp.ok) {
         setJobId(data.job_id);
-        setLogs([]);
+        setLogs([]); // Clear old logs
         setAgentStatus('ACTIVE');
         
-        // Now use ExecutionAgent to execute the plan
+        // Setup ExecutionAgent callback to update UI
         executionAgent.setStateCallback((updates) => {
           // Update display with screenshots
           if (updates.browserState?.screenshot) {
             setDisplaySrc(updates.browserState.screenshot);
+          }
+          
+          // Update logs in UI from ExecutionAgent
+          if (updates.logEntries && updates.logEntries.length > 0) {
+            const newLogs = updates.logEntries.map(entry => ({
+              timestamp: new Date().toLocaleTimeString(),
+              message: entry.details || entry.actionType,
+              status: entry.status || 'info'
+            }));
+            setLogs(prev => [...prev, ...newLogs]);
+          }
+          
+          // Update status
+          if (updates.status) {
+            const statusMap = {
+              'planning': 'ACTIVE',
+              'executing': 'ACTIVE', 
+              'completed': 'IDLE',
+              'failed': 'ERROR',
+              'paused': 'PAUSED'
+            };
+            setAgentStatus(statusMap[updates.status] || 'ACTIVE');
           }
         });
         
