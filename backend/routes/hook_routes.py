@@ -263,8 +263,11 @@ async def exec_task(req: TaskRequest):
             log_step(f"🔄 [CYCLE {step_count}/{max_steps}]")
             
             # 1. ИСПОЛНИТЕЛЬ: Захватить скриншот + получить vision элементы
+            page = browser_service.sessions[session_id]['page']
+            await browser_service._inject_grid_overlay(page)
+            dom_data = await browser_service._collect_dom_clickables(page)
             screenshot_b64 = await browser_service.capture_screenshot(session_id)
-            vision_elements = await browser_service.find_elements_with_vision(session_id, "all interactive elements")
+            vision_elements = await browser_service._augment_with_vision(screenshot_b64, dom_data)
             
             # 2. СПИННОЙ МОЗГ: Принять решение на основе плана и текущего состояния
             brain_context = {
