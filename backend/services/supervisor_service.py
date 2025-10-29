@@ -159,7 +159,8 @@ class SupervisorService:
             return self._extract_json(content)
 
     async def next_step(self, goal: str, history: List[Dict[str, Any]], screenshot_base64: str,
-                        vision: List[Dict[str, Any]], model: str = DEFAULT_VLM) -> Dict[str, Any]:
+                        vision: List[Dict[str, Any]], available_data: Optional[Dict[str, Any]] = None, 
+                        model: str = DEFAULT_VLM) -> Dict[str, Any]:
         # Build the prompt (compact)
         has_screenshot = bool(screenshot_base64)
         
@@ -171,6 +172,16 @@ class SupervisorService:
             "Return STRICT JSON ONLY using this schema keys: next_action, target_cell, text, direction, amount, needs_user_input, ask_user, confidence.",
             "\nIf you cannot decide with confidence > 0.5 from text only, set needs_user_input=true to request visual context next time."
         ]
+        
+        # КРИТИЧНО: Добавляем available_data чтобы Spinal Cord знал какие данные использовать!
+        if available_data:
+            data_lines = []
+            for k, v in available_data.items():
+                if v and k not in ['requirements']:  # Исключаем служебные поля
+                    data_lines.append(f"  • {k}: {v}")
+            if data_lines:
+                user_parts.insert(1, f"AVAILABLE DATA (use for TYPE_AT_CELL):\n" + "\n".join(data_lines))
+        
         # include a compact list of vision elements (cap at 40)
         lines = []
         for el in (vision or [])[:40]:
