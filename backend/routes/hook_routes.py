@@ -175,9 +175,12 @@ async def exec_task(req: TaskRequest):
             prof_resp = await create_profile(CreateProfileRequest(warmup=False))
             profile_id = prof_resp.get('profile_id')
         
-        # Create browser session
-        from services.browser_automation_service import create_session_from_profile
-        session_id = await create_session_from_profile(profile_id)
+        # Create browser session using profile
+        session_id = str(uuid.uuid4())
+        session_result = await browser_service.create_session_from_profile(
+            profile_id=profile_id,
+            session_id=session_id
+        )
         current_session_id = session_id
         log_step(f"✅ Session created: {session_id}")
         
