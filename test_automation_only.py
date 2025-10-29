@@ -11,7 +11,7 @@ import uuid
 from datetime import datetime
 
 # Backend URL from frontend/.env
-BACKEND_URL = "https://antibot-layer.preview.emergentagent.com/api"
+BACKEND_URL = "https://brain-automation-1.preview.emergentagent.com/api"
 
 class AutomationTester:
     def __init__(self):
