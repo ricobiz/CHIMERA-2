@@ -223,7 +223,7 @@ class HeadBrainService:
             
         except Exception as e:
             logger.error(f"❌ [HEAD BRAIN] Exception: {e}")
-            return self._fallback_analysis(goal, has_warm_profile, user_data)
+            return self._fallback_analysis(goal, has_warm_profile, user_data, auto_generate)
     
     def _fallback_analysis(self, goal: str, has_warm_profile: bool, user_data: Optional[Dict] = None, auto_generate: bool = False) -> Dict[str, Any]:
         """Простая fallback логика если LLM не работает"""
