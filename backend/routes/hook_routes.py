@@ -12,6 +12,7 @@ import logging
 import asyncio
 import random
 import os
+from faker import Faker
 
 from services.browser_automation_service import browser_service
 from services.supervisor_service import supervisor_service
@@ -24,6 +25,9 @@ from routes.automation_routes import SmartTypeRequest, SmartClickRequest, smart_
 from routes.profile_routes import CreateProfileRequest
 
 logger = logging.getLogger(__name__)
+
+# Initialize Faker for data generation
+fake = Faker(['en_US'])
 
 router = APIRouter(prefix="/api/hook", tags=["agent-hook"])
 
