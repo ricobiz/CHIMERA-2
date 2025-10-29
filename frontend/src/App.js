@@ -453,7 +453,9 @@ function App() {
           // Mockup generation was causing workflow to stop and wait for approval
           // This was confusing for users as Preview would remain empty
           
-          setMessages(prev => [...prev, designMessage]);
+          // Add design message to history
+          newMessages.push(designMessage);
+          setMessages([...newMessages]);
           
           console.log('✅ Design generated:', designSpec.substring(0, 100) + '...');
         } catch (designError) {
@@ -467,7 +469,9 @@ function App() {
         ? `${prompt}\n\n**Design Specification to Follow:**\n${designSpec}`
         : prompt;
       
-      const response = await generateCode(enhancedPrompt, messages, selectedModel);
+      console.log('🚀 Starting code generation with model:', selectedModel);
+      const response = await generateCode(enhancedPrompt, newMessages, selectedModel);
+      console.log('✅ Code generation response received');
       
       const aiMessage = { 
         role: 'assistant', 
