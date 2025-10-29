@@ -236,6 +236,34 @@ class HeadBrainService:
         fn = random.choice(FIRST_NAMES)
         ln = random.choice(LAST_NAMES)
         
+        # Данные пользователя или генерируем
+        data_source = "generated"
+        if user_data:
+            fn = user_data.get('first_name', fn)
+            ln = user_data.get('last_name', ln)
+            data_bundle = {
+                "first_name": user_data.get('first_name', fn),
+                "last_name": user_data.get('last_name', ln),
+                "username": user_data.get('username') or user_data.get('email') or _gen_username(fn, ln),
+                "email": user_data.get('email'),
+                "password": user_data.get('password') or _gen_password(),
+                "birthday": user_data.get('birthday') or _gen_birthday(),
+                "phone_number": user_data.get('phone_number'),
+                "recovery_email": user_data.get('recovery_email'),
+            }
+            data_source = "user_provided"
+        else:
+            data_bundle = {
+                "first_name": fn,
+                "last_name": ln,
+                "username": _gen_username(fn, ln),
+                "email": f"{_gen_username(fn, ln)}@gmail.com",
+                "password": _gen_password(),
+                "birthday": _gen_birthday(),
+                "phone_number": None,
+                "recovery_email": None,
+            }
+        
         return {
             "task_id": f"fallback-{random.randint(1000, 9999)}",
             "target_url": target_url,
@@ -250,15 +278,8 @@ class HeadBrainService:
             "strategy": "attempt_without_phone" if has_warm_profile else "require_phone_or_warn",
             "success_probability": 0.7 if has_warm_profile else 0.3,
             "plan_outline": "Navigate → Fill registration form → Handle captcha/phone if needed → Submit",
-            "data_bundle": {
-                "first_name": fn,
-                "last_name": ln,
-                "username": _gen_username(fn, ln),
-                "password": _gen_password(),
-                "birthday": _gen_birthday(),
-                "phone_number": None,
-                "recovery_email": None
-            },
+            "data_bundle": data_bundle,
+            "data_source": data_source,
             "can_proceed": True,
             "reason": "Fallback analysis - will attempt task",
             "profile_status": {
