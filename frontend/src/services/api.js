@@ -495,14 +495,34 @@ export const closeAutomationSession = async (sessionId) => {
 export const generatePlan = async (goal, model = 'openai/gpt-5') => {
   try {
     console.log(`[API] generatePlan called with goal: "${goal}", model: ${model}`);
-    const response = await axios.post(`${API}/planning/generate`, {
-      goal,
-      model
+    
+    // First analyze the goal
+    const analyzeResp = await axios.post(`${API}/automation/plan/analyze`, {
+      goal
+    }, {
+      timeout: 30000
+    });
+    console.log(`[API] Analysis response:`, analyzeResp.data);
+    
+    // Then generate plan
+    const response = await axios.post(`${API}/automation/plan/generate`, {
+      task_id: analyzeResp.data.task_id,
+      analysis: analyzeResp.data.analysis
     }, {
       timeout: 60000  // 60 second timeout for planning
     });
     console.log(`[API] generatePlan response:`, response.data);
-    return response.data;
+    
+    // Return in expected format
+    return {
+      plan: {
+        planId: response.data.plan_id || 'plan-1',
+        steps: response.data.steps || [],
+        estimatedDuration: response.data.complexity === 'complex' ? 600 : 300
+      },
+      complexity: response.data.complexity || 'moderate',
+      estimatedSteps: (response.data.steps || []).length
+    };
   } catch (error) {
     console.error('[API] Error generating plan:', error);
     console.error('[API] Error response:', error.response?.data);
