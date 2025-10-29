@@ -1201,6 +1201,9 @@ agent_communication:
       - working: false
         agent: "user"
         comment: "User reports (Russian): Design workflow before code generation is trying to pass image as text, possibly Base64 encoded. Image is not rendering in chat. Need to verify which model is generating the image and check if request to OpenRouter is correct. Also need to check frontend rendering of base64 images."
+      - working: "NA"
+        agent: "main"
+        comment: "Fixed two issues: (1) Changed mockupMessage in App.js to add `image` field instead of markdown in `content` - ChatInterface expects images in `msg.image` field, not markdown syntax. (2) Explicitly set correct models for design-first workflow: 'google/gemini-2.5-flash-image' for text design spec, 'google/gemini-2.5-flash-image-preview' for image mockup generation. Ready for testing."
 
 frontend:
   - task: "API Balance Display"
