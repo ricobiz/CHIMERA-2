@@ -453,20 +453,25 @@ async def exec_task(req: TaskRequest):
                     log_step(f"❌ [VERIFICATION] Failed: {str(e)}")
                     page_changed = False
             
-            # 4. История для следующей итерации
+            # 5. История для следующей итерации
             history.append({
                 "step": step_count,
                 "action": action,
                 "target": target_cell,
                 "text": text_value if action == 'TYPE_AT_CELL' else None,
                 "result": "executed",
+                "page_changed": page_changed if action_executed else None,
                 "needs_visual": needs_visual  # Флаг для следующей итерации
             })
             
             last_observation = {
-                "screenshot_base64": screenshot_b64,
+                "screenshot_base64": screenshot_after or screenshot_before,
                 "step": step_count,
-                "action": action
+                "action": action,
+                "verification": {
+                    "action_executed": action_executed,
+                    "page_changed": page_changed if action_executed else None
+                }
             }
             
             await asyncio.sleep(1.5)
