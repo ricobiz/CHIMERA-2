@@ -573,7 +573,10 @@ function App() {
         }, 2000);
       } else {
         // Reset to idle after 3 seconds
-        setTimeout(() => setGenerationStatus('idle'), 3000);
+        setTimeout(() => {
+          setGenerationStatus('idle');
+          setIsGenerating(false);
+        }, 3000);
       }
       
     } catch (error) {
