@@ -151,10 +151,10 @@ Style: Modern, clean, professional, high-quality, realistic."""
                             }
                         }
                     else:
-                        logger.error(f"❌ [IMAGE GEN] No content in response")
+                        logger.error("❌ [IMAGE GEN] No content in response")
                         raise Exception("No content in response")
                 else:
-                    logger.error(f"❌ [IMAGE GEN] No choices in response")
+                    logger.error("❌ [IMAGE GEN] No choices in response")
                     raise Exception("No choices in response")
                     
             except Exception as sdk_error:
