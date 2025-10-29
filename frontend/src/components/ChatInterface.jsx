@@ -471,16 +471,41 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
               </div>
             </div>
             
-            {/* Bottom row: Session ID - editable yellow */}
+            {/* Bottom row: Session ID - clickable with dropdown */}
             {currentSessionId && (
-              <input
-                type="text"
-                value={currentSessionId}
-                readOnly
-                onClick={(e) => e.target.select()}
-                className="text-[9px] text-yellow-500 font-mono bg-transparent px-1 rounded cursor-pointer hover:bg-gray-800/30 transition-colors w-24"
-                title="Click to select session ID"
-              />
+              <div className="relative session-menu-container">
+                <button
+                  onClick={() => setShowSessionMenu(!showSessionMenu)}
+                  className="text-[9px] text-yellow-500 font-mono bg-transparent px-2 py-1 rounded cursor-pointer hover:bg-gray-800/50 transition-colors"
+                  title="Click to view all sessions"
+                >
+                  {currentSessionId.substring(0, 8)}...
+                </button>
+                
+                {/* Session Dropdown Menu */}
+                {showSessionMenu && (
+                  <div className="absolute top-full right-0 mt-2 w-80 bg-gray-900 border border-gray-700 rounded-lg shadow-xl z-50 max-h-96 overflow-y-auto">
+                    <div className="p-3 border-b border-gray-700">
+                      <p className="text-xs text-gray-400 font-medium">Sessions</p>
+                    </div>
+                    
+                    {/* Sessions will be loaded from parent/API */}
+                    <div className="p-2">
+                      <div className="text-xs text-gray-500 text-center py-4">
+                        Loading sessions...
+                      </div>
+                      {/* TODO: Load and display actual sessions here */}
+                      {/* This needs sessions prop from parent App.js */}
+                    </div>
+                    
+                    <div className="p-3 border-t border-gray-700">
+                      <p className="text-[10px] text-gray-500 break-all">
+                        Current: {currentSessionId}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
             )}
           </div>
         </div>
