@@ -132,6 +132,7 @@ Style: Modern, clean, professional, high-quality, realistic."""
                 if response.choices and len(response.choices) > 0:
                     choice = response.choices[0]
                     message = choice.message
+                    mockup_url = None
                     
                     # Проверяем, есть ли images в message (новый формат OpenRouter)
                     # Try direct attribute access first, then model_dump
@@ -161,7 +162,9 @@ Style: Modern, clean, professional, high-quality, realistic."""
                                 mockup_url = first_image['image_url'].get('url') if isinstance(first_image['image_url'], dict) else first_image['image_url']
                             else:
                                 mockup_url = first_image
-                        
+                    
+                    # If we found an image, return it
+                    if mockup_url:
                         logger.info(f"✅ [IMAGE GEN] Image generated successfully: {len(str(mockup_url))} chars")
                         
                         return {
