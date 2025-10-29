@@ -41,7 +41,7 @@ function App() {
     localStorage.getItem('visualValidatorEnabled') !== 'false'  // Enabled by default
   );
   const [visualValidatorModel, setVisualValidatorModel] = useState(
-    localStorage.getItem('visualValidatorModel') || 'google/gemini-2.5-flash-image'  // Nano Banana for design
+    localStorage.getItem('visualValidatorModel') || 'google/gemini-2.5-flash-image-preview'  // Nano Banana for design
   );
   
   const [researchPlannerEnabled, setResearchPlannerEnabled] = useState(
