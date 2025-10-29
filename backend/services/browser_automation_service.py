@@ -588,8 +588,8 @@ class BrowserAutomationService:
             viewport_w = viewport['width']
             viewport_h = viewport['height']
             
-            # Преобразуем cell в координаты (используем тот же grid что и в click_cell)
-            grid = GridConfig(rows=48, cols=64)
+            # Преобразуем cell в координаты (тот же grid что и vision)
+            grid = GridConfig(rows=self.grid_rows, cols=self.grid_cols)
             x, y = grid.cell_to_xy(cell, viewport_w, viewport_h)
             
             logger.info(f"Typing at cell {cell} ({x}, {y}): {text}")
