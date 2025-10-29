@@ -117,13 +117,21 @@ class HeadBrainService:
 1. СТРУКТУРИРОВАТЬ задачу пользователя и извлечь все данные
 2. Определить что нужно для выполнения (прогретый профиль, телефон, данные)
 3. Оценить можно ли выполнить без телефона (если профиль прогретый)
-4. Создать стратегию и общий план
+4. Создать ДЕТАЛЬНЫЙ ПОШАГОВЫЙ ПЛАН для исполнителя
 
 ВАЖНО:
 - ОБЯЗАТЕЛЬНО извлеки URL сайта из задачи пользователя
 - Если задача = регистрация на строгом сайте (Gmail, Facebook) БЕЗ прогретого профиля → нужен телефон (вероятность 90%)
 - Если задача = регистрация С прогретым профилем → можно попробовать БЕЗ телефона (вероятность 60-70%)
 - Если задача = простая навигация → прогрев не нужен
+
+ФОРМАТ ПЛАНА:
+План должен содержать массив КОНКРЕТНЫХ шагов с action, field, value (или data_key), next:
+- NAVIGATE: перейти на URL
+- TYPE: ввести текст в поле (указать field и data_key: "first_name", "password" и т.д.)
+- CLICK: кликнуть на кнопку/ссылку (указать target: "Next", "Continue", "Submit" и т.д.)
+- VERIFY_RESULT: проверить результат действия
+- WAIT_USER: если нужен телефон/2FA/SMS - остановиться и ждать оператора
 
 Верни JSON:
 {
@@ -139,6 +147,15 @@ class HeadBrainService:
   "strategy": "attempt_without_phone" | "require_phone" | "simple_navigation",
   "success_probability": 0.0-1.0,
   "plan_outline": "Краткий план для средней модели",
+  "steps": [
+    {"id": "step1", "action": "NAVIGATE", "target": "https://...", "next": "step2"},
+    {"id": "step2", "action": "TYPE", "field": "first_name", "data_key": "first_name", "next": "step3", "on_error": "retry_with_fix"},
+    {"id": "step3", "action": "TYPE", "field": "last_name", "data_key": "last_name", "next": "step4", "on_error": "retry_with_fix"},
+    {"id": "step4", "action": "TYPE", "field": "username", "data_key": "username", "next": "step5", "on_error": "retry_with_suffix"},
+    {"id": "step5", "action": "TYPE", "field": "password", "data_key": "password", "next": "step6", "on_error": "retry_with_fix"},
+    {"id": "step6", "action": "CLICK", "target": "Next/Continue", "next": "step7"},
+    {"id": "step7", "action": "VERIFY_RESULT", "expected": "success_or_phone_request", "on_success": "done", "on_phone_request": "wait_user"}
+  ],
   "can_proceed": true/false,
   "reason": "Почему можем/не можем продолжить"
 }"""
