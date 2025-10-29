@@ -172,6 +172,12 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
         const warmReady = !!(ana?.analysis?.availability?.profile?.is_warm);
         setShowWarmBanner(!warmReady);
         if (data.session_id) setSessionId(data.session_id);
+        
+        // Update profile health info
+        const profile_data = ana?.analysis?.availability?.profile || {};
+        if (profile_data.user_agent) setProfileUA(profile_data.user_agent);
+        if (profile_data.ip) setProfileIP(profile_data.ip);
+        if (profile_data.proxy) setProfileProxy(JSON.stringify(profile_data.proxy));
       } catch {}
 
           setVision(v);
