@@ -92,45 +92,77 @@ Style: Modern, clean, professional UI design suitable for a web application."""
     async def generate_visual_mockup(self, design_spec: str, user_request: str, model: str = None) -> Dict:
         """Generate visual mockup image based on design specification"""
         try:
-            # Use image generation model (Gemini Nano Banana or GPT-5 Image)
-            selected_model = model or "google/gemini-2.5-flash-image-preview"
+            # Выбираем модель генерации изображений
+            # Gemini Nano Banana (imagen-3.0-generate-002) или gpt-image-1
+            selected_model = model or "google/imagen-3.0-generate-002"
             
-            # Create detailed mockup prompt
-            mockup_prompt = self.mockup_prompt.format(design_spec=design_spec)
+            logger.info(f"Generating visual mockup IMAGE with model: {selected_model}")
             
-            logger.info(f"Generating visual mockup with model: {selected_model}")
+            # Создаем промпт для генерации изображения
+            image_prompt = f"""Create a clean, modern UI mockup image for: {user_request}
+
+Design specifications:
+{design_spec}
+
+Style: Professional, clean, modern web interface. Show the main screen with all key elements visible. High quality, realistic mockup."""
             
-            # For image generation, we need to use the images endpoint
-            # Note: OpenRouter might have different endpoints for different models
-            # Gemini can generate images through chat completions
-            
-            response = self.client.chat.completions.create(
-                model=selected_model,
-                messages=[
-                    {
-                        "role": "user",
-                        "content": f"Create a UI mockup image for this application:\n\n{user_request}\n\nDesign specifications:\n{design_spec}\n\nGenerate a clean, professional mockup image showing the main interface."
+            # ВАРИАНТ 1: Если модель поддерживает прямую генерацию изображений (OpenAI, Gemini)
+            if "gpt-image" in selected_model or "imagen" in selected_model:
+                # Используем images endpoint
+                try:
+                    # Для OpenRouter + image models нужен специальный формат
+                    response = self.client.chat.completions.create(
+                        model=selected_model,
+                        messages=[
+                            {
+                                "role": "user",
+                                "content": image_prompt
+                            }
+                        ],
+                        temperature=0.7,
+                        max_tokens=1000
+                    )
+                    
+                    # Ответ может содержать URL или base64
+                    content = response.choices[0].message.content
+                    
+                    # Проверяем формат ответа
+                    if content and (content.startswith('http') or content.startswith('data:image')):
+                        mockup_url = content
+                    else:
+                        # Если модель вернула текст вместо URL - это ошибка
+                        logger.warning(f"Model returned text instead of image URL: {content[:100]}")
+                        mockup_url = None
+                    
+                    logger.info(f"Visual mockup generated: {mockup_url[:50] if mockup_url else 'No image'}")
+                    
+                    return {
+                        "mockup_data": mockup_url if mockup_url else content,
+                        "design_spec": design_spec,
+                        "is_image": bool(mockup_url),
+                        "usage": {
+                            "prompt_tokens": response.usage.prompt_tokens if response.usage else 0,
+                            "completion_tokens": response.usage.completion_tokens if response.usage else 0,
+                            "total_tokens": response.usage.total_tokens if response.usage else 0
+                        }
                     }
-                ],
-                temperature=0.7,
-                max_tokens=1000
-            )
-            
-            # Extract image URL or base64 from response
-            # Note: Response format depends on model
-            mockup_data = response.choices[0].message.content
-            
-            logger.info("Visual mockup generated successfully")
-            
-            return {
-                "mockup_data": mockup_data,
-                "design_spec": design_spec,
-                "usage": {
-                    "prompt_tokens": response.usage.prompt_tokens if response.usage else 0,
-                    "completion_tokens": response.usage.completion_tokens if response.usage else 0,
-                    "total_tokens": response.usage.total_tokens if response.usage else 0
+                except Exception as img_error:
+                    logger.error(f"Image generation failed: {str(img_error)}")
+                    # Fallback: вернем текстовое описание
+                    return {
+                        "mockup_data": f"⚠️ Image generation unavailable. Design description:\n\n{design_spec}",
+                        "design_spec": design_spec,
+                        "is_image": False,
+                        "error": str(img_error)
+                    }
+            else:
+                # Если модель не поддерживает изображения - вернем текст
+                logger.warning(f"Model {selected_model} doesn't support image generation")
+                return {
+                    "mockup_data": f"📝 Text-only design specification:\n\n{design_spec}",
+                    "design_spec": design_spec,
+                    "is_image": False
                 }
-            }
             
         except Exception as e:
             logger.error(f"Error generating mockup: {str(e)}")
