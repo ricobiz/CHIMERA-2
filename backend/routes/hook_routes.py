@@ -313,13 +313,29 @@ async def exec_task(req: TaskRequest):
                 f"Elements visible: {len(vision_elements or [])}"
             )
             
+            # ОПТИМИЗАЦИЯ: Сначала пробуем БЕЗ скриншота (только текст селекторов)
+            # Скриншот отправляем только если спинной мозг попросил
+            send_screenshot = False
+            if step_count == 1:
+                # Первый раз - отправляем скриншот чтобы спинной мозг увидел начальное состояние
+                send_screenshot = True
+            elif consecutive_waits >= 2:
+                # Если зацикливается на WAIT - дать визуальный контекст
+                send_screenshot = True
+            elif len(history) > 0 and history[-1].get('needs_visual'):
+                # Если в прошлой итерации спинной мозг попросил визуал
+                send_screenshot = True
+            
             brain_result = await supervisor_service.next_step(
                 goal=brain_goal,
                 history=history,
-                screenshot_base64=screenshot_b64 or "",
+                screenshot_base64=screenshot_b64 if send_screenshot else None,
                 vision=vision_elements or [],
                 model='qwen/qwen2.5-vl'  # Дешёвая vision модель для спинного мозга
             )
+            
+            # Проверяем нужен ли визуал для следующей итерации
+            needs_visual = brain_result.get('needs_user_input') or brain_result.get('confidence', 1.0) < 0.5
             
             action = brain_result.get('next_action', 'WAIT')
             target_cell = brain_result.get('target_cell')
