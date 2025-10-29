@@ -448,32 +448,11 @@ function App() {
             content: `## 🎨 Design Specification Generated\n\n${designSpec.substring(0, 800)}...\n\n*Full design will be applied to generated code*`,
             isDesign: true
           };
-          // Optionally generate a mockup image and request approval before code
-          try {
-            const { generateMockup } = await import('./services/api');
-            const mockup = await generateMockup(designSpec, prompt, visualValidatorModel);
-            const mockupData = mockup?.mockup_data;
-            if (mockupData) {
-              const aiMockupMsg = {
-                role: 'assistant',
-                content: '🖼️ Mockup generated. Please review and annotate any changes needed.',
-                image: mockupData,
-                type: 'mockup'
-              };
-              setMessages(prev => [...prev, aiMockupMsg]);
-              setPendingDesign(designSpec);
-              setPendingPrompt(prompt);
-              setAwaitingDesignApproval(true);
-              // Require approval before code generation
-              setIsGenerating(false);
-              setGenerationStatus('idle');
-              toast({ title: 'Design Ready', description: 'Please approve or annotate the mockup before generating code.' });
-              return; // stop further flow until approval
-            }
-          } catch (e) {
-            console.warn('Mockup generation skipped or failed:', e?.message || e);
-          }
-
+          
+          // MOCKUP GENERATION DISABLED - directly proceed to code generation
+          // Mockup generation was causing workflow to stop and wait for approval
+          // This was confusing for users as Preview would remain empty
+          
           setMessages(prev => [...prev, designMessage]);
           
           console.log('✅ Design generated:', designSpec.substring(0, 100) + '...');
