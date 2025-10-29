@@ -96,24 +96,32 @@ class LocalVisionService:
                            viewport_w: int,
                            viewport_h: int) -> List[Dict]:
         """
-        Use Florence-2 to detect UI elements in screenshot
-        Returns: List of detected elements with bboxes
+        Use Florence-2 to detect UI elements in screenshot.
+        Returns: List of detected elements with bboxes and labels.
+        
+        IMPORTANT: This is EXPERIMENTAL and currently used as FALLBACK only.
+        Primary detection still relies on DOM for reliability.
         """
         try:
             if not self.model_loaded:
-                logger.info("🔄 [VISION] Model not loaded, loading Florence-2...")
+                logger.info("🔄 [VISION] Florence-2 not loaded, attempting to load...")
                 if not self.load_florence_model():
-                    logger.warning("⚠️ [VISION] Failed to load Florence-2, falling back to DOM")
+                    logger.warning("⚠️ [VISION] Failed to load Florence-2")
                     return []
             
-            logger.info("🔍 [VISION] Starting Florence-2 detection...")
+            logger.info("🔍 [VISION] Starting Florence-2 visual detection...")
             
             # Decode base64 image
             image_data = base64.b64decode(screenshot_base64)
             image = Image.open(io.BytesIO(image_data))
             logger.info(f"📷 Image size: {image.size}")
             
-            # For UI detection, we use "<OD>" (Object Detection) task
+            # For UI detection, we use "<OD>" (Object Detection) prompt
+            # Florence-2 supports various tasks:
+            # - <OD>: General object detection
+            # - <DENSE_REGION_CAPTION>: Detailed descriptions
+            # - <CAPTION>: Image caption
+            # - <OCR>: Text extraction
             prompt = "<OD>"
             
             # Preprocess image
@@ -123,23 +131,26 @@ class LocalVisionService:
                 images=image,
                 return_tensors="np"
             )
-            logger.info(f"✅ Preprocessed: {inputs.keys()}")
             
             # Run vision encoder
-            logger.info("🚀 Running vision encoder...")
+            logger.info("🚀 Running Florence-2 vision encoder...")
             pixel_values = inputs["pixel_values"].astype(np.float32)
             vision_outputs = self.vision_session.run(
                 None,
                 {"pixel_values": pixel_values}
             )
-            logger.info(f"✅ Vision encoder output: {len(vision_outputs)} tensors")
+            logger.info(f"✅ Vision encoder completed: {len(vision_outputs)} output tensors")
             
-            # Extract detected objects (simplified - real implementation needs decoder)
-            # For now, return empty list as we need full pipeline
-            # This is placeholder for object detection results
+            # TODO: Full Florence-2 pipeline requires:
+            # 1. Vision encoder (DONE)
+            # 2. Decoder for bbox extraction (NOT YET IMPLEMENTED)
+            # 3. Post-processing to convert to grid cells
+            
+            # For now, return empty as we don't have full pipeline
+            # This will make system fall back to DOM elements (reliable)
             detections = []
             
-            logger.info(f"🎯 [VISION] Florence-2 detected {len(detections)} objects")
+            logger.info(f"🎯 [VISION] Florence-2 detected {len(detections)} objects (full pipeline pending)")
             return detections
             
         except Exception as e:
