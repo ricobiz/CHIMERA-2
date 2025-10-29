@@ -68,37 +68,48 @@ class LocalVisionService:
         """
         Returns list of {cell, bbox:{x,y,w,h}, label, type, confidence}
         """
-        logger.info(f"🔍 [VISION] detect() called with {len(dom_clickables or [])} DOM clickables, viewport {viewport_w}x{viewport_h}")
-        
-        # Align grid to caller's config
-        if rows and cols:
-            self.set_grid(rows, cols)
-        # Try model if available (placeholder – not producing detections yet)
-        if model_path:
-            self.maybe_load_model(model_path)
-        # If session exists, you can add real model inference here later
+        try:
+            logger.info(f"🔍 [VISION] detect() called with {len(dom_clickables or [])} DOM clickables, viewport {viewport_w}x{viewport_h}")
+            
+            # Align grid to caller's config
+            if rows and cols:
+                self.set_grid(rows, cols)
+                logger.info(f"🔍 [VISION] Grid set to {rows}x{cols}")
+            # Try model if available (placeholder – not producing detections yet)
+            if model_path:
+                self.maybe_load_model(model_path)
+            # If session exists, you can add real model inference here later
 
-        results: List[Dict] = []
+            results: List[Dict] = []
 
-        # Fallback: use dom_clickables if provided
-        if dom_clickables:
-            logger.info(f"🔍 [VISION] Processing {len(dom_clickables)} DOM clickables...")
-            for el in dom_clickables:
-                bbox = el.get('bbox', {})
-                label = el.get('label') or el.get('text') or el.get('name') or ''
-                etype = el.get('type') or 'button'
-                cell = self.grid.bbox_to_cell(bbox, viewport_w, viewport_h)
-                results.append({
-                    'cell': cell,
-                    'bbox': bbox,
-                    'label': label[:64],
-                    'type': etype,
-                    'confidence': float(el.get('confidence', 0.75))
-                })
-            logger.info(f"🔍 [VISION] Returning {len(results)} results")
-        else:
-            logger.warning("🔍 [VISION] No DOM clickables provided!")
+            # Fallback: use dom_clickables if provided
+            if dom_clickables:
+                logger.info(f"🔍 [VISION] Processing {len(dom_clickables)} DOM clickables...")
+                for idx, el in enumerate(dom_clickables):
+                    try:
+                        bbox = el.get('bbox', {})
+                        label = el.get('label') or el.get('text') or el.get('name') or ''
+                        etype = el.get('type') or 'button'
+                        cell = self.grid.bbox_to_cell(bbox, viewport_w, viewport_h)
+                        results.append({
+                            'cell': cell,
+                            'bbox': bbox,
+                            'label': label[:64],
+                            'type': etype,
+                            'confidence': float(el.get('confidence', 0.75))
+                        })
+                    except Exception as e:
+                        logger.error(f"🔍 [VISION] Error processing element {idx}: {e}")
+                        continue
+                logger.info(f"🔍 [VISION] Returning {len(results)} results")
+            else:
+                logger.warning("🔍 [VISION] No DOM clickables provided!")
 
-        return results
+            return results
+        except Exception as e:
+            logger.error(f"🔍 [VISION] detect() FAILED: {e}")
+            import traceback
+            traceback.print_exc()
+            return []
 
 local_vision_service = LocalVisionService()
