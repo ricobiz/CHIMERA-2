@@ -29,7 +29,7 @@ const parseCell = (cell?: string): { colIdx: number; rowIdx: number } => {
   return { colIdx: col, rowIdx: row };
 };
 
-const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
+const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = ({ onClose, embedded = false }) => {
   // Core state
   const [taskText, setTaskText] = useState<string>('Register a new Gmail and return login/password');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
