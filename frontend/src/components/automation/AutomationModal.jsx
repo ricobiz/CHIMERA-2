@@ -77,7 +77,7 @@ export const AutomationModal = ({
         alert(`Task requires data: ${data.required_fields.join(', ')}`);
         setIsExecuting(false);
       }
-    } catch (e: any) {
+    } catch (e) {
       console.error('Failed to start task:', e);
       alert('Failed to start task: ' + e.message);
       setIsExecuting(false);
