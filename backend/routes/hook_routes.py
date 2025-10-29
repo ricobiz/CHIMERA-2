@@ -629,24 +629,8 @@ async def automation_chat(req: Dict[str, Any]):
             automation_chat_history = automation_chat_history[-20:]
         
         # Формируем промпт для automation brain
-        system_prompt = """Ты - automation brain. Ты выполняешь автоматизацию браузера.
-Пользователь может писать тебе напрямую во время выполнения задачи.
-
-Твои возможности:
-- Ответить на вопросы о текущем состоянии
-- Скорректировать план (если пользователь просит изменить данные, действия)
-- Поставить на паузу если пользователь хочет вмешаться
-- Продолжить выполнение после корректировки
-
-Текущий статус: {status}
-Текущая задача: {task}
-
-Верни JSON:
-{{
-  "reply": "Твой ответ пользователю",
-  "action": "pause" | "resume" | "adjust" | null,
-  "adjustment": "Описание корректировки если action=adjust"
-}}"""
+        # TODO: Интегрировать с OpenRouter LLM для умных ответов
+        # system_prompt = """..."""
         
         user_prompt = f"Пользователь: {user_message}"
         if context_from_main:
