@@ -276,7 +276,21 @@ async def exec_task(req: TaskRequest):
             step_count += 1
             log_step(f"🔄 [CYCLE {step_count}/{max_steps}]")
             
-            # 1. ИСПОЛНИТЕЛЬ: Захватить состояние ДО действия (для верификации)
+            # 1. ИСПОЛНИТЕЛЬ: Проверяем загружена ли страница
+            try:
+                page = browser_service.sessions[session_id]['page']
+                loading_status = await browser_service.is_page_loading(page)
+                
+                if loading_status.get('is_loading'):
+                    reason = loading_status.get('reason')
+                    log_step(f"⏳ [EXECUTOR] Page still loading: {reason}")
+                    # Ждём загрузки
+                    await browser_service.wait_for_page_ready(page, timeout_ms=5000)
+                    log_step(f"✅ [EXECUTOR] Page loading complete")
+            except Exception as e:
+                log_step(f"⚠️ [EXECUTOR] Loading check failed: {str(e)}")
+            
+            # 2. ИСПОЛНИТЕЛЬ: Захватить состояние ДО действия (для верификации)
             try:
                 page = browser_service.sessions[session_id]['page']
                 current_url = page.url
@@ -294,6 +308,7 @@ async def exec_task(req: TaskRequest):
                 screenshot_before = None
                 current_url = "about:blank"
                 dom_data_before = {}
+                num_elements_before = 0
             
             # 2. СПИННОЙ МОЗГ: Принять решение на основе плана и текущего состояния
             brain_context = {
