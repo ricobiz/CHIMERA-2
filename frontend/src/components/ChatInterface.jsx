@@ -403,53 +403,41 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
                   
                   <div className="border-t border-gray-700 my-2"></div>
                     
-                    <div className="px-4 py-2">
-                      <p className="text-xs text-gray-500 mb-2">Load Session by ID</p>
-                      <div className="flex gap-2">
-                        <input
-                          type="text"
-                          value={sessionIdInput}
-                          onChange={(e) => setSessionIdInput(e.target.value)}
-                          placeholder="Session ID..."
-                          className="flex-1 px-2 py-1 bg-gray-800 border border-gray-700 rounded text-xs text-gray-300 placeholder-gray-600 focus:border-purple-500 focus:outline-none"
-                        />
-                        <Button
-                          onClick={() => {
-                            if (sessionIdInput.trim()) {
-                              console.log('Load session:', sessionIdInput);
-                              // TODO: Load session logic
-                              setShowSettingsMenu(false);
-                            }
-                          }}
-                          size="sm"
-                          className="bg-purple-600 hover:bg-purple-500 px-2 text-xs"
-                        >
-                          Load
-                        </Button>
-                      </div>
+                  <div className="px-4 py-2">
+                    <p className="text-xs text-gray-500 mb-2">Load Session by ID</p>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={sessionIdInput}
+                        onChange={(e) => setSessionIdInput(e.target.value)}
+                        placeholder="Session ID..."
+                        className="flex-1 px-2 py-1 bg-gray-800 border border-gray-700 rounded text-xs text-gray-300 placeholder-gray-600 focus:border-purple-500 focus:outline-none"
+                      />
+                      <Button
+                        onClick={() => {
+                          if (sessionIdInput.trim()) {
+                            console.log('Load session:', sessionIdInput);
+                            // TODO: Load session logic
+                            setShowSettingsMenu(false);
+                          }
+                        }}
+                        size="sm"
+                        className="bg-purple-600 hover:bg-purple-500 px-2 text-xs"
+                      >
+                        Load
+                      </Button>
                     </div>
                   </div>
-                )}
-              </div>
-            </div>
-            
-            {/* Status & Save */}
-            <div className="flex items-center gap-3">
-              <StatusIndicator />
-              
-              {messages.length > 0 && (
-                <button
-                  onClick={onSave}
-                  className="p-2 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 border border-gray-700 hover:border-gray-600 transition-all group relative"
-                  title="Save Project"
-                >
-                  <Save className="w-4 h-4 text-gray-300 group-hover:text-white transition-colors" />
-                  <span className="absolute -bottom-8 right-0 bg-gray-900 text-gray-300 text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-gray-700">
-                    Save as Project
-                  </span>
-                </button>
+                </div>
               )}
             </div>
+            
+            {/* Session ID Display */}
+            {currentSessionId && (
+              <div className="text-[10px] text-gray-500 font-mono bg-gray-800/30 px-2 py-1 rounded border border-gray-700">
+                ID: {currentSessionId.slice(0, 8)}...
+              </div>
+            )}
           </div>
         </div>
       </div>
