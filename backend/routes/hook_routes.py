@@ -276,23 +276,24 @@ async def exec_task(req: TaskRequest):
             step_count += 1
             log_step(f"🔄 [CYCLE {step_count}/{max_steps}]")
             
-            # 1. ИСПОЛНИТЕЛЬ: Захватить скриншот + получить vision элементы
+            # 1. ИСПОЛНИТЕЛЬ: Захватить состояние ДО действия (для верификации)
             try:
                 page = browser_service.sessions[session_id]['page']
                 current_url = page.url
                 await browser_service._inject_grid_overlay(page)
-                dom_data = await browser_service._collect_dom_clickables(page)
-                screenshot_b64 = await browser_service.capture_screenshot(session_id)
-                vision_elements = await browser_service._augment_with_vision(screenshot_b64, dom_data)
+                dom_data_before = await browser_service._collect_dom_clickables(page)
+                screenshot_before = await browser_service.capture_screenshot(session_id)
+                vision_before = await browser_service._augment_with_vision(screenshot_before, dom_data_before)
                 
                 # Статистика для логов
-                num_elements = len(vision_elements or [])
-                log_step(f"📸 [EXECUTOR] Screenshot taken, URL: {current_url}, Elements: {num_elements}")
+                num_elements_before = len(vision_before or [])
+                log_step(f"📸 [EXECUTOR] State BEFORE action: URL={current_url}, Elements={num_elements_before}")
             except Exception as e:
-                log_step(f"❌ [EXECUTOR] Failed to capture state: {str(e)}")
-                vision_elements = []
-                screenshot_b64 = None
+                log_step(f"❌ [EXECUTOR] Failed to capture BEFORE state: {str(e)}")
+                vision_before = []
+                screenshot_before = None
                 current_url = "about:blank"
+                dom_data_before = {}
             
             # 2. СПИННОЙ МОЗГ: Принять решение на основе плана и текущего состояния
             brain_context = {
