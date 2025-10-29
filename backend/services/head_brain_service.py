@@ -59,38 +59,24 @@ class HeadBrainService:
         if not self.api_key:
             logger.warning("⚠️ OPENROUTER_API_KEY not set, head brain will not work")
     
-    async def analyze_and_plan(self, goal: str, profile_info: Optional[Dict] = None, user_data: Optional[Dict] = None) -> Dict[str, Any]:
+    async def analyze_and_plan(self, goal: str, profile_info: Optional[Dict] = None, user_data: Optional[Dict] = None, auto_generate: bool = False) -> Dict[str, Any]:
         """
         Главная функция головного мозга:
         1. Анализирует задачу
         2. Определяет требования
-        3. Создаёт план для спинного мозга
-        4. Генерирует данные ИЛИ использует данные пользователя
+        3. **ОСТАНАВЛИВАЕТСЯ** если нужны данные но их нет
+        4. Создаёт план
+        5. Генерирует данные ТОЛЬКО если auto_generate=True
         
         Args:
-            goal: Задача пользователя (например "Register Gmail account")
-            profile_info: Информация о доступном профиле
+            goal: Задача пользователя
+            profile_info: Информация о профиле
             user_data: Данные от пользователя (опционально)
-                {
-                    "first_name": "John",
-                    "email": "john@example.com",
-                    ...
-                }
+            auto_generate: Автоматически генерировать данные без вопроса (по умолчанию False)
             
         Returns:
-            {
-                "task_id": str,
-                "target_url": str,
-                "understood_task": str,
-                "task_type": str,
-                "requirements": {...},
-                "strategy": str,
-                "plan_outline": str,
-                "data_bundle": {...},
-                "data_source": "user_provided" | "generated",
-                "can_proceed": bool,
-                "reason": str
-            }
+            Если нужны данные но их нет → {"status": "NEEDS_USER_DATA", "required_fields": [...]}
+            Если всё ОК → полный analysis
         """
         
         logger.info(f"🧠 [HEAD BRAIN] Analyzing task: {goal}")
