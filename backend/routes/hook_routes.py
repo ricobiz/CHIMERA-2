@@ -279,16 +279,16 @@ async def exec_task(req: TaskRequest):
                 await browser_service.navigate(session_id, url)
                 
             elif action == 'WAIT':
-                log_step(f"⏳ [EXECUTOR] Waiting...")
+                log_step("⏳ [EXECUTOR] Waiting...")
                 await asyncio.sleep(2)
                 
             elif action == 'DONE':
-                log_step(f"✅ [SPINAL CORD] Task completed")
+                log_step("✅ [SPINAL CORD] Task completed")
                 agent_status = "IDLE"
                 break
                 
             elif action == 'WAITING_USER':
-                log_step(f"⏸️  [SPINAL CORD] Needs user input")
+                log_step("⏸️  [SPINAL CORD] Needs user input")
                 agent_status = "WAITING_USER"
                 break
             
@@ -309,10 +309,10 @@ async def exec_task(req: TaskRequest):
             await asyncio.sleep(1.5)
         
         if step_count >= max_steps:
-            log_step(f"⚠️  Max steps reached")
+            log_step("⚠️  Max steps reached")
             agent_status = "ERROR"
         
-        log_step(f"🏁 Execution finished")
+        log_step("🏁 Execution finished")
         
         return {
             "status": agent_status,
