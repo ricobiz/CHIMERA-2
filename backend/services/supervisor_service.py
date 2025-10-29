@@ -148,11 +148,15 @@ class SupervisorService:
     async def next_step(self, goal: str, history: List[Dict[str, Any]], screenshot_base64: str,
                         vision: List[Dict[str, Any]], model: str = DEFAULT_VLM) -> Dict[str, Any]:
         # Build the prompt (compact)
+        has_screenshot = bool(screenshot_base64)
+        
         user_parts = [
             f"GOAL: {goal}",
-            "You receive fresh screenshot description and vision elements (cell/label/type/confidence).",
+            "You receive vision elements as TEXT (cell/label/type/confidence).",
+            f"Screenshot: {'PROVIDED - use if needed' if has_screenshot else 'NOT PROVIDED - decide based on text only'}",
             "Decide ONE next action using the provided grid cells.",
-            "Return STRICT JSON ONLY using this schema keys: next_action, target_cell, text, direction, amount, needs_user_input, ask_user, confidence."
+            "Return STRICT JSON ONLY using this schema keys: next_action, target_cell, text, direction, amount, needs_user_input, ask_user, confidence.",
+            "\nIf you cannot decide with confidence > 0.5 from text only, set needs_user_input=true to request visual context next time."
         ]
         # include a compact list of vision elements (cap at 40)
         lines = []
