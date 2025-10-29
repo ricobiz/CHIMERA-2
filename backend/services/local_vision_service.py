@@ -1,6 +1,9 @@
 import os
 import base64
+import logging
 from typing import List, Dict, Optional
+
+logger = logging.getLogger(__name__)
 
 # Optional ONNX runtime (if available)
 try:
