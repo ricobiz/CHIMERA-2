@@ -742,28 +742,52 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
                         {msg.content}
                       </p>
                       {msg.image && (
-                        // Check if image is a valid URL/data URI or just text
-                        (msg.image.startsWith('http') || msg.image.startsWith('data:image') || msg.image.startsWith('blob:')) ? (
-                          <img 
-                            src={msg.image} 
-                            alt="Design Mockup" 
-                            className="mt-3 rounded-lg max-w-full border-2 border-gray-600" 
-                            onError={(e) => {
-                              // If image fails to load, hide it and show text instead
-                              e.target.style.display = 'none';
-                              const textDiv = document.createElement('div');
-                              textDiv.className = 'mt-3 p-4 bg-gray-800/50 rounded-lg border border-gray-700 text-sm text-gray-300';
-                              textDiv.textContent = msg.image;
-                              e.target.parentNode.appendChild(textDiv);
-                            }}
-                          />
-                        ) : (
-                          // If it's not a URL, display as formatted text (mockup description)
-                          <div className="mt-3 p-4 bg-purple-900/20 rounded-lg border border-purple-700/30">
-                            <p className="text-xs font-semibold text-purple-300 mb-2">🎨 Design Mockup Description:</p>
-                            <p className="text-sm text-gray-300 whitespace-pre-wrap">{msg.image}</p>
-                          </div>
-                        )
+                        <>
+                          {/* Check if image is a valid URL/data URI or just text */}
+                          {(msg.image.startsWith('http') || msg.image.startsWith('data:image') || msg.image.startsWith('blob:')) ? (
+                            <img 
+                              src={msg.image} 
+                              alt="Design Mockup" 
+                              className="mt-3 rounded-lg max-w-full border-2 border-gray-600" 
+                              onError={(e) => {
+                                // If image fails to load, hide it and show text instead
+                                e.target.style.display = 'none';
+                                const textDiv = document.createElement('div');
+                                textDiv.className = 'mt-3 p-4 bg-gray-800/50 rounded-lg border border-gray-700 text-sm text-gray-300';
+                                textDiv.textContent = msg.image;
+                                e.target.parentNode.appendChild(textDiv);
+                              }}
+                            />
+                          ) : (
+                            // If it's not a URL, display as formatted text (mockup description)
+                            <div className="mt-3 p-4 bg-purple-900/20 rounded-lg border border-purple-700/30">
+                              <p className="text-xs font-semibold text-purple-300 mb-2">🎨 Design Mockup Description:</p>
+                              <p className="text-sm text-gray-300 whitespace-pre-wrap">{msg.image}</p>
+                            </div>
+                          )}
+                          
+                          {/* Approval buttons for mockup messages */}
+                          {msg.type === 'mockup' && (
+                            <div className="mt-3 flex items-center gap-2">
+                              <button
+                                onClick={() => {
+                                  if (window.onAnnotateMockup) window.onAnnotateMockup(msg.image);
+                                }}
+                                className="px-3 py-1.5 text-xs bg-purple-700/30 hover:bg-purple-700/50 border border-purple-600/40 rounded text-purple-200 transition-colors"
+                              >
+                                ✏️ Annotate
+                              </button>
+                              <button
+                                onClick={() => {
+                                  if (window.onApproveDesign) window.onApproveDesign();
+                                }}
+                                className="px-3 py-1.5 text-xs bg-green-700/30 hover:bg-green-700/50 border border-green-600/40 rounded text-green-200 transition-colors"
+                              >
+                                ✅ Approve Design
+                              </button>
+                            </div>
+                          )}
+                        </>
                       )}
                     </>
                   )}
