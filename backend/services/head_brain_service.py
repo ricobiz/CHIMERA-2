@@ -215,7 +215,7 @@ class HeadBrainService:
             logger.error(f"❌ [HEAD BRAIN] Exception: {e}")
             return self._fallback_analysis(goal, has_warm_profile)
     
-    def _fallback_analysis(self, goal: str, has_warm_profile: bool) -> Dict[str, Any]:
+    def _fallback_analysis(self, goal: str, has_warm_profile: bool, user_data: Optional[Dict] = None) -> Dict[str, Any]:
         """Простая fallback логика если LLM не работает"""
         logger.warning("⚠️ [HEAD BRAIN] Using fallback analysis")
         
