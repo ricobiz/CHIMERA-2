@@ -839,9 +839,11 @@ class BrowserAutomationService:
     async def _collect_dom_clickables(self, page: Page) -> Dict[str, Any]:
         """Collect clickable elements from DOM"""
         try:
+            logger.info("🔍 [DOM] Collecting clickable elements from page...")
             # Get viewport size
             viewport = page.viewport_size
             vw, vh = viewport['width'], viewport['height']
+            logger.info(f"🔍 [DOM] Viewport: {vw}x{vh}")
             
             # Collect all interactive elements
             clickables_data = await page.evaluate("""() => {
