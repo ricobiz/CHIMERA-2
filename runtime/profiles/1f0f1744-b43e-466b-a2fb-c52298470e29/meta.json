@@ -3,7 +3,7 @@
   "created_at": "2025-10-29T01:34:27.176044+00:00",
   "last_used": "2025-10-29T01:34:27.176055+00:00",
   "used_count": 0,
-  "status": "fresh",
+  "status": "warm",
   "browser": {
     "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0 Safari/537.36",
     "viewport": {
@@ -63,9 +63,14 @@
     "risk_score": 0.2
   },
   "warmup": {
-    "is_warm": false,
-    "warmed_at": null,
-    "sites_visited": []
+    "is_warm": true,
+    "warmed_at": "2025-10-29T01:35:20.065471+00:00",
+    "sites_visited": [
+      "google.com",
+      "youtube.com",
+      "reddit.com",
+      "amazon.com"
+    ]
   },
   "captcha": {
     "last_failed_at": null,
