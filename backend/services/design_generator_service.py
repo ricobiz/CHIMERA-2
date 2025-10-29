@@ -2,9 +2,6 @@ import openai
 from openai import OpenAI
 import os
 import logging
-import base64
-from dotenv import load_dotenv
-from emergentintegrations.llm.openai.image_generation import OpenAIImageGeneration
 from typing import Dict
 
 load_dotenv()
