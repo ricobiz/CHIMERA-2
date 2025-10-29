@@ -818,7 +818,7 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
                             <div className="mt-3 flex items-center gap-2">
                               <button
                                 onClick={() => {
-                                  if (window.onAnnotateMockup) window.onAnnotateMockup(msg.image);
+                                  if (onAnnotateMockup) onAnnotateMockup(msg.image);
                                 }}
                                 className="px-3 py-1.5 text-xs bg-purple-700/30 hover:bg-purple-700/50 border border-purple-600/40 rounded text-purple-200 transition-colors"
                               >
@@ -826,7 +826,7 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
                               </button>
                               <button
                                 onClick={() => {
-                                  if (window.onApproveDesign) window.onApproveDesign();
+                                  if (onApproveDesign) onApproveDesign();
                                 }}
                                 className="px-3 py-1.5 text-xs bg-green-700/30 hover:bg-green-700/50 border border-green-600/40 rounded text-green-200 transition-colors"
                               >
