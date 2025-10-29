@@ -2099,7 +2099,7 @@ agent_communication:
     - Some API calls completing successfully (visible in logs)
     
     **ROOT CAUSE ANALYSIS:**
-    - External URL (https://aios-automation.preview.emergentagent.com/api) experiencing widespread connectivity issues
+    - External URL (https://brainwaves-3.preview.emergentagent.com/api) experiencing widespread connectivity issues
     - Backend service is operational (supervisor status confirms RUNNING)
     - Network layer or load balancer may be causing timeouts
     - Internal processing working (backend logs show successful OpenRouter API calls)

@@ -10,7 +10,7 @@ import time
 from datetime import datetime
 
 # Backend URL from frontend/.env
-BACKEND_URL = "https://aios-automation.preview.emergentagent.com/api"
+BACKEND_URL = "https://brainwaves-3.preview.emergentagent.com/api"
 
 class Phase2BackendTester:
     def __init__(self):
