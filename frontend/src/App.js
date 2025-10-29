@@ -914,7 +914,8 @@ function App() {
         <div className={`${showPreview ? 'flex' : 'hidden'} md:flex flex-1 flex-col overflow-hidden relative`}>
           <PreviewPanel 
             generatedCode={generatedCode} 
-            isGenerating={isGenerating} 
+            isGenerating={isGenerating}
+            chatMode={chatMode}
           />
         </div>
 
