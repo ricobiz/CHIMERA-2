@@ -2262,3 +2262,29 @@ agent_communication:
       - working: false
         agent: "testing"
         comment: "❌ CRITICAL: POST /api/planning/generate endpoint experiencing network timeouts. Should generate plan with steps (NAVIGATE, TYPE, CLICK actions), complexity assessment, and estimated duration for given goals."
+
+  - agent: "testing"
+    message: "✅ **IMAGE GENERATION ENDPOINT TESTING COMPLETE - CRITICAL ISSUE RESOLVED**
+
+**Test Results: POST /api/generate-image - 100% SUCCESS (4/4 scenarios passed)**
+
+**🚨 CRITICAL FIX APPLIED:**
+- ✅ Fixed image extraction logic in design_generator_service.py 
+- ✅ OpenRouter returns images in nested structure: response['choices'][0]['message']['images'][0]['image_url']['url']
+- ✅ Updated extraction to handle both direct attribute access and model_dump fallback
+- ✅ All image generation scenarios now working perfectly
+
+**✅ COMPREHENSIVE TESTING RESULTS:**
+1. **Basic fitness app dashboard** - ✅ SUCCESS (10.05s, 1.67MB base64 PNG)
+2. **Simple geometric shapes** - ✅ SUCCESS (11.65s, 1.15MB base64 PNG)  
+3. **UI mockups with specific model** - ✅ SUCCESS (7.46s, 1.15MB base64 PNG)
+4. **Complex scenes** - ✅ SUCCESS (13.00s, 2.10MB base64 PNG)
+
+**✅ RESPONSE STRUCTURE VERIFIED:**
+- ✅ Returns proper base64 PNG format (data:image/png;base64,...)
+- ✅ is_image: true flag correctly set
+- ✅ Usage/cost information included
+- ✅ Response times acceptable (7-13 seconds)
+- ✅ Multiple models working (google/gemini-2.5-flash-image, google/gemini-2.5-flash-image-preview)
+
+**CONCLUSION:** User's image generation button issue completely resolved. The endpoint now successfully generates and returns base64 image data as expected. OpenRouter integration with Gemini 2.5 Flash Image model fully operational."
