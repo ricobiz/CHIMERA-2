@@ -1,0 +1,276 @@
+"""
+Head Brain Service - Главная модель для планирования автоматизации
+Использует умную LLM (GPT-5, Claude Sonnet 4, Grok 4, Gemini) для:
+1. Анализа задачи
+2. Определения требований (прогретый профиль, данные)
+3. Создания общего плана для спинного мозга
+4. Генерации необходимых данных
+"""
+
+import os
+import json
+import random
+import logging
+from typing import Dict, Any, List, Optional
+import httpx
+
+logger = logging.getLogger(__name__)
+
+# Назначаемая модель (можно менять)
+DEFAULT_HEAD_MODEL = os.environ.get('HEAD_BRAIN_MODEL', 'openai/gpt-4o')
+
+# Генерация данных
+FIRST_NAMES = ["Ivan","Alex","John","Peter","Michael","Ethan","Liam","Noah","Mason","James","Oliver","Lucas","Henry","Alexander","Daniel"]
+LAST_NAMES  = ["Petrov","Smirnov","Johnson","Miller","Brown","Davis","Wilson","Moore","Taylor","Anderson","Thomas","Jackson","White","Harris","Martin"]
+
+def _gen_username(fn: str, ln: str) -> str:
+    suffix = random.randint(1000, 9999)
+    base = f"{fn}.{ln}".lower()
+    return f"{base}.{suffix}"
+
+def _gen_password() -> str:
+    letters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    digits = '0123456789'
+    symbols = '!@#$%^&*'
+    pw = [random.choice(letters) for _ in range(6)] + [random.choice(digits) for _ in range(3)] + [random.choice(symbols)]
+    random.shuffle(pw)
+    return ''.join(pw)
+
+def _gen_birthday() -> str:
+    year = random.randint(1985, 2003)
+    month = random.randint(1, 12)
+    day = random.randint(1, 28)
+    return f"{year:04d}-{month:02d}-{day:02d}"
+
+
+class HeadBrainService:
+    """
+    Головной мозг - главная модель для планирования.
+    Вызывается ОДИН РАЗ в начале автоматизации.
+    """
+    
+    def __init__(self):
+        self.model = DEFAULT_HEAD_MODEL
+        self.api_key = os.environ.get('OPENROUTER_API_KEY')
+        if not self.api_key:
+            logger.warning("⚠️ OPENROUTER_API_KEY not set, head brain will not work")
+    
+    async def analyze_and_plan(self, goal: str, profile_info: Optional[Dict] = None) -> Dict[str, Any]:
+        """
+        Главная функция головного мозга:
+        1. Анализирует задачу
+        2. Определяет требования
+        3. Создаёт план для спинного мозга
+        4. Генерирует данные
+        
+        Args:
+            goal: Задача пользователя (например "Register Gmail account")
+            profile_info: Информация о доступном профиле
+            
+        Returns:
+            {
+                "task_id": str,
+                "understood_task": str,
+                "requirements": {
+                    "needs_warm_profile": bool,
+                    "needs_phone": bool,
+                    "mandatory_data": List[str],
+                    "optional_data": List[str]
+                },
+                "strategy": str,
+                "plan": {
+                    "steps": List[Dict],
+                    "fallback_actions": Dict
+                },
+                "data_bundle": {
+                    "first_name": str,
+                    "last_name": str,
+                    "username": str,
+                    "password": str,
+                    "birthday": str
+                },
+                "can_proceed": bool,
+                "reason": str
+            }
+        """
+        
+        logger.info(f"🧠 [HEAD BRAIN] Analyzing task: {goal}")
+        
+        # Проверяем доступность прогретого профиля
+        has_warm_profile = bool(profile_info and profile_info.get('is_warm'))
+        profile_proxy_type = (profile_info or {}).get('proxy_type')
+        
+        # Формируем промпт для головного мозга
+        system_prompt = """Ты - главный стратег автоматизации браузера. Твоя задача:
+1. Понять что хочет пользователь
+2. Определить что нужно для выполнения (прогретый профиль, телефон, данные)
+3. Оценить можно ли выполнить без телефона (если профиль прогретый)
+4. Создать стратегию и общий план
+
+ВАЖНО:
+- Если задача = регистрация на строгом сайте (Gmail, Facebook) БЕЗ прогретого профиля → нужен телефон (вероятность 90%)
+- Если задача = регистрация С прогретым профилем → можно попробовать БЕЗ телефона (вероятность 60-70%)
+- Если задача = простая навигация → прогрев не нужен
+
+Верни JSON:
+{
+  "understood_task": "Краткое описание задачи",
+  "requirements": {
+    "needs_warm_profile": true/false,
+    "needs_phone": true/false (только если точно нужен),
+    "mandatory_data": ["first_name", "last_name", ...],
+    "optional_data": ["phone_number", ...]
+  },
+  "strategy": "attempt_without_phone" | "require_phone" | "simple_navigation",
+  "success_probability": 0.0-1.0,
+  "plan_outline": "Краткий план для средней модели",
+  "can_proceed": true/false,
+  "reason": "Почему можем/не можем продолжить"
+}"""
+        
+        user_prompt = f"""Задача: {goal}
+
+Доступные ресурсы:
+- Прогретый профиль: {'ДА' if has_warm_profile else 'НЕТ'}
+- Тип прокси: {profile_proxy_type or 'нет'}
+- Телефон: НЕТ
+
+Проанализируй и создай стратегию."""
+
+        try:
+            # Вызываем умную модель
+            result = await self._call_openrouter(system_prompt, user_prompt)
+            
+            if not result or result.get('error'):
+                logger.error(f"❌ [HEAD BRAIN] LLM error: {result}")
+                # Fallback на простую логику
+                return self._fallback_analysis(goal, has_warm_profile)
+            
+            # Генерируем данные
+            fn = random.choice(FIRST_NAMES)
+            ln = random.choice(LAST_NAMES)
+            data_bundle = {
+                "first_name": fn,
+                "last_name": ln,
+                "username": _gen_username(fn, ln),
+                "password": _gen_password(),
+                "birthday": _gen_birthday(),
+                "phone_number": None,
+                "recovery_email": None
+            }
+            
+            # Формируем финальный ответ
+            analysis = {
+                "task_id": result.get('task_id', 'head-' + str(random.randint(1000, 9999))),
+                "understood_task": result.get('understood_task', goal),
+                "requirements": result.get('requirements', {}),
+                "strategy": result.get('strategy', 'attempt_without_phone'),
+                "success_probability": result.get('success_probability', 0.65),
+                "plan_outline": result.get('plan_outline', ''),
+                "data_bundle": data_bundle,
+                "can_proceed": result.get('can_proceed', True),
+                "reason": result.get('reason', 'Analysis complete'),
+                "profile_status": {
+                    "is_warm": has_warm_profile,
+                    "proxy_type": profile_proxy_type
+                }
+            }
+            
+            logger.info(f"✅ [HEAD BRAIN] Analysis complete: strategy={analysis['strategy']}, can_proceed={analysis['can_proceed']}")
+            return analysis
+            
+        except Exception as e:
+            logger.error(f"❌ [HEAD BRAIN] Exception: {e}")
+            return self._fallback_analysis(goal, has_warm_profile)
+    
+    def _fallback_analysis(self, goal: str, has_warm_profile: bool) -> Dict[str, Any]:
+        """Простая fallback логика если LLM не работает"""
+        logger.warning("⚠️ [HEAD BRAIN] Using fallback analysis")
+        
+        goal_lower = goal.lower()
+        is_registration = any(kw in goal_lower for kw in ['register', 'регистр', 'sign up', 'create account'])
+        
+        fn = random.choice(FIRST_NAMES)
+        ln = random.choice(LAST_NAMES)
+        
+        return {
+            "task_id": f"fallback-{random.randint(1000, 9999)}",
+            "understood_task": goal,
+            "requirements": {
+                "needs_warm_profile": is_registration,
+                "needs_phone": is_registration and not has_warm_profile,
+                "mandatory_data": ["first_name", "last_name", "username", "password", "birthday"] if is_registration else [],
+                "optional_data": ["phone_number", "recovery_email"]
+            },
+            "strategy": "attempt_without_phone" if has_warm_profile else "require_phone_or_warn",
+            "success_probability": 0.7 if has_warm_profile else 0.3,
+            "plan_outline": "Navigate → Fill fields → Submit → Handle captcha/phone if needed",
+            "data_bundle": {
+                "first_name": fn,
+                "last_name": ln,
+                "username": _gen_username(fn, ln),
+                "password": _gen_password(),
+                "birthday": _gen_birthday(),
+                "phone_number": None,
+                "recovery_email": None
+            },
+            "can_proceed": True,  # Всегда пробуем
+            "reason": "Fallback analysis - will attempt task",
+            "profile_status": {
+                "is_warm": has_warm_profile,
+                "proxy_type": None
+            }
+        }
+    
+    async def _call_openrouter(self, system_prompt: str, user_prompt: str) -> Dict[str, Any]:
+        """Вызов OpenRouter API для анализа"""
+        if not self.api_key:
+            return {"error": "No API key"}
+        
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "HTTP-Referer": os.environ.get("OPENROUTER_HTTP_REFERER", "https://chimera-aios.app"),
+            "X-Title": os.environ.get("OPENROUTER_X_TITLE", "Chimera AIOS"),
+        }
+        
+        payload = {
+            "model": self.model,
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ],
+            "temperature": 0.3,
+            "max_tokens": 1000,
+            "response_format": {"type": "json_object"}
+        }
+        
+        try:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                resp = await client.post(
+                    "https://openrouter.ai/api/v1/chat/completions",
+                    headers=headers,
+                    json=payload
+                )
+                
+                if resp.status_code != 200:
+                    logger.error(f"OpenRouter error {resp.status_code}: {resp.text[:200]}")
+                    return {"error": f"HTTP {resp.status_code}"}
+                
+                data = resp.json()
+                content = data['choices'][0]['message']['content']
+                
+                # Парсим JSON
+                try:
+                    result = json.loads(content)
+                    return result
+                except json.JSONDecodeError:
+                    logger.error(f"Failed to parse JSON: {content[:200]}")
+                    return {"error": "Invalid JSON from LLM"}
+                    
+        except Exception as e:
+            logger.error(f"OpenRouter call failed: {e}")
+            return {"error": str(e)}
+
+
+# Singleton
+head_brain_service = HeadBrainService()
