@@ -298,6 +298,9 @@ async def exec_task(req: TaskRequest):
                 log_step(f"❌ [INITIAL] Navigation failed: {str(e)}")
                 current_url = "about:blank"
         
+        # Данные для использования в автоматизации
+        used_data = data_bundle
+        
         # Счётчик последовательных WAIT
         consecutive_waits = 0
         
