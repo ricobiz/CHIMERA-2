@@ -117,9 +117,23 @@ function App() {
       
       // If no session exists, create a new one
       if (!sessionId) {
-        const newSessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        setCurrentSessionId(newSessionId);
-        console.log(`🆕 Created new session: ${newSessionId}`);
+        try {
+          // Create session in database
+          const newSession = await createSession({
+            name: "New Session",
+            messages: [],
+            generated_code: "",
+            total_cost: 0.0
+          });
+          setCurrentSessionId(newSession.id);
+          console.log(`🆕 Created new session: ${newSession.id}`);
+        } catch (error) {
+          console.error('Failed to create session:', error);
+          // Fallback to local ID if API fails
+          const fallbackId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+          setCurrentSessionId(fallbackId);
+          console.log(`⚠️ Using fallback session ID: ${fallbackId}`);
+        }
       }
     };
     
