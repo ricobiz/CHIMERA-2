@@ -471,7 +471,11 @@ function App() {
       
       console.log('🚀 Starting code generation with model:', selectedModel);
       const response = await generateCode(enhancedPrompt, newMessages, selectedModel);
-      console.log('✅ Code generation response received');
+      console.log('✅ Code generation response received:', {
+        hasCode: !!response.code,
+        codeLength: response.code?.length || 0,
+        message: response.message?.substring(0, 50)
+      });
       
       const aiMessage = { 
         role: 'assistant', 
@@ -481,7 +485,9 @@ function App() {
       const updatedMessages = [...newMessages, aiMessage];
       setMessages(updatedMessages);
       
+      console.log('📝 Setting generated code, length:', response.code?.length);
       setGeneratedCode(response.code);
+      console.log('✅ Generated code set in state');
       
       let newTotalCost = totalCost;
       if (response.cost) {
