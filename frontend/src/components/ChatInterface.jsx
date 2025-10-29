@@ -23,6 +23,10 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
   const [editingMessageIndex, setEditingMessageIndex] = useState(null);
   const [editedContent, setEditedContent] = useState('');
   
+  // Automation mode state
+  const [showAutomationModal, setShowAutomationModal] = useState(false);
+  const [automationActive, setAutomationActive] = useState(false);
+  
   // Personalization: User and AI names
   const [userName, setUserName] = useState(localStorage.getItem('chimera_user_name') || null);
   const [aiName] = useState(localStorage.getItem('chimera_ai_name') || 'Aria'); // AI chooses her name
