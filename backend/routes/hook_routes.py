@@ -205,14 +205,23 @@ async def exec_task(req: TaskRequest):
         agent_status = "ACTIVE"
         
         # ============================================================
-        # PHASE 2: СОЗДАНИЕ СЕССИИ С ПРОГРЕТЫМ ПРОФИЛЕМ
+        # PHASE 2: СОЗДАНИЕ/ПРОГРЕВ ПРОФИЛЯ
         # ============================================================
+        needs_warm = head_analysis['requirements'].get('needs_warm_profile', False)
         profile_id = profile_info.get('profile_id') if profile_info else None
+        
         if not profile_id:
             from routes.profile_routes import create_profile, CreateProfileRequest
-            log_step("📦 Creating new profile...")
-            prof_resp = await create_profile(CreateProfileRequest(warmup=False))
+            if needs_warm:
+                log_step("🔥 Creating and warming up profile (60 seconds)...")
+            else:
+                log_step("📦 Creating new profile...")
+            
+            prof_resp = await create_profile(CreateProfileRequest(warmup=needs_warm, region="US"))
             profile_id = prof_resp.get('profile_id')
+            
+            if needs_warm:
+                log_step(f"✅ Profile warmed up: {profile_id}")
         
         session_id = str(uuid.uuid4())
         await browser_service.create_session_from_profile(
