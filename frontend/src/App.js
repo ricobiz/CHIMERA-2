@@ -955,6 +955,7 @@ function App() {
             onOpenAIEntry={() => setShowAIEntry(true)}
             onOpenPreview={handleOpenPreview}
             onNewProject={handleNewProject}
+            onSessionSelect={handleSessionSelect}
             currentSessionId={currentSessionId}
             isGenerating={isGenerating}
             onStopGeneration={handleStopGeneration}
