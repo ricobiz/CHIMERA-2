@@ -319,8 +319,15 @@ async def exec_task(req: TaskRequest):
                 send_screenshot = True
             elif consecutive_waits >= 2:
                 send_screenshot = True
-            elif len(history) > 0 and history[-1].get('needs_visual'):
-                send_screenshot = True
+            elif len(history) > 0:
+                last_step = history[-1]
+                # Если в прошлой итерации спинной мозг попросил визуал
+                if last_step.get('needs_visual'):
+                    send_screenshot = True
+                # Если в прошлой итерации действие выполнилось но страница НЕ изменилась
+                if last_step.get('page_changed') == False:
+                    send_screenshot = True
+                    log_step(f"⚠️ Previous action had NO EFFECT - sending screenshot for analysis")
             
             brain_result = await supervisor_service.next_step(
                 goal=brain_goal,
