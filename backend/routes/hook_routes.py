@@ -359,12 +359,15 @@ async def exec_task(req: TaskRequest):
             log_step(f"🧠 [SPINAL CORD] Decision: {action} at {target_cell or 'N/A'}")
             
             # 3. ИСПОЛНИТЕЛЬ: Выполнить действие
+            action_executed = False
+            
             if action == 'CLICK_CELL':
                 if not target_cell:
                     log_step("⚠️ [EXECUTOR] No target cell for CLICK_CELL")
                     continue
                 log_step(f"👆 [EXECUTOR] Clicking {target_cell}")
                 await browser_service.click_cell(session_id, target_cell)
+                action_executed = True
                 
             elif action == 'TYPE_AT_CELL':
                 if not target_cell or not text_value:
@@ -372,11 +375,14 @@ async def exec_task(req: TaskRequest):
                     continue
                 log_step(f"⌨️  [EXECUTOR] Typing '{text_value}' at {target_cell}")
                 await browser_service.type_at_cell(session_id, target_cell, text_value)
+                action_executed = True
                 
             elif action == 'NAVIGATE':
                 url = brain_result.get('url', 'https://accounts.google.com/signup')
                 log_step(f"🌐 [EXECUTOR] Navigating to {url}")
                 await browser_service.navigate(session_id, url)
+                action_executed = True
+                await asyncio.sleep(3)  # Дать странице загрузиться
                 
             elif action == 'SCROLL':
                 direction = brain_result.get('direction', 'down')
@@ -384,10 +390,12 @@ async def exec_task(req: TaskRequest):
                 log_step(f"📜 [EXECUTOR] Scrolling {direction} by {amount}px")
                 dy = amount if direction == 'down' else -amount
                 await browser_service.scroll(session_id, 0, dy)
+                action_executed = True
                 
             elif action == 'WAIT':
                 log_step("⏳ [EXECUTOR] Waiting...")
                 await asyncio.sleep(2)
+                action_executed = False  # WAIT не требует верификации
                 
             elif action == 'DONE':
                 log_step("✅ [SPINAL CORD] Task completed")
@@ -403,6 +411,47 @@ async def exec_task(req: TaskRequest):
             else:
                 log_step(f"⚠️ [SPINAL CORD] Unknown action: {action}, treating as WAIT")
                 await asyncio.sleep(1)
+                action_executed = False
+            
+            # 4. ВЕРИФИКАЦИЯ: Проверяем изменилась ли страница после действия
+            page_changed = False
+            screenshot_after = None
+            vision_after = []
+            
+            if action_executed:
+                await asyncio.sleep(1.5)  # Дать время на обработку действия
+                
+                try:
+                    page = browser_service.sessions[session_id]['page']
+                    url_after = page.url
+                    await browser_service._inject_grid_overlay(page)
+                    dom_data_after = await browser_service._collect_dom_clickables(page)
+                    screenshot_after = await browser_service.capture_screenshot(session_id)
+                    vision_after = await browser_service._augment_with_vision(screenshot_after, dom_data_after)
+                    
+                    num_elements_after = len(vision_after or [])
+                    
+                    # Сравниваем состояния
+                    selectors_before = set([el.get('cell') for el in vision_before if el.get('cell')])
+                    selectors_after = set([el.get('cell') for el in vision_after if el.get('cell')])
+                    url_changed = (url_after != current_url)
+                    elements_changed = (selectors_before != selectors_after)
+                    
+                    page_changed = url_changed or elements_changed or (abs(num_elements_after - num_elements_before) > 2)
+                    
+                    if page_changed:
+                        log_step(f"✅ [VERIFICATION] Page CHANGED: URL={url_changed}, Elements={elements_changed} ({num_elements_before}→{num_elements_after})")
+                        # Отправляем ТЕКСТ новых селекторов в следующей итерации
+                        consecutive_waits = 0
+                    else:
+                        log_step(f"⚠️ [VERIFICATION] NO CHANGE detected - will send screenshot to Brain for analysis")
+                        # Отправляем СКРИНШОТ (до и после) в следующей итерации для анализа
+                        needs_visual = True
+                        consecutive_waits = 0
+                        
+                except Exception as e:
+                    log_step(f"❌ [VERIFICATION] Failed: {str(e)}")
+                    page_changed = False
             
             # 4. История для следующей итерации
             history.append({
