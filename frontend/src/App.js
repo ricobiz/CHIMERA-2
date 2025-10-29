@@ -515,6 +515,14 @@ function App() {
           // Use image generation model for visual mockup
           const mockupResponse = await generateMockup(designSpec, prompt, 'google/gemini-2.5-flash-image-preview');
           
+          console.log('🔍 Mockup response:', {
+            has_mockup_data: !!mockupResponse.mockup_data,
+            data_type: typeof mockupResponse.mockup_data,
+            data_length: mockupResponse.mockup_data?.length,
+            first_100_chars: mockupResponse.mockup_data?.substring(0, 100),
+            starts_with_data_uri: mockupResponse.mockup_data?.startsWith('data:image')
+          });
+          
           if (mockupResponse.mockup_data) {
             // mockup_data может быть URL или base64
             mockupUrls = Array.isArray(mockupResponse.mockup_data) 
