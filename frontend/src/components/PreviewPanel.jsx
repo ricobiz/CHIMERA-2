@@ -117,6 +117,7 @@ const PreviewPanel = ({ generatedCode, isGenerating }) => {
       min-height: 100vh;
       background-color: #0f0f10;
     }
+    ${extractedStyles ? `/* Extracted JSX Styles */\n${extractedStyles}` : ''}
   </style>
 </head>
 <body>
