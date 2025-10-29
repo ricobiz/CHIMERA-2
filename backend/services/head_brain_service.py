@@ -195,12 +195,25 @@ class HeadBrainService:
         goal_lower = goal.lower()
         is_registration = any(kw in goal_lower for kw in ['register', 'регистр', 'sign up', 'create account'])
         
+        # Извлекаем URL через regex
+        import re
+        url_match = re.search(r'https?://[^\s]+', goal)
+        target_url = url_match.group(0) if url_match else ''
+        
+        # Определяем тип сайта
+        if 'gmail' in goal_lower or 'google' in goal_lower:
+            target_url = target_url or 'https://accounts.google.com/signup'
+        elif 'facebook' in goal_lower:
+            target_url = target_url or 'https://www.facebook.com/reg'
+        
         fn = random.choice(FIRST_NAMES)
         ln = random.choice(LAST_NAMES)
         
         return {
             "task_id": f"fallback-{random.randint(1000, 9999)}",
+            "target_url": target_url,
             "understood_task": goal,
+            "task_type": "registration" if is_registration else "navigation",
             "requirements": {
                 "needs_warm_profile": is_registration,
                 "needs_phone": is_registration and not has_warm_profile,
@@ -209,7 +222,7 @@ class HeadBrainService:
             },
             "strategy": "attempt_without_phone" if has_warm_profile else "require_phone_or_warn",
             "success_probability": 0.7 if has_warm_profile else 0.3,
-            "plan_outline": "Navigate → Fill fields → Submit → Handle captcha/phone if needed",
+            "plan_outline": "Navigate → Fill registration form → Handle captcha/phone if needed → Submit",
             "data_bundle": {
                 "first_name": fn,
                 "last_name": ln,
@@ -219,7 +232,7 @@ class HeadBrainService:
                 "phone_number": None,
                 "recovery_email": None
             },
-            "can_proceed": True,  # Всегда пробуем
+            "can_proceed": True,
             "reason": "Fallback analysis - will attempt task",
             "profile_status": {
                 "is_warm": has_warm_profile,
