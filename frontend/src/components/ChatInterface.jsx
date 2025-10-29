@@ -877,27 +877,27 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
       {/* Input - fixed at bottom, adapts to keyboard */}
       <div className="flex-shrink-0 border-t border-gray-800 p-2 md:p-6 bg-[#0f0f10]">
         <div className="max-w-3xl mx-auto">
-          <div className="relative">
-            <Textarea
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSubmit();
-                }
-              }}
-              placeholder={chatMode === 'chat' ? 'Chat about your app idea...' : 'Describe your app...'}
-              className={`min-h-[80px] md:min-h-[100px] bg-gray-900 text-sm md:text-base text-gray-300 resize-none pr-32 pl-3 pb-10 placeholder-gray-600 transition-all duration-300 ${
-                generationStatus === 'generating' 
-                  ? 'border-2 border-blue-400 shadow-lg shadow-blue-500/50' 
-                  : generationStatus === 'success'
-                  ? 'border-2 border-green-400 shadow-lg shadow-green-500/50'
-                  : generationStatus === 'error'
-                  ? 'border-2 border-red-400 shadow-lg shadow-red-500/50'
-                  : 'border border-gray-700 focus:border-purple-500/50'
-              }`}
-            />
+          {/* Animated gradient border wrapper */}
+          <div className={`relative rounded-lg p-[2px] transition-all duration-500 ${
+            chatMode === 'chat' 
+              ? 'bg-gradient-to-r from-blue-500 via-cyan-500 to-blue-500 animate-gradient-x'
+              : chatMode === 'agent'
+              ? 'bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 animate-gradient-x'
+              : 'bg-gradient-to-r from-green-500 via-emerald-500 to-green-500 animate-gradient-x'
+          }`}>
+            <div className="relative bg-gray-900 rounded-lg">
+              <Textarea
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSubmit();
+                  }
+                }}
+                placeholder={chatMode === 'chat' ? 'Chat about your app idea...' : chatMode === 'agent' ? 'Describe your app...' : 'What should I automate?'}
+                className={`min-h-[80px] md:min-h-[100px] bg-transparent text-sm md:text-base text-gray-300 resize-none pr-32 pl-3 pb-10 placeholder-gray-600 border-none focus:ring-0 w-full`}
+              />
             
             {/* Bottom left controls */}
             <div className="absolute bottom-2 md:bottom-3 left-3 flex items-center gap-3">
