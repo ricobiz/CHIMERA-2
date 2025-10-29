@@ -35,7 +35,7 @@ async def generate_image(request: dict):
     """
     try:
         prompt = request.get("prompt")
-        model = request.get("model", "google/gemini-2.5-flash-image")
+        model = request.get("model", "google/gemini-2.5-flash-image-preview")
         
         if not prompt:
             raise HTTPException(status_code=400, detail="Prompt is required")
