@@ -274,75 +274,84 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#0f0f10] border-2 border-transparent animated-gradient-border relative">
+    <div className={`flex flex-col h-full bg-[#0f0f10] border-2 border-transparent relative ${
+      isAutomationMode 
+        ? 'animated-gradient-border-green' 
+        : chatMode === 'agent' 
+          ? 'animated-gradient-border-purple'
+          : 'animated-gradient-border'
+    }`}>
       {/* Header - redesigned */}
       <div className="flex-shrink-0 border-b border-gray-800 p-3 md:p-4">
         <div className="flex items-center justify-between">
-          {/* Left: ChimeraLogo + 3 Mode Circles */}
-          <div className="flex items-center gap-4">
-            <ChimeraLogo className="h-5" />
+          {/* Left: 3 Mode Squares */}
+          <div className="flex items-center gap-3">
+            {/* Chat Mode - Blue Square */}
+            <button
+              onClick={() => {
+                setIsAutomationMode(false);
+                if (onChatModeChange) onChatModeChange('chat');
+              }}
+              className={`w-6 h-6 rounded-md transition-all relative group ${
+                !isAutomationMode && chatMode === 'chat'
+                  ? 'bg-gradient-to-br from-blue-400 to-blue-600 shadow-lg shadow-blue-500/50 ring-2 ring-blue-400/40 scale-110'
+                  : 'bg-blue-900/40 hover:bg-blue-800/60 border border-blue-700/60 hover:scale-105'
+              }`}
+              title="Chat Mode"
+            >
+              <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-gray-900 text-gray-300 text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-gray-700 z-10">
+                Chat
+              </span>
+            </button>
             
-            {/* 3 Mode Circles - Apple style */}
-            <div className="flex items-center gap-2">
-              {/* Chat Mode - Blue Circle */}
-              <button
-                onClick={() => {
-                  setIsAutomationMode(false);
-                  if (onChatModeChange) onChatModeChange('chat');
-                }}
-                className={`w-3 h-3 rounded-full transition-all relative group ${
-                  !isAutomationMode && chatMode === 'chat'
-                    ? 'bg-blue-500 shadow-lg shadow-blue-500/50 ring-2 ring-blue-400/30'
-                    : 'bg-blue-900/30 hover:bg-blue-700/50 border border-blue-700/50'
-                }`}
-                title="Chat Mode"
-              >
-                <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-gray-900 text-gray-300 text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-gray-700 z-10">
-                  Chat
-                </span>
-              </button>
-              
-              {/* Code Mode - Purple Circle */}
-              <button
-                onClick={() => {
-                  setIsAutomationMode(false);
-                  if (onChatModeChange) onChatModeChange('agent');
-                }}
-                className={`w-3 h-3 rounded-full transition-all relative group ${
-                  !isAutomationMode && chatMode === 'agent'
-                    ? 'bg-purple-500 shadow-lg shadow-purple-500/50 ring-2 ring-purple-400/30'
-                    : 'bg-purple-900/30 hover:bg-purple-700/50 border border-purple-700/50'
-                }`}
-                title="Code Mode"
-              >
-                <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-gray-900 text-gray-300 text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-gray-700 z-10">
-                  Code
-                </span>
-              </button>
-              
-              {/* Automation Mode - Green Circle */}
-              <button
-                onClick={() => {
-                  setIsAutomationMode(true);
-                  if (onOpenAutomation) onOpenAutomation();
-                }}
-                className={`w-3 h-3 rounded-full transition-all relative group ${
-                  isAutomationMode
-                    ? 'bg-green-500 shadow-lg shadow-green-500/50 ring-2 ring-green-400/30'
-                    : 'bg-green-900/30 hover:bg-green-700/50 border border-green-700/50'
-                }`}
-                title="Automation Mode"
-              >
-                <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-gray-900 text-gray-300 text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-gray-700 z-10">
-                  Automation
-                </span>
-              </button>
-            </div>
+            {/* Code Mode - Purple Square */}
+            <button
+              onClick={() => {
+                setIsAutomationMode(false);
+                if (onChatModeChange) onChatModeChange('agent');
+              }}
+              className={`w-6 h-6 rounded-md transition-all relative group ${
+                !isAutomationMode && chatMode === 'agent'
+                  ? 'bg-gradient-to-br from-purple-400 to-purple-600 shadow-lg shadow-purple-500/50 ring-2 ring-purple-400/40 scale-110'
+                  : 'bg-purple-900/40 hover:bg-purple-800/60 border border-purple-700/60 hover:scale-105'
+              }`}
+              title="Code Mode"
+            >
+              <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-gray-900 text-gray-300 text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-gray-700 z-10">
+                Code
+              </span>
+            </button>
+            
+            {/* Automation Mode - Green Square */}
+            <button
+              onClick={() => {
+                setIsAutomationMode(true);
+                if (onOpenAutomation) onOpenAutomation();
+              }}
+              className={`w-6 h-6 rounded-md transition-all relative group ${
+                isAutomationMode
+                  ? 'bg-gradient-to-br from-green-400 to-green-600 shadow-lg shadow-green-500/50 ring-2 ring-green-400/40 scale-110'
+                  : 'bg-green-900/40 hover:bg-green-800/60 border border-green-700/60 hover:scale-105'
+              }`}
+              title="Automation Mode"
+            >
+              <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-gray-900 text-gray-300 text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-gray-700 z-10">
+                Automation
+              </span>
+            </button>
           </div>
           
-          {/* Right: Settings + Session ID */}
+          {/* Center: ChimeraLogo */}
+          <div className="absolute left-1/2 -translate-x-1/2">
+            <ChimeraLogo className="h-6" />
+          </div>
+          
+          {/* Right: 3 Icons */}
           <div className="flex items-center gap-3">
-            {/* Settings Button */}
+            {/* Eye Icon (Preview/Status) */}
+            <StatusIndicator />
+            
+            {/* Settings Icon */}
             <div className="relative settings-menu-container">
               <button
                 onClick={() => setShowSettingsMenu(!showSettingsMenu)}
