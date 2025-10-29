@@ -1020,6 +1020,7 @@ function App() {
             onOpenPreview={handleOpenPreview}
             onNewProject={handleNewProject}
             onSessionSelect={handleSessionSelect}
+            onGenerateImage={handleGenerateImage}
             currentSessionId={currentSessionId}
             isGenerating={isGenerating}
             onStopGeneration={handleStopGeneration}
