@@ -242,19 +242,24 @@ async def exec_task(req: TaskRequest):
         
         log_step(f"🔄 [SPINAL CORD] Starting execution loop (max {max_steps} steps)")
         
-        # ВАЖНО: Извлекаем URL из задачи
-        import re
-        url_match = re.search(r'https?://[^\s]+', goal)
-        if url_match:
-            start_url = url_match.group(0)
-            log_step(f"📍 Extracted URL from goal: {start_url}")
-        elif 'gmail' in goal.lower() or 'google' in goal.lower():
-            start_url = "https://accounts.google.com/signup"
-            log_step(f"📍 Detected Gmail task, using: {start_url}")
+        # ВАЖНО: Используем URL от головного мозга
+        start_url = head_analysis.get('target_url', '')
+        
+        if start_url:
+            log_step(f"📍 [HEAD BRAIN] Target URL: {start_url}")
         else:
-            # Если URL не найден - спросим у пользователя или используем дефолт
-            start_url = None
-            log_step("⚠️ No URL found in goal. Will rely on Brain to navigate.")
+            # Fallback - извлекаем из задачи пользователя
+            import re
+            url_match = re.search(r'https?://[^\s]+', goal)
+            if url_match:
+                start_url = url_match.group(0)
+                log_step(f"📍 Extracted URL from goal (fallback): {start_url}")
+            elif 'gmail' in goal.lower() or 'google' in goal.lower():
+                start_url = "https://accounts.google.com/signup"
+                log_step(f"📍 Detected Gmail task, using: {start_url}")
+            else:
+                start_url = None
+                log_step("⚠️ No URL found. Will rely on Brain to navigate.")
         
         # ОБЯЗАТЕЛЬНАЯ начальная навигация
         current_url = "about:blank"
@@ -264,7 +269,7 @@ async def exec_task(req: TaskRequest):
                 nav_result = await browser_service.navigate(session_id, start_url)
                 current_url = nav_result.get('url', start_url)
                 log_step(f"✅ [INITIAL] Navigation successful, current URL: {current_url}")
-                await asyncio.sleep(3)  # Дать странице загрузиться
+                await asyncio.sleep(2)  # Дать странице загрузиться
             except Exception as e:
                 log_step(f"❌ [INITIAL] Navigation failed: {str(e)}")
                 current_url = "about:blank"
