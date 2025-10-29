@@ -1,40 +1,33 @@
 import os
 import base64
 import logging
+import io
 from typing import List, Dict, Optional
+import numpy as np
 
 logger = logging.getLogger(__name__)
 
 # Optional ONNX runtime (if available)
 try:
     import onnxruntime as ort  # type: ignore
-except Exception:  # pragma: no cover
+    from PIL import Image
+    from transformers import AutoProcessor
+except Exception as e:
+    logger.warning(f"⚠️ ONNX/PIL/Transformers not available: {e}")
     ort = None
+    Image = None
+    AutoProcessor = None
 
 from .grid_service import GridConfig
 
-MODEL_PATH = "/app/backend/models/ui-detector.onnx"
+# Florence-2 model path
+FLORENCE_MODEL_DIR = "/app/backend/onnx_models/florence-2-base"
+FLORENCE_VISION_ENCODER = os.path.join(FLORENCE_MODEL_DIR, "onnx/vision_encoder_q4f16.onnx")
+FLORENCE_ENCODER = os.path.join(FLORENCE_MODEL_DIR, "onnx/encoder_model_q4f16.onnx")
 
-# Simple lazy downloader for a tiny onnx model (placeholder URL)
-MODEL_URL = os.environ.get(
-    "UI_DETECTOR_MODEL_URL",
-    "https://huggingface.co/onnx/models/resolve/main/tiny_detectors/ui-detector.onnx"
-)
-
-def ensure_model():
-    os.makedirs(os.path.dirname(MODEL_PATH), exist_ok=True)
-    if not os.path.exists(MODEL_PATH):
-        try:
-            import httpx
-            r = httpx.get(MODEL_URL, timeout=20.0)
-            if r.status_code == 200 and r.content:
-                with open(MODEL_PATH, 'wb') as f:
-                    f.write(r.content)
-        except Exception:
-            # If download fails, we'll continue with DOM fallback only
-            pass
-
-ensure_model()
+logger.info(f"🔧 [VISION] Florence-2 paths configured:")
+logger.info(f"  Vision Encoder: {FLORENCE_VISION_ENCODER}")
+logger.info(f"  Encoder: {FLORENCE_ENCODER}")
 
 class LocalVisionService:
     """
