@@ -1198,6 +1198,9 @@ agent_communication:
       - working: true
         agent: "testing"
         comment: "✅ FIXED & VERIFIED: Image generation fully working! Fixed critical bug in design_generator_service.py where image extraction logic wasn't properly handling OpenRouter's nested response structure. Updated extraction to handle images in response['choices'][0]['message']['images'][0]['image_url']['url'] format. All test scenarios passed (4/4) with proper base64 PNG responses, is_image: true flags, and usage information. Ready for frontend integration testing."
+      - working: false
+        agent: "user"
+        comment: "User reports (Russian): Design workflow before code generation is trying to pass image as text, possibly Base64 encoded. Image is not rendering in chat. Need to verify which model is generating the image and check if request to OpenRouter is correct. Also need to check frontend rendering of base64 images."
 
 frontend:
   - task: "API Balance Display"
