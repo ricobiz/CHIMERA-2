@@ -425,6 +425,7 @@ async def exec_task(req: TaskRequest):
                 history=history,
                 screenshot_base64=screenshot_before if send_screenshot else None,
                 vision=vision_before or [],
+                available_data=used_data,  # Передаём данные в Spinal Cord!
                 model='qwen/qwen2.5-vl'
             )
             
