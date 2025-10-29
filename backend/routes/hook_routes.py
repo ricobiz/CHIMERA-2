@@ -129,8 +129,8 @@ async def control(req: ControlRequest):
 
 @router.post('/exec')
 async def exec_task(req: TaskRequest):
-    """Start automation with Brain-driven execution loop."""
-    global agent_status, current_session_id, last_observation
+    """Start automation with Analyze → Check requirements → Brain loop."""
+    global agent_status, current_session_id, last_observation, current_analysis, current_plan
     
     try:
         job_id = str(uuid.uuid4())
@@ -140,14 +140,47 @@ async def exec_task(req: TaskRequest):
         execution_logs.clear()
         log_step(f"Job started: {job_id}")
         
-        agent_status = "ACTIVE"
         goal = req.text
-        history = []
         
-        # Create browser session
-        from routes.profile_routes import create_profile, CreateProfileRequest
-        prof_resp = await create_profile(CreateProfileRequest(warmup=False))
-        profile_id = prof_resp.get('profile_id')
+        # Phase 1: ANALYZE - что нужно для этой цели?
+        log_step("📋 Analyzing requirements...")
+        current_analysis = await planner_analyze(AnalyzeRequest(goal=goal))
+        
+        availability = current_analysis.get('analysis', {}).get('availability', {})
+        profile_info = availability.get('profile', {})
+        is_warm = profile_info.get('is_warm', False)
+        can_proceed_without_warm = availability.get('can_proceed_without_warm', True)
+        
+        # Check if we have what we need
+        if not is_warm and not can_proceed_without_warm:
+            log_step("⚠️ Missing requirements: need warm profile or phone")
+            agent_status = "IDLE"
+            return {
+                "status": "NEEDS_REQUIREMENTS",
+                "job_id": job_id,
+                "analysis": current_analysis,
+                "message": "Need warm profile or phone number"
+            }
+        
+        # Phase 2: GENERATE initial context plan (для Brain контекста)
+        log_step("📋 Generating context plan...")
+        current_plan = await planner_generate(GenerateRequest(
+            task_id=current_analysis['task_id'],
+            analysis=current_analysis['analysis']
+        ))
+        
+        # Get generated data (name, username, password, etc)
+        data_bundle = current_plan.get('data_bundle', {})
+        log_step(f"✅ Generated data: {list(data_bundle.keys())}")
+        
+        agent_status = "ACTIVE"
+        
+        # Phase 3: Create session
+        profile_id = profile_info.get('profile_id')
+        if not profile_id:
+            from routes.profile_routes import create_profile, CreateProfileRequest
+            prof_resp = await create_profile(CreateProfileRequest(warmup=False))
+            profile_id = prof_resp.get('profile_id')
         
         session_id = str(uuid.uuid4())
         await browser_service.create_session_from_profile(
@@ -157,7 +190,8 @@ async def exec_task(req: TaskRequest):
         current_session_id = session_id
         log_step(f"✅ Session created: {session_id}")
         
-        # Main Brain loop
+        # Phase 4: Brain-driven loop
+        history = []
         max_steps = 50
         step_count = 0
         
@@ -165,26 +199,31 @@ async def exec_task(req: TaskRequest):
             step_count += 1
             log_step(f"🧠 Brain cycle {step_count}/{max_steps}")
             
-            # 1. Get screenshot + vision
+            # 1. Screenshot + Vision
             screenshot_b64 = await browser_service.capture_screenshot(session_id)
             vision_elements = await browser_service.find_elements_with_vision(session_id, "all interactive elements")
             
-            # 2. Ask Brain what to do next
+            # 2. Ask Brain with CONTEXT (goal + data_bundle)
+            brain_context = {
+                "goal": goal,
+                "data_available": data_bundle,  # Brain знает что у нас есть имя/пароль/etc
+                "history": history
+            }
+            
             brain_result = await supervisor_service.next_step(
-                goal=goal,
+                goal=f"{goal} | Available data: {list(data_bundle.keys())}",
                 history=history,
                 screenshot_base64=screenshot_b64,
                 vision=vision_elements or [],
                 model='qwen/qwen2.5-vl'
             )
             
-            log_step(f"🧠 Brain says: {brain_result.get('action', 'unknown')}")
-            
-            # 3. Execute Brain's decision
             action = brain_result.get('action')
+            log_step(f"🧠 Brain says: {action}")
             
+            # 3. Execute
             if action == 'CLICK':
-                target = brain_result.get('target')  # cell or coordinates
+                target = brain_result.get('target')
                 log_step(f"👆 Clicking {target}")
                 await browser_service.click_cell(session_id, target)
                 
@@ -212,11 +251,8 @@ async def exec_task(req: TaskRequest):
                 log_step(f"⏸️  Waiting for user input")
                 agent_status = "WAITING_USER"
                 break
-                
-            else:
-                log_step(f"⚠️  Unknown action: {action}")
             
-            # 4. Add to history
+            # 4. History
             history.append({
                 "step": step_count,
                 "action": action,
@@ -224,14 +260,12 @@ async def exec_task(req: TaskRequest):
                 "result": "executed"
             })
             
-            # Store observation
             last_observation = {
                 "screenshot_base64": screenshot_b64,
                 "step": step_count,
                 "action": action
             }
             
-            # Small delay between steps
             await asyncio.sleep(1.5)
         
         if step_count >= max_steps:
