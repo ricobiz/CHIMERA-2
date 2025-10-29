@@ -936,14 +936,17 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
                 <button
                   onClick={() => !isGenerating && onChatModeChange('automation')}
                   disabled={isGenerating}
-                  className={`px-3 py-1 rounded-full text-[10px] font-medium transition-all ${
+                  className={`px-3 py-1.5 rounded-full text-[10px] font-medium transition-all flex items-center gap-1.5 ${
                     chatMode === 'automation'
-                      ? 'bg-green-600 text-white shadow-lg'
-                      : 'text-gray-500 hover:text-gray-300'
+                      ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg'
+                      : 'text-gray-400 hover:text-gray-200'
                   } ${isGenerating ? 'opacity-50 cursor-not-allowed' : ''}`}
                   title="Browser automation mode"
                 >
-                  🌐 Auto
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  Auto
                 </button>
               </div>
               
