@@ -619,17 +619,52 @@ async def exec_task(req: TaskRequest):
 
 @router.post('/adjust')
 async def adjust(req: AdjustRequest):
-    """User adjustments to current plan during automation run."""
+    """
+    Live operator override - изменение политики автоматизации на лету.
+    Не останавливает цикл, обновляет policy для следующих шагов.
+    """
     try:
-        global current_plan
+        global current_plan, override_buffer, policy
+        
         if current_plan is None:
-            raise HTTPException(status_code=400, detail="No plan to adjust")
+            raise HTTPException(status_code=400, detail="No active automation to adjust")
+        
+        # Добавляем в буфер для обработки в цикле
+        override_buffer.append(req.message)
+        
+        # Логируем в execution_logs
+        log_step(f"[OVERRIDE] {req.message}", status="info")
+        
+        # Простейший парсинг политики из текста
+        # Примеры: "имя без цифр", "русские имена", "не вводи телефон сам"
+        msg_lower = req.message.lower()
+        
+        if "без цифр" in msg_lower or "no digits" in msg_lower:
+            policy['name_generation_hint'] = "real human name without digits"
+            log_step("[POLICY] Updated: name_generation_hint = no digits")
+        
+        if "русск" in msg_lower or "russian" in msg_lower:
+            policy['name_generation_hint'] = "russian human name"
+            log_step("[POLICY] Updated: name_generation_hint = russian")
+        
+        if "не вводи телефон" in msg_lower or "stop before phone" in msg_lower:
+            policy['stop_before_phone'] = True
+            log_step("[POLICY] Updated: stop_before_phone = true")
+        
+        if "ждать" in msg_lower or "wait for me" in msg_lower:
+            policy['wait_before_action'] = True
+            log_step("[POLICY] Updated: wait_before_action = true")
+        
+        # Сохраняем в plan hints для истории
         hint = {"ts": datetime.now().isoformat(), "message": req.message}
         current_plan.setdefault('hints', []).append(hint)
-        # Insert a USER_HINT step as a no-op marker the executor can read
-        current_plan.setdefault('steps', []).insert(0, {"id": f"hint_{len(current_plan['hints'])}", "action": "USER_HINT", "note": req.message})
-        log_step(f"Plan adjusted: {req.message}")
-        return {"ok": True, "plan": current_plan}
+        
+        return {
+            "ok": True, 
+            "message": "Override applied",
+            "policy": policy,
+            "buffer_size": len(override_buffer)
+        }
     except Exception as e:
         logger.error(f"adjust error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
