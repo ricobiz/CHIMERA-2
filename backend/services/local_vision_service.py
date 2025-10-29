@@ -65,6 +65,8 @@ class LocalVisionService:
         """
         Returns list of {cell, bbox:{x,y,w,h}, label, type, confidence}
         """
+        logger.info(f"🔍 [VISION] detect() called with {len(dom_clickables or [])} DOM clickables, viewport {viewport_w}x{viewport_h}")
+        
         # Align grid to caller's config
         if rows and cols:
             self.set_grid(rows, cols)
@@ -77,6 +79,7 @@ class LocalVisionService:
 
         # Fallback: use dom_clickables if provided
         if dom_clickables:
+            logger.info(f"🔍 [VISION] Processing {len(dom_clickables)} DOM clickables...")
             for el in dom_clickables:
                 bbox = el.get('bbox', {})
                 label = el.get('label') or el.get('text') or el.get('name') or ''
@@ -89,6 +92,9 @@ class LocalVisionService:
                     'type': etype,
                     'confidence': float(el.get('confidence', 0.75))
                 })
+            logger.info(f"🔍 [VISION] Returning {len(results)} results")
+        else:
+            logger.warning("🔍 [VISION] No DOM clickables provided!")
 
         return results
 
