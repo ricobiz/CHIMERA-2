@@ -344,7 +344,7 @@ async def exec_task(req: TaskRequest):
                 consecutive_waits += 1
                 if consecutive_waits >= 3:
                     log_step(f"⚠️ [ANTI-LOOP] Too many WAITs ({consecutive_waits}), forcing SCROLL or DONE")
-                    if len(vision_elements or []) > 0:
+                    if len(vision_before or []) > 0:
                         # Есть элементы - пробуем скроллить
                         action = 'SCROLL'
                         brain_result['direction'] = 'down'
