@@ -278,58 +278,64 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
       {/* Header - redesigned */}
       <div className="flex-shrink-0 border-b border-gray-800 p-3 md:p-4">
         <div className="flex items-center justify-between">
-          {/* Left: ChimeraLogo + 3 Mode Buttons */}
+          {/* Left: ChimeraLogo + 3 Mode Circles */}
           <div className="flex items-center gap-4">
             <ChimeraLogo className="h-5" />
             
-            {/* 3 Mode Buttons */}
+            {/* 3 Mode Circles - Apple style */}
             <div className="flex items-center gap-2">
-              {/* Chat Mode - Blue */}
+              {/* Chat Mode - Blue Circle */}
               <button
                 onClick={() => {
                   setIsAutomationMode(false);
                   if (onChatModeChange) onChatModeChange('chat');
                 }}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                className={`w-3 h-3 rounded-full transition-all relative group ${
                   !isAutomationMode && chatMode === 'chat'
-                    ? 'bg-blue-600/30 border-2 border-blue-500 text-blue-300 shadow-lg shadow-blue-500/20'
-                    : 'bg-gray-800/50 border border-gray-700 text-gray-400 hover:border-blue-600/50 hover:text-blue-400'
+                    ? 'bg-blue-500 shadow-lg shadow-blue-500/50 ring-2 ring-blue-400/30'
+                    : 'bg-blue-900/30 hover:bg-blue-700/50 border border-blue-700/50'
                 }`}
                 title="Chat Mode"
               >
-                Chat
+                <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-gray-900 text-gray-300 text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-gray-700 z-10">
+                  Chat
+                </span>
               </button>
               
-              {/* Code Mode - Purple */}
+              {/* Code Mode - Purple Circle */}
               <button
                 onClick={() => {
                   setIsAutomationMode(false);
                   if (onChatModeChange) onChatModeChange('agent');
                 }}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                className={`w-3 h-3 rounded-full transition-all relative group ${
                   !isAutomationMode && chatMode === 'agent'
-                    ? 'bg-purple-600/30 border-2 border-purple-500 text-purple-300 shadow-lg shadow-purple-500/20'
-                    : 'bg-gray-800/50 border border-gray-700 text-gray-400 hover:border-purple-600/50 hover:text-purple-400'
+                    ? 'bg-purple-500 shadow-lg shadow-purple-500/50 ring-2 ring-purple-400/30'
+                    : 'bg-purple-900/30 hover:bg-purple-700/50 border border-purple-700/50'
                 }`}
-                title="Code Generation Mode"
+                title="Code Mode"
               >
-                Code
+                <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-gray-900 text-gray-300 text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-gray-700 z-10">
+                  Code
+                </span>
               </button>
               
-              {/* Automation Mode - Green */}
+              {/* Automation Mode - Green Circle */}
               <button
                 onClick={() => {
                   setIsAutomationMode(true);
                   if (onOpenAutomation) onOpenAutomation();
                 }}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                className={`w-3 h-3 rounded-full transition-all relative group ${
                   isAutomationMode
-                    ? 'bg-green-600/30 border-2 border-green-500 text-green-300 shadow-lg shadow-green-500/20'
-                    : 'bg-gray-800/50 border border-gray-700 text-gray-400 hover:border-green-600/50 hover:text-green-400'
+                    ? 'bg-green-500 shadow-lg shadow-green-500/50 ring-2 ring-green-400/30'
+                    : 'bg-green-900/30 hover:bg-green-700/50 border border-green-700/50'
                 }`}
                 title="Automation Mode"
               >
-                Automation
+                <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-gray-900 text-gray-300 text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-gray-700 z-10">
+                  Automation
+                </span>
               </button>
             </div>
           </div>
