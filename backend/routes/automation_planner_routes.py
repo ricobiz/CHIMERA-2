@@ -168,11 +168,11 @@ async def generate(req):
         }
         steps: List[Dict[str, Any]] = [
             {"id": "step_1", "action": "NAVIGATE", "target": "https://accounts.google.com/signup"},
-            {"id": "step_2", "action": "TYPE", "field": "first_name", "value": data_bundle['first_name']},
-            {"id": "step_3", "action": "TYPE", "field": "last_name",  "value": data_bundle['last_name']},
-            {"id": "step_4", "action": "TYPE", "field": "username",   "value": data_bundle['username']},
-            {"id": "step_5", "action": "TYPE", "field": "password",   "value": data_bundle['password']},
-            {"id": "step_6", "action": "TYPE", "field": "birthday",   "value": data_bundle['birthday']},
+            {"id": "step_2", "action": "TYPE", "field": "first_name", "value": data_bundle['first_name'], "description": "First name input field"},
+            {"id": "step_3", "action": "TYPE", "field": "last_name",  "value": data_bundle['last_name'], "description": "Last name input field"},
+            {"id": "step_4", "action": "TYPE", "field": "username",   "value": data_bundle['username'], "description": "Username or email input field"},
+            {"id": "step_5", "action": "TYPE", "field": "password",   "value": data_bundle['password'], "description": "Password input field"},
+            {"id": "step_6", "action": "TYPE", "field": "birthday",   "value": data_bundle['birthday'], "description": "Birthday date input field"},
             {
                 "id": "step_7",
                 "action": "VERIFY_PAGE_STATE",
