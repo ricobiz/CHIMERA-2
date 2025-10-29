@@ -225,15 +225,11 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
       if (resp.ok) {
         setJobId(data.job_id);
         setLogs([]);
+        setAgentStatus('ACTIVE');
         
-        // Check if warmup needed
-        if (data.status === 'NEEDS_WARMUP') {
-          setShowWarmBanner(true);
-          setAgentStatus('IDLE');
-          alert('⚠️ Для этого сайта требуется прогретый профиль! Нажмите "Прогреть аккаунт".');
-        } else {
-          setAgentStatus('ACTIVE');
-        }
+        // Plan created, now frontend ExecutionAgent will execute it
+        // ExecutionAgent already integrated, just needs to be triggered
+        // For now, logs will come through polling /api/hook/log
       } else {
         alert(data.detail || 'Failed to start');
       }
