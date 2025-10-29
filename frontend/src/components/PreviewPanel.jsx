@@ -217,6 +217,130 @@ const PreviewPanel = ({ generatedCode, isGenerating, chatMode = 'chat' }) => {
         {/* AUTOMATION MODE: Show AutomationPage */}
         {chatMode === 'automation' ? (
           <AutomationPage onClose={() => {}} embedded={true} />
+        
+        /* CHAT MODE: Show Artifacts Gallery */
+        ) : chatMode === 'chat' ? (
+          <div className="w-full h-full overflow-auto bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-6">
+            <div className="max-w-6xl mx-auto">
+              <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                <span className="text-3xl">🎨</span>
+                Artifacts
+              </h2>
+              
+              {/* Extract and display all artifacts from messages */}
+              {(() => {
+                // Собираем все артефакты из messages
+                const artifacts = [];
+                
+                messages.forEach((msg, idx) => {
+                  // Images
+                  if (msg.imageUrl || msg.isImage) {
+                    artifacts.push({
+                      type: 'image',
+                      url: msg.imageUrl || msg.content,
+                      timestamp: idx,
+                      content: msg.content
+                    });
+                  }
+                  
+                  // Generated code/apps
+                  if (msg.generatedCode) {
+                    artifacts.push({
+                      type: 'code',
+                      code: msg.generatedCode,
+                      timestamp: idx,
+                      content: msg.content
+                    });
+                  }
+                  
+                  // Markdown images
+                  const imgMatches = msg.content?.match(/!\[.*?\]\((.*?)\)/g);
+                  if (imgMatches) {
+                    imgMatches.forEach(match => {
+                      const url = match.match(/\((.*?)\)/)[1];
+                      artifacts.push({
+                        type: 'image',
+                        url: url,
+                        timestamp: idx,
+                        content: msg.content
+                      });
+                    });
+                  }
+                });
+                
+                if (artifacts.length === 0) {
+                  return (
+                    <div className="flex flex-col items-center justify-center h-96 text-center">
+                      <div className="text-6xl mb-4">📦</div>
+                      <h3 className="text-xl font-semibold text-white mb-2">No Artifacts Yet</h3>
+                      <p className="text-gray-400 max-w-md">
+                        Generate images using the 🖼️ button or create apps in Code mode.
+                        All your creations will appear here!
+                      </p>
+                    </div>
+                  );
+                }
+                
+                return (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {artifacts.map((artifact, idx) => (
+                      <div
+                        key={idx}
+                        className="bg-gray-800 rounded-lg overflow-hidden shadow-lg hover:shadow-2xl transition-shadow cursor-pointer group"
+                        onClick={() => {
+                          // Open artifact in full view
+                          if (artifact.type === 'image') {
+                            window.open(artifact.url, '_blank');
+                          } else if (artifact.type === 'code') {
+                            // Show code preview
+                            // TODO: Add modal for code view
+                          }
+                        }}
+                      >
+                        {artifact.type === 'image' ? (
+                          <>
+                            <div className="aspect-video bg-gray-900 overflow-hidden">
+                              <img
+                                src={artifact.url}
+                                alt="Generated artifact"
+                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                              />
+                            </div>
+                            <div className="p-4">
+                              <div className="flex items-center gap-2 text-xs text-gray-400 mb-2">
+                                <span className="text-lg">🖼️</span>
+                                <span>Image</span>
+                              </div>
+                              <p className="text-sm text-gray-300 line-clamp-2">
+                                {artifact.content?.substring(0, 100) || 'Generated image'}
+                              </p>
+                            </div>
+                          </>
+                        ) : artifact.type === 'code' ? (
+                          <>
+                            <div className="aspect-video bg-gray-900 overflow-hidden flex items-center justify-center">
+                              <div className="text-6xl">💻</div>
+                            </div>
+                            <div className="p-4">
+                              <div className="flex items-center gap-2 text-xs text-gray-400 mb-2">
+                                <span className="text-lg">💻</span>
+                                <span>App</span>
+                              </div>
+                              <p className="text-sm text-gray-300 line-clamp-2">
+                                Generated application
+                              </p>
+                            </div>
+                          </>
+                        ) : null}
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
+            </div>
+          </div>
+        
+        /* CODE MODE: Show code preview/iframe */
         ) : activeTab === 'preview' ? (
           <div className="w-full h-full bg-[#0f0f10]">
             {isGenerating ? (
