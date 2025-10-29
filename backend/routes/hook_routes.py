@@ -516,12 +516,15 @@ async def exec_task(req: TaskRequest):
             
             last_observation = {
                 "screenshot_base64": screenshot_after or screenshot_before,
+                "vision": vision_after or vision_before or [],
+                "url": current_url,
                 "step": step_count,
                 "action": action,
                 "verification": {
                     "action_executed": action_executed,
                     "page_changed": page_changed if action_executed else None
-                }
+                },
+                "grid": {"rows": browser_service.grid_rows, "cols": browser_service.grid_cols}
             }
             
             await asyncio.sleep(1.5)
