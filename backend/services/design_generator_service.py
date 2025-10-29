@@ -90,79 +90,84 @@ Style: Modern, clean, professional UI design suitable for a web application."""
             raise Exception(f"Failed to generate design: {str(e)}")
     
     async def generate_visual_mockup(self, design_spec: str, user_request: str, model: str = None) -> Dict:
-        """Generate visual mockup IMAGE using Imagen-3 via OpenRouter images.generate endpoint"""
+        """Generate visual mockup IMAGE using Gemini 2.5 Flash Image (Nano Banana) via chat completions endpoint"""
         try:
-            # Imagen-3 model for image generation
-            selected_model = model or "google/imagen-3.0-generate-002"
+            # Use Gemini 2.5 Flash Image (Nano Banana) for image generation
+            selected_model = model or "google/gemini-2.5-flash-image"
             
             logger.info(f"🎨 [IMAGE GEN] Using model: {selected_model}")
             
-            # Промпт для UI мокапа
-            image_prompt = f"""Create a professional UI mockup for: {user_request}
+            # Промпт для UI мокапа или любого изображения
+            image_prompt = f"""Create a professional high-quality image for: {user_request}
 
 Design: {design_spec[:500]}
 
-Style: Modern web interface, clean layout, professional colors, realistic mockup showing main screen with all key UI elements."""
+Style: Modern, clean, professional, high-quality, realistic."""
             
             logger.info(f"🎨 [IMAGE GEN] Prompt: {image_prompt[:100]}...")
             
-            # ПРАВИЛЬНЫЙ СПОСОБ: использовать images.generate() endpoint
+            # ПРАВИЛЬНЫЙ СПОСОБ для Gemini 2.5 Flash Image: chat completions с responseModalities
             try:
-                # OpenAI SDK поддерживает images.generate для OpenRouter
-                response = self.client.images.generate(
+                response = self.client.chat.completions.create(
                     model=selected_model,
-                    prompt=image_prompt,
-                    n=1,
-                    response_format="b64_json"  # base64 JSON format
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": image_prompt
+                        }
+                    ],
+                    extra_body={
+                        "response_modality": "IMAGE"  # Ключевой параметр для генерации изображения
+                    }
                 )
                 
-                # Извлекаем base64 изображение
-                if response.data and len(response.data) > 0:
-                    image_data = response.data[0]
+                # Извлекаем изображение из ответа
+                if response.choices and len(response.choices) > 0:
+                    choice = response.choices[0]
+                    message_content = choice.message.content
                     
-                    # Проверяем формат ответа
-                    if hasattr(image_data, 'b64_json') and image_data.b64_json:
-                        b64_image = image_data.b64_json
-                        mockup_url = f"data:image/png;base64,{b64_image}"
+                    # Gemini возвращает base64 изображение в content
+                    if message_content:
+                        # Проверяем, есть ли data URL или нужно добавить префикс
+                        if message_content.startswith('data:image'):
+                            mockup_url = message_content
+                        elif message_content.startswith('/9j/') or message_content.startswith('iVBOR'):
+                            # Это base64 изображение без префикса
+                            mockup_url = f"data:image/png;base64,{message_content}"
+                        else:
+                            # Возможно это URL
+                            mockup_url = message_content
                         
-                        logger.info(f"✅ [IMAGE GEN] Image generated successfully: {len(mockup_url)} chars")
-                        
-                        return {
-                            "mockup_data": mockup_url,
-                            "design_spec": design_spec,
-                            "is_image": True,
-                            "usage": {}
-                        }
-                    elif hasattr(image_data, 'url') and image_data.url:
-                        # Если вернулся URL вместо base64
-                        mockup_url = image_data.url
-                        
-                        logger.info(f"✅ [IMAGE GEN] Image URL generated: {mockup_url}")
+                        logger.info(f"✅ [IMAGE GEN] Image generated successfully: {len(str(mockup_url))} chars")
                         
                         return {
                             "mockup_data": mockup_url,
                             "design_spec": design_spec,
                             "is_image": True,
-                            "usage": {}
+                            "usage": {
+                                "prompt_tokens": response.usage.prompt_tokens if response.usage else 0,
+                                "completion_tokens": response.usage.completion_tokens if response.usage else 0,
+                                "total_tokens": response.usage.total_tokens if response.usage else 0
+                            }
                         }
                     else:
-                        logger.error(f"❌ [IMAGE GEN] No image data in response: {image_data}")
-                        raise Exception("No image data in response")
+                        logger.error(f"❌ [IMAGE GEN] No content in response")
+                        raise Exception("No content in response")
                 else:
-                    logger.error(f"❌ [IMAGE GEN] Empty response.data")
-                    raise Exception("Empty response from images.generate")
+                    logger.error(f"❌ [IMAGE GEN] No choices in response")
+                    raise Exception("No choices in response")
                     
             except Exception as sdk_error:
                 logger.error(f"❌ [IMAGE GEN] SDK error: {str(sdk_error)}")
-                logger.info("🔄 [IMAGE GEN] Trying fallback with httpx...")
+                logger.info("🔄 [IMAGE GEN] Trying direct httpx fallback...")
                 
-                # Fallback: прямой HTTP запрос
+                # Fallback: прямой HTTP запрос к OpenRouter
                 import httpx
                 api_key = os.environ.get('OPENROUTER_API_KEY')
                 
                 async with httpx.AsyncClient() as http_client:
                     response = await http_client.post(
-                        "https://openrouter.ai/api/v1/images/generations",
+                        "https://openrouter.ai/api/v1/chat/completions",
                         headers={
                             "Authorization": f"Bearer {api_key}",
                             "Content-Type": "application/json",
@@ -171,48 +176,45 @@ Style: Modern web interface, clean layout, professional colors, realistic mockup
                         },
                         json={
                             "model": selected_model,
-                            "prompt": image_prompt,
-                            "n": 1,
-                            "response_format": "b64_json"
+                            "messages": [
+                                {
+                                    "role": "user",
+                                    "content": image_prompt
+                                }
+                            ],
+                            "response_modality": "IMAGE"
                         },
                         timeout=60.0
                     )
                     
-                    if response.status_code != 200:
+                    if response.status_code == 200:
+                        data = response.json()
+                        
+                        if 'choices' in data and len(data['choices']) > 0:
+                            choice = data['choices'][0]
+                            message_content = choice.get('message', {}).get('content', '')
+                            
+                            if message_content:
+                                # Обработка base64
+                                if message_content.startswith('data:image'):
+                                    mockup_url = message_content
+                                elif message_content.startswith('/9j/') or message_content.startswith('iVBOR'):
+                                    mockup_url = f"data:image/png;base64,{message_content}"
+                                else:
+                                    mockup_url = message_content
+                                
+                                logger.info(f"✅ [IMAGE GEN] HTTP fallback successful: {len(mockup_url)} chars")
+                                
+                                return {
+                                    "mockup_data": mockup_url,
+                                    "design_spec": design_spec,
+                                    "is_image": True,
+                                    "usage": data.get('usage', {})
+                                }
+                    else:
                         error_text = response.text
                         logger.error(f"❌ [IMAGE GEN] HTTP error: {error_text}")
                         raise Exception(f"HTTP {response.status_code}: {error_text}")
-                    
-                    data = response.json()
-                    
-                    if 'data' in data and len(data['data']) > 0:
-                        image_obj = data['data'][0]
-                        
-                        if 'b64_json' in image_obj:
-                            b64_image = image_obj['b64_json']
-                            mockup_url = f"data:image/png;base64,{b64_image}"
-                            
-                            logger.info(f"✅ [IMAGE GEN] Image generated via fallback")
-                            
-                            return {
-                                "mockup_data": mockup_url,
-                                "design_spec": design_spec,
-                                "is_image": True,
-                                "usage": {}
-                            }
-                        elif 'url' in image_obj:
-                            mockup_url = image_obj['url']
-                            
-                            logger.info(f"✅ [IMAGE GEN] Image URL via fallback: {mockup_url}")
-                            
-                            return {
-                                "mockup_data": mockup_url,
-                                "design_spec": design_spec,
-                                "is_image": True,
-                                "usage": {}
-                            }
-                    
-                    raise Exception(f"No image data in fallback response: {data}")
             
         except Exception as e:
             logger.error(f"❌ [IMAGE GEN] Complete failure: {str(e)}")
