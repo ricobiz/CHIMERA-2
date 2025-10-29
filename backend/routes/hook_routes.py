@@ -207,22 +207,8 @@ async def exec_task(req: TaskRequest):
                 elif action == "TYPE":
                     field = step.get('field')
                     value = step.get('value') or data_bundle.get(field, '')
-                    
-                    # Create better description for vision
-                    field_descriptions = {
-                        'first_name': 'First name input field',
-                        'last_name': 'Last name input field', 
-                        'username': 'Username or email input field',
-                        'password': 'Password input field',
-                        'email': 'Email input field',
-                        'phone': 'Phone number input field',
-                        'birthday': 'Birthday or date of birth input field',
-                        'day': 'Day input field',
-                        'month': 'Month dropdown or input field',
-                        'year': 'Year input field'
-                    }
-                    
-                    target_desc = field_descriptions.get(field, f'{field} input field')
+                    # Get description from step (Planner provides this)
+                    target_desc = step.get('description') or step.get('target') or f'{field} input field'
                     
                     # Use smart-type (which uses vision + human typing)
                     await smart_type_text(SmartTypeRequest(
