@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Eye, Code, RefreshCw, Download } from 'lucide-react';
 import { Button } from './ui/button';
 import { Tabs, TabsList, TabsTrigger } from './ui/tabs';
-import { exportProject } from '../services/api';
+import { exportProject, getSessions } from '../services/api';
 import { toast } from '../hooks/use-toast';
 import AutomationPage from './automation/AutomationPage.tsx';
 
@@ -10,6 +10,7 @@ const PreviewPanel = ({ generatedCode, isGenerating, chatMode = 'chat', messages
   const [activeTab, setActiveTab] = useState('preview');
   const [previewKey, setPreviewKey] = useState(0);
   const [iframeContent, setIframeContent] = useState('');
+  const [allArtifacts, setAllArtifacts] = useState([]);
 
   useEffect(() => {
     if (generatedCode) {
