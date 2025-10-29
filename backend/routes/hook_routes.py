@@ -205,19 +205,38 @@ async def exec_task(req: TaskRequest):
             }
         }
         
-        # План для спинного мозга
+        # План для спинного мозга (НОВЫЙ ФОРМАТ с детальными шагами)
         current_plan = {
             "strategy": head_analysis['strategy'],
             "plan_outline": head_analysis.get('plan_outline', ''),
-            "data_bundle": head_analysis['data_bundle']
+            "steps": head_analysis.get('steps', []),  # ДЕТАЛЬНЫЙ ПЛАН ШАГОВ
+            "data_bundle": head_analysis['data_bundle'],
+            "hints": []  # Операторские подсказки
         }
         
-        # Get generated data (name, username, password, etc)
+        # Инициализация глобальных переменных для plan-based execution
+        global data_bundle, current_step_id, policy
         data_bundle = head_analysis['data_bundle']
+        
+        # Устанавливаем первый шаг из плана
+        if current_plan.get('steps'):
+            current_step_id = current_plan['steps'][0].get('id')
+            log_step(f"📍 [PLAN] Starting from step: {current_step_id}")
+        else:
+            current_step_id = None
+            log_step("⚠️ [PLAN] No detailed steps in plan, using fallback mode")
+        
+        # Инициализация политики (по умолчанию)
+        policy = {
+            "name_generation_hint": "real human name without digits",
+            "stop_before_phone": False,
+            "wait_before_action": False
+        }
+        
         data_source = head_analysis.get('data_source', 'generated')
         log_step(f"✅ [HEAD BRAIN] Strategy: {head_analysis['strategy']}")
         log_step(f"✅ [HEAD BRAIN] Data source: {data_source}")
-        log_step(f"📋 [HEAD BRAIN] Data: {', '.join([f'{k}={v}' for k, v in data_bundle.items() if v])}")
+        log_step(f"📋 [HEAD BRAIN] Data: {', '.join([f'{k}={v[:20]}...' if isinstance(v, str) and len(v) > 20 else f'{k}={v}' for k, v in data_bundle.items() if v])}")
         
         # Проверяем можем ли продолжить
         if not head_analysis['can_proceed']:
