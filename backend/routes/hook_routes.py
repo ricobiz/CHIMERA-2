@@ -587,3 +587,114 @@ async def get_log():
         "session_id": current_session_id,
         "plan": current_plan
     }
+
+
+@router.post('/automation-chat')
+async def automation_chat(req: Dict[str, Any]):
+    """
+    Chat endpoint для общения с automation brain напрямую.
+    Используется когда пользователь в automation mode и пишет сообщения.
+    
+    Request:
+        {
+            "message": "Подожди, заполни другой email",
+            "context": "optional context from main chat"
+        }
+    
+    Response:
+        {
+            "reply": "Понял, какой email использовать?",
+            "action": "pause" | "resume" | "adjust" | None
+        }
+    """
+    global automation_chat_history, agent_status, current_plan
+    
+    try:
+        user_message = req.get('message', '')
+        context_from_main = req.get('context')
+        
+        if not user_message:
+            raise HTTPException(status_code=400, detail="Message required")
+        
+        # Добавляем в историю automation chat
+        automation_chat_history.append({
+            "role": "user",
+            "content": user_message,
+            "timestamp": datetime.now().isoformat(),
+            "context_from_main": context_from_main
+        })
+        
+        # Ограничиваем историю (последние 20 сообщений)
+        if len(automation_chat_history) > 20:
+            automation_chat_history = automation_chat_history[-20:]
+        
+        # Формируем промпт для automation brain
+        system_prompt = """Ты - automation brain. Ты выполняешь автоматизацию браузера.
+Пользователь может писать тебе напрямую во время выполнения задачи.
+
+Твои возможности:
+- Ответить на вопросы о текущем состоянии
+- Скорректировать план (если пользователь просит изменить данные, действия)
+- Поставить на паузу если пользователь хочет вмешаться
+- Продолжить выполнение после корректировки
+
+Текущий статус: {status}
+Текущая задача: {task}
+
+Верни JSON:
+{{
+  "reply": "Твой ответ пользователю",
+  "action": "pause" | "resume" | "adjust" | null,
+  "adjustment": "Описание корректировки если action=adjust"
+}}"""
+        
+        user_prompt = f"Пользователь: {user_message}"
+        if context_from_main:
+            user_prompt += f"\n\nКонтекст от главного чата: {context_from_main}"
+        
+        # Вызываем LLM для ответа
+        # Временно - простой ответ, потом добавим полноценный LLM
+        reply = f"Понял ваше сообщение: '{user_message}'. "
+        action = None
+        
+        if any(kw in user_message.lower() for kw in ['подожди', 'стоп', 'pause', 'остановись']):
+            reply += "Ставлю на паузу."
+            action = "pause"
+            agent_status = "PAUSED"
+        elif any(kw in user_message.lower() for kw in ['продолжай', 'resume', 'дальше']):
+            reply += "Продолжаю выполнение."
+            action = "resume"
+            agent_status = "ACTIVE"
+        elif any(kw in user_message.lower() for kw in ['заполни', 'используй', 'измени', 'поменяй']):
+            reply += "Корректирую данные."
+            action = "adjust"
+        
+        # Добавляем ответ в историю
+        automation_chat_history.append({
+            "role": "assistant",
+            "content": reply,
+            "timestamp": datetime.now().isoformat(),
+            "action": action
+        })
+        
+        log_step(f"💬 [AUTOMATION CHAT] User: {user_message}")
+        log_step(f"💬 [AUTOMATION CHAT] Brain: {reply}")
+        
+        return {
+            "reply": reply,
+            "action": action,
+            "status": agent_status
+        }
+        
+    except Exception as e:
+        logger.error(f"automation_chat error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get('/automation-chat/history')
+async def get_automation_chat_history():
+    """Получить историю automation chat"""
+    return {
+        "history": automation_chat_history,
+        "status": agent_status
+    }
+
