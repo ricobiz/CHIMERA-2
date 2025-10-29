@@ -834,7 +834,10 @@ class BrowserAutomationService:
         from .local_vision_service import local_vision_service
         vw, vh = dom_data.get('vw', 1280), dom_data.get('vh', 800)
         dom_clickables = dom_data.get('clickables', [])
-        return local_vision_service.detect(screenshot_base64, vw, vh, dom_clickables=dom_clickables, model_path=os.path.join('/app/backend/models/', 'ui-detector.onnx'), rows=self.grid_rows, cols=self.grid_cols)
+        logger.info(f"🔍 [AUGMENT] Calling vision with {len(dom_clickables)} DOM clickables, viewport {vw}x{vh}")
+        result = local_vision_service.detect(screenshot_base64, vw, vh, dom_clickables=dom_clickables, model_path=os.path.join('/app/backend/models/', 'ui-detector.onnx'), rows=self.grid_rows, cols=self.grid_cols)
+        logger.info(f"🔍 [AUGMENT] Vision returned {len(result)} elements")
+        return result
     
     async def _collect_dom_clickables(self, page: Page) -> Dict[str, Any]:
         """Collect clickable elements from DOM"""
