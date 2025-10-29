@@ -177,7 +177,7 @@ async def exec_task(req: TaskRequest):
         
         # Create browser session using profile
         session_id = str(uuid.uuid4())
-        session_result = await browser_service.create_session_from_profile(
+        await browser_service.create_session_from_profile(
             profile_id=profile_id,
             session_id=session_id
         )
