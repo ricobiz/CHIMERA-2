@@ -105,6 +105,7 @@ class SupervisorService:
 
         out = {
             "next_action": action,
+            "url": raw.get('url', ''),
             "target_cell": target_cell,
             "text": raw.get('text') or '',
             "direction": raw.get('direction', 'down'),
