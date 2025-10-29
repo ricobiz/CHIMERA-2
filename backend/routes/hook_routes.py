@@ -20,7 +20,7 @@ from services.page_state_service import page_state_service
 # Import planner endpoints to reuse logic internally
 from routes.automation_planner_routes import analyze as planner_analyze, generate as planner_generate, AnalyzeRequest, GenerateRequest
 # Import automation endpoints for execution
-from routes.automation_routes import SmartTypeRequest, SmartClickRequest, smart_type_endpoint, smart_click_endpoint
+from routes.automation_routes import SmartTypeRequest, SmartClickRequest, smart_type_text, smart_click, FindElementsRequest
 
 logger = logging.getLogger(__name__)
 
