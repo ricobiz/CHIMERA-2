@@ -70,8 +70,7 @@ module.exports = {
                                 to: {
                                         height: '0'
                                 }
-                        }
-                        ,
+                        },
                         'gradient-x': {
                                 '0%, 100%': {
                                         'background-size': '200% 200%',
