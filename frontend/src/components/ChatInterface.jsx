@@ -326,7 +326,8 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
             <button
               onClick={() => {
                 setIsAutomationMode(true);
-                if (onOpenAutomation) onOpenAutomation();
+                // НЕ переключаем сразу на вкладку, только меняем режим
+                // Вкладка откроется через Preview
               }}
               className={`w-4 h-4 rounded transition-all relative group ${
                 isAutomationMode
