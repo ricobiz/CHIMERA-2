@@ -484,8 +484,8 @@ class BrowserAutomationService:
             viewport_w = viewport['width']
             viewport_h = viewport['height']
             
-            # Преобразуем cell в координаты (используем grid 12x8 по умолчанию)
-            grid = GridConfig(rows=12, cols=8)
+            # Преобразуем cell в координаты (используем большой grid для точности)
+            grid = GridConfig(rows=48, cols=64)
             x, y = grid.cell_to_xy(cell, viewport_w, viewport_h)
             
             logger.info(f"Clicking cell {cell} at coordinates ({x}, {y})")
