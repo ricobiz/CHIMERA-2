@@ -444,7 +444,7 @@ async def exec_task(req: TaskRequest):
                         # Отправляем ТЕКСТ новых селекторов в следующей итерации
                         consecutive_waits = 0
                     else:
-                        log_step(f"⚠️ [VERIFICATION] NO CHANGE detected - will send screenshot to Brain for analysis")
+                        log_step("⚠️ [VERIFICATION] NO CHANGE detected - will send screenshot to Brain for analysis")
                         # Отправляем СКРИНШОТ (до и после) в следующей итерации для анализа
                         needs_visual = True
                         consecutive_waits = 0
