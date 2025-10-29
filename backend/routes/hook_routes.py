@@ -517,39 +517,6 @@ async def exec_task(req: TaskRequest):
                 import traceback
                 traceback.print_exc()
             
-            # 4. ВЕРИФИКАЦИЯ: Проверяем изменилась ли страница после действия
-            page_changed = False
-            screenshot_after = None
-            vision_after = []
-            
-            if action_executed:
-                await asyncio.sleep(1.5)  # Дать время на обработку действия
-                
-                try:
-                    page = browser_service.sessions[session_id]['page']
-                    url_after = page.url
-                    await browser_service._inject_grid_overlay(page)
-                    dom_data_after = await browser_service._collect_dom_clickables(page)
-                    screenshot_after = await browser_service.capture_screenshot(session_id)
-                    vision_after = await browser_service._augment_with_vision(screenshot_after, dom_data_after)
-                    
-                    num_elements_after = len(vision_after or [])
-                    
-                    # Сравниваем состояния
-                    selectors_before = set([el.get('cell') for el in vision_before if el.get('cell')])
-                    selectors_after = set([el.get('cell') for el in vision_after if el.get('cell')])
-                    url_changed = (url_after != current_url)
-                    elements_changed = (selectors_before != selectors_after)
-                    
-                    page_changed = url_changed or elements_changed or (abs(num_elements_after - num_elements_before) > 2)
-                    
-                    if page_changed:
-                        log_step(f"✅ [VERIFICATION] Page CHANGED: URL={url_changed}, Elements={elements_changed} ({num_elements_before}→{num_elements_after})")
-                        # Отправляем ТЕКСТ новых селекторов в следующей итерации
-                        consecutive_waits = 0
-                import traceback
-                traceback.print_exc()
-            
             # Если не удалось выполнить действие из-за ошибки - переходим к retry
             if action_error and not action_executed:
                 log_step(f"❌ [EXECUTOR] Action failed: {action_error}")
