@@ -242,21 +242,32 @@ async def exec_task(req: TaskRequest):
         
         log_step(f"🔄 [SPINAL CORD] Starting execution loop (max {max_steps} steps)")
         
-        # ВАЖНО: Извлекаем URL из задачи или используем дефолт
+        # ВАЖНО: Извлекаем URL из задачи
         import re
         url_match = re.search(r'https?://[^\s]+', goal)
         if url_match:
             start_url = url_match.group(0)
+            log_step(f"📍 Extracted URL from goal: {start_url}")
         elif 'gmail' in goal.lower() or 'google' in goal.lower():
             start_url = "https://accounts.google.com/signup"
+            log_step(f"📍 Detected Gmail task, using: {start_url}")
         else:
+            # Если URL не найден - спросим у пользователя или используем дефолт
             start_url = None
+            log_step(f"⚠️ No URL found in goal. Will rely on Brain to navigate.")
         
-        # Начальная навигация если нужно
+        # ОБЯЗАТЕЛЬНАЯ начальная навигация
+        current_url = "about:blank"
         if start_url:
-            log_step(f"🌐 [INITIAL] Navigating to {start_url}")
-            await browser_service.navigate(session_id, start_url)
-            await asyncio.sleep(3)  # Дать странице загрузиться
+            try:
+                log_step(f"🌐 [INITIAL] Navigating to {start_url}")
+                nav_result = await browser_service.navigate(session_id, start_url)
+                current_url = nav_result.get('url', start_url)
+                log_step(f"✅ [INITIAL] Navigation successful, current URL: {current_url}")
+                await asyncio.sleep(3)  # Дать странице загрузиться
+            except Exception as e:
+                log_step(f"❌ [INITIAL] Navigation failed: {str(e)}")
+                current_url = "about:blank"
         
         # Счётчик последовательных WAIT
         consecutive_waits = 0
