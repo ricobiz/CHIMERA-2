@@ -302,47 +302,40 @@ async def exec_task(req: TaskRequest):
                 "data_available": data_bundle,
                 "plan_outline": head_analysis.get('plan_outline', ''),
                 "current_url": current_url,
-                "history": history[-10:]  # Последние 10 шагов для контекста
+                "history": history[-10:]
             }
             
-            # Формируем расширенный промпт для спинного мозга
             brain_goal = (
                 f"{goal}\n"
                 f"Strategy: {brain_context['strategy']}\n"
                 f"Current URL: {current_url}\n"
                 f"Available data: {list(data_bundle.keys())}\n"
-                f"Elements visible: {len(vision_elements or [])}"
+                f"Elements visible: {num_elements_before}"
             )
             
             # ОПТИМИЗАЦИЯ: Сначала пробуем БЕЗ скриншота (только текст селекторов)
-            # Скриншот отправляем только если спинной мозг попросил
             send_screenshot = False
             if step_count == 1:
-                # Первый раз - отправляем скриншот чтобы спинной мозг увидел начальное состояние
                 send_screenshot = True
             elif consecutive_waits >= 2:
-                # Если зацикливается на WAIT - дать визуальный контекст
                 send_screenshot = True
             elif len(history) > 0 and history[-1].get('needs_visual'):
-                # Если в прошлой итерации спинной мозг попросил визуал
                 send_screenshot = True
             
             brain_result = await supervisor_service.next_step(
                 goal=brain_goal,
                 history=history,
-                screenshot_base64=screenshot_b64 if send_screenshot else None,
-                vision=vision_elements or [],
-                model='qwen/qwen2.5-vl'  # Дешёвая vision модель для спинного мозга
+                screenshot_base64=screenshot_before if send_screenshot else None,
+                vision=vision_before or [],
+                model='qwen/qwen2.5-vl'
             )
             
-            # Проверяем нужен ли визуал для следующей итерации
             needs_visual = brain_result.get('needs_user_input') or brain_result.get('confidence', 1.0) < 0.5
             
             action = brain_result.get('next_action', 'WAIT')
             target_cell = brain_result.get('target_cell')
             text_value = brain_result.get('text')
             
-            # Логирование режима работы
             mode = "📸 VISUAL" if send_screenshot else "📝 TEXT-ONLY"
             log_step(f"{mode} | 🧠 [SPINAL CORD] Decision: {action} at {target_cell or 'N/A'}")
             
