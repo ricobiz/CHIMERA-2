@@ -283,18 +283,18 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
     }`}>
       {/* Header - redesigned */}
       <div className="flex-shrink-0 border-b border-gray-800 p-3 md:p-4">
-        <div className="flex items-center justify-between">
-          {/* Left: 3 Mode Squares */}
-          <div className="flex items-center gap-3">
+        <div className="flex items-start justify-between">
+          {/* Left: 3 Mode Squares (smaller) */}
+          <div className="flex items-center gap-2">
             {/* Chat Mode - Blue Square */}
             <button
               onClick={() => {
                 setIsAutomationMode(false);
                 if (onChatModeChange) onChatModeChange('chat');
               }}
-              className={`w-6 h-6 rounded-md transition-all relative group ${
+              className={`w-4 h-4 rounded transition-all relative group ${
                 !isAutomationMode && chatMode === 'chat'
-                  ? 'bg-gradient-to-br from-blue-400 to-blue-600 shadow-lg shadow-blue-500/50 ring-2 ring-blue-400/40 scale-110'
+                  ? 'bg-gradient-to-br from-blue-400 to-blue-600 shadow-lg shadow-blue-500/50 ring-2 ring-blue-400/40'
                   : 'bg-blue-900/40 hover:bg-blue-800/60 border border-blue-700/60 hover:scale-105'
               }`}
               title="Chat Mode"
@@ -310,9 +310,9 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
                 setIsAutomationMode(false);
                 if (onChatModeChange) onChatModeChange('agent');
               }}
-              className={`w-6 h-6 rounded-md transition-all relative group ${
+              className={`w-4 h-4 rounded transition-all relative group ${
                 !isAutomationMode && chatMode === 'agent'
-                  ? 'bg-gradient-to-br from-purple-400 to-purple-600 shadow-lg shadow-purple-500/50 ring-2 ring-purple-400/40 scale-110'
+                  ? 'bg-gradient-to-br from-purple-400 to-purple-600 shadow-lg shadow-purple-500/50 ring-2 ring-purple-400/40'
                   : 'bg-purple-900/40 hover:bg-purple-800/60 border border-purple-700/60 hover:scale-105'
               }`}
               title="Code Mode"
@@ -328,9 +328,9 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
                 setIsAutomationMode(true);
                 if (onOpenAutomation) onOpenAutomation();
               }}
-              className={`w-6 h-6 rounded-md transition-all relative group ${
+              className={`w-4 h-4 rounded transition-all relative group ${
                 isAutomationMode
-                  ? 'bg-gradient-to-br from-green-400 to-green-600 shadow-lg shadow-green-500/50 ring-2 ring-green-400/40 scale-110'
+                  ? 'bg-gradient-to-br from-green-400 to-green-600 shadow-lg shadow-green-500/50 ring-2 ring-green-400/40'
                   : 'bg-green-900/40 hover:bg-green-800/60 border border-green-700/60 hover:scale-105'
               }`}
               title="Automation Mode"
@@ -341,25 +341,34 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
             </button>
           </div>
           
-          {/* Center: ChimeraLogo */}
-          <div className="absolute left-1/2 -translate-x-1/2">
-            <ChimeraLogo className="h-6" />
+          {/* Center: ChimeraLogo (larger) */}
+          <div className="absolute left-1/2 -translate-x-1/2 top-3">
+            <ChimeraLogo className="h-7" />
           </div>
           
-          {/* Right: 3 Icons */}
-          <div className="flex items-center gap-3">
-            {/* Eye Icon (Preview/Status) */}
-            <StatusIndicator />
-            
-            {/* Settings Icon */}
-            <div className="relative settings-menu-container">
-              <button
-                onClick={() => setShowSettingsMenu(!showSettingsMenu)}
-                className="p-2 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 border border-gray-700 hover:border-gray-600 transition-all"
-                title="Settings"
-              >
-                <Settings className="w-4 h-4 text-gray-300 hover:text-white transition-colors" />
-              </button>
+          {/* Right: Icons + Session ID */}
+          <div className="flex flex-col items-end gap-1">
+            {/* Top row: 3 Icons */}
+            <div className="flex items-center gap-2">
+              {/* Eye Icon */}
+              <StatusIndicator />
+              
+              {/* Code Icon */}
+              <ModelIndicator 
+                type="code" 
+                modelName={activeModel?.split('/').pop()}
+                isActive={true}
+              />
+              
+              {/* Settings Icon */}
+              <div className="relative settings-menu-container">
+                <button
+                  onClick={() => setShowSettingsMenu(!showSettingsMenu)}
+                  className="p-2 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 border border-gray-700 hover:border-gray-600 transition-all"
+                  title="Settings"
+                >
+                  <Settings className="w-4 h-4 text-gray-300 hover:text-white transition-colors" />
+                </button>
               />
               <ModelIndicator 
                 type="validator" 
