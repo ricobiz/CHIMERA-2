@@ -512,12 +512,27 @@ async def exec_task(req: TaskRequest):
         
         log_step("🏁 Execution finished")
         
+        # ВАЖНО: Сообщаем пользователю какие данные были использованы
+        used_data_summary = []
+        for key, value in data_bundle.items():
+            if value:
+                used_data_summary.append(f"{key}: {value}")
+        
+        if used_data_summary:
+            log_step(f"📋 [SUMMARY] Used data ({data_source}):")
+            for item in used_data_summary:
+                log_step(f"  • {item}")
+        
         return {
             "status": agent_status,
             "job_id": job_id,
             "session_id": current_session_id,
             "steps_executed": step_count,
-            "head_analysis": current_analysis
+            "head_analysis": current_analysis,
+            "used_data": {
+                "source": data_source,
+                "data": data_bundle
+            }
         }
         
     except Exception as e:
