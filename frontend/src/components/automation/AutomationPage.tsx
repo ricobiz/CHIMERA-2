@@ -217,6 +217,7 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
     if (!taskText.trim()) return;
     setIsSubmitting(true);
     try {
+      // Just trigger hook/exec to create analysis/plan
       const resp = await fetch(`${BASE_URL}/api/hook/exec`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -228,9 +229,23 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
         setLogs([]);
         setAgentStatus('ACTIVE');
         
-        // Plan created, now frontend ExecutionAgent will execute it
-        // ExecutionAgent already integrated, just needs to be triggered
-        // For now, logs will come through polling /api/hook/log
+        // Now use ExecutionAgent to execute the plan
+        executionAgent.setStateCallback((updates) => {
+          // Update display with screenshots
+          if (updates.browserState?.screenshot) {
+            setDisplaySrc(updates.browserState.screenshot);
+          }
+        });
+        
+        // Start automation
+        await executionAgent.startAutomation(taskText, {
+          browserState: { currentUrl: '', screenshot: '', highlightBoxes: [], pageTitle: '', timestamp: Date.now() },
+          logEntries: [],
+          currentStepIndex: 0,
+          status: 'idle',
+          requiresUserInput: null,
+          result: null
+        });
       } else {
         alert(data.detail || 'Failed to start');
       }
