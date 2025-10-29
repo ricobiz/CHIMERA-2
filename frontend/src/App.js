@@ -748,6 +748,70 @@ function App() {
     // For now, user will see automation page with empty input
   };
 
+  // ГЕНЕРАЦИЯ ИЗОБРАЖЕНИЙ В ЧАТЕ
+  const handleGenerateImage = async (prompt) => {
+    console.log('[CHIMERA] 🎨 Generating image:', prompt);
+    
+    // Add user message
+    const userMessage = { role: 'user', content: `🎨 ${prompt}` };
+    setMessages(prev => [...prev, userMessage]);
+    
+    setIsGenerating(true);
+    
+    try {
+      // Call backend image generation endpoint
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/generate-image`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: prompt,
+          model: visualValidatorModel // Используем Visual Validator (Gemini Nano Banana)
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Image generation failed');
+      }
+      
+      const data = await response.json();
+      
+      // Add AI message with image
+      const imageMessage = {
+        role: 'assistant',
+        content: data.image_url ? `![Generated Image](${data.image_url})` : data.error || 'Image generation failed',
+        isImage: true,
+        imageUrl: data.image_url
+      };
+      
+      setMessages(prev => [...prev, imageMessage]);
+      
+      // Update session
+      const updatedMessages = [...messages, userMessage, imageMessage];
+      
+      if (currentSessionId) {
+        await updateSession(currentSessionId, {
+          messages: updatedMessages,
+          total_cost: totalCost + (data.cost?.total_cost || 0)
+        });
+      }
+      
+      setTotalCost(totalCost + (data.cost?.total_cost || 0));
+      
+      console.log('✅ Image generated successfully');
+    } catch (error) {
+      console.error('❌ Image generation error:', error);
+      
+      const errorMessage = {
+        role: 'assistant',
+        content: `⚠️ Failed to generate image: ${error.message}`
+      };
+      
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   // УМНАЯ ФУНКЦИЯ PREVIEW - зависит от chatMode
   const handleOpenPreview = () => {
     console.log('[CHIMERA] Opening Preview in mode:', chatMode);
