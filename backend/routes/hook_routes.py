@@ -150,12 +150,18 @@ async def exec_task(req: TaskRequest):
         current_plan.setdefault('hints', [])
         log_step("Plan generated")
         
-        # Step 3: Check if we have warm profile
-        is_warm = current_analysis.get('analysis', {}).get('availability', {}).get('profile', {}).get('is_warm', False)
-        if not is_warm:
-            log_step("⚠️ No warm profile, execution paused")
+        # Step 3: Check if we need warm profile
+        availability = current_analysis.get('analysis', {}).get('availability', {})
+        is_warm = availability.get('profile', {}).get('is_warm', False)
+        can_proceed_without_warm = availability.get('can_proceed_without_warm', True)
+        
+        if not is_warm and not can_proceed_without_warm:
+            log_step("⚠️ No warm profile and site requires warmup, execution paused")
             agent_status = "IDLE"
-            return {"status": "PLANNED", "job_id": job_id, "analysis": current_analysis, "plan": current_plan}
+            return {"status": "NEEDS_WARMUP", "job_id": job_id, "analysis": current_analysis, "plan": current_plan}
+        
+        if not is_warm:
+            log_step("⚠️ No warm profile, but proceeding anyway (site allows)")
         
         # Step 4: Start execution loop
         agent_status = "ACTIVE"
