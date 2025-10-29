@@ -204,10 +204,13 @@ async def exec_task(req: TaskRequest):
         
         agent_status = "ACTIVE"
         
-        # Phase 3: Create session
-        profile_id = profile_info.get('profile_id')
+        # ============================================================
+        # PHASE 2: СОЗДАНИЕ СЕССИИ С ПРОГРЕТЫМ ПРОФИЛЕМ
+        # ============================================================
+        profile_id = profile_info.get('profile_id') if profile_info else None
         if not profile_id:
             from routes.profile_routes import create_profile, CreateProfileRequest
+            log_step("📦 Creating new profile...")
             prof_resp = await create_profile(CreateProfileRequest(warmup=False))
             profile_id = prof_resp.get('profile_id')
         
@@ -217,75 +220,83 @@ async def exec_task(req: TaskRequest):
             session_id=session_id
         )
         current_session_id = session_id
-        log_step(f"✅ Session created: {session_id}")
+        log_step(f"✅ Session created: {session_id} with profile: {profile_id}")
         
-        # Phase 4: Brain-driven loop
+        # ============================================================
+        # PHASE 3: ЦИКЛ "СПИННОЙ МОЗГ + ИСПОЛНИТЕЛЬ"
+        # Спинной мозг (Supervisor) принимает решения
+        # Исполнитель (Local Vision) видит экран и выполняет
+        # ============================================================
         history = []
         max_steps = 50
         step_count = 0
         
+        log_step(f"🔄 [SPINAL CORD] Starting execution loop (max {max_steps} steps)")
+        
         while agent_status == "ACTIVE" and step_count < max_steps:
             step_count += 1
-            log_step(f"🧠 Brain cycle {step_count}/{max_steps}")
+            log_step(f"🔄 [CYCLE {step_count}/{max_steps}]")
             
-            # 1. Screenshot + Vision
+            # 1. ИСПОЛНИТЕЛЬ: Захватить скриншот + получить vision элементы
             screenshot_b64 = await browser_service.capture_screenshot(session_id)
             vision_elements = await browser_service.find_elements_with_vision(session_id, "all interactive elements")
             
-            # 2. Ask Brain with CONTEXT (goal + data_bundle)
+            # 2. СПИННОЙ МОЗГ: Принять решение на основе плана и текущего состояния
             brain_context = {
                 "goal": goal,
-                "data_available": data_bundle,  # Brain знает что у нас есть имя/пароль/etc
-                "history": history
+                "strategy": head_analysis['strategy'],
+                "data_available": data_bundle,  # Спинной мозг знает что у нас есть имя/пароль/etc
+                "plan_outline": head_analysis.get('plan_outline', ''),
+                "history": history[-10:]  # Последние 10 шагов для контекста
             }
             
             brain_result = await supervisor_service.next_step(
-                goal=f"{goal} | Available data: {list(data_bundle.keys())}",
+                goal=f"{goal} | Strategy: {brain_context['strategy']} | Data: {list(data_bundle.keys())}",
                 history=history,
                 screenshot_base64=screenshot_b64,
                 vision=vision_elements or [],
-                model='qwen/qwen2.5-vl'
+                model='qwen/qwen2.5-vl'  # Дешёвая vision модель для спинного мозга
             )
             
-            action = brain_result.get('action')
-            log_step(f"🧠 Brain says: {action}")
+            action = brain_result.get('next_action')
+            log_step(f"🧠 [SPINAL CORD] Decision: {action}")
             
-            # 3. Execute
-            if action == 'CLICK':
-                target = brain_result.get('target')
-                log_step(f"👆 Clicking {target}")
+            # 3. ИСПОЛНИТЕЛЬ: Выполнить действие
+            if action == 'CLICK_CELL':
+                target = brain_result.get('target_cell')
+                log_step(f"👆 [EXECUTOR] Clicking {target}")
                 await browser_service.click_cell(session_id, target)
                 
-            elif action == 'TYPE':
-                target = brain_result.get('target')
-                value = brain_result.get('value')
-                log_step(f"⌨️  Typing '{value}' at {target}")
+            elif action == 'TYPE_AT_CELL':
+                target = brain_result.get('target_cell')
+                value = brain_result.get('text')
+                log_step(f"⌨️  [EXECUTOR] Typing '{value}' at {target}")
                 await browser_service.type_at_cell(session_id, target, value)
                 
             elif action == 'NAVIGATE':
-                url = brain_result.get('url')
-                log_step(f"🌐 Navigating to {url}")
+                url = brain_result.get('url', 'https://accounts.google.com/signup')
+                log_step(f"🌐 [EXECUTOR] Navigating to {url}")
                 await browser_service.navigate(session_id, url)
                 
             elif action == 'WAIT':
-                log_step(f"⏳ Waiting...")
+                log_step(f"⏳ [EXECUTOR] Waiting...")
                 await asyncio.sleep(2)
                 
             elif action == 'DONE':
-                log_step(f"✅ Brain says DONE")
+                log_step(f"✅ [SPINAL CORD] Task completed")
                 agent_status = "IDLE"
                 break
                 
             elif action == 'WAITING_USER':
-                log_step(f"⏸️  Waiting for user input")
+                log_step(f"⏸️  [SPINAL CORD] Needs user input")
                 agent_status = "WAITING_USER"
                 break
             
-            # 4. History
+            # 4. История для следующей итерации
             history.append({
                 "step": step_count,
                 "action": action,
-                "target": brain_result.get('target'),
+                "target": brain_result.get('target_cell'),
                 "result": "executed"
             })
             
@@ -307,7 +318,8 @@ async def exec_task(req: TaskRequest):
             "status": agent_status,
             "job_id": job_id,
             "session_id": current_session_id,
-            "steps_executed": step_count
+            "steps_executed": step_count,
+            "head_analysis": current_analysis
         }
         
     except Exception as e:
