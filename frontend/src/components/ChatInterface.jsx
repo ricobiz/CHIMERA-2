@@ -984,15 +984,6 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
         </div>
       )}
       
-      {/* Automation Modal */}
-      <AutomationModal 
-        isOpen={showAutomationModal}
-        onClose={() => {
-          setShowAutomationModal(false);
-          setAutomationActive(false);
-        }}
-      />
-      
       {/* Add CSS for animated gradient border and mobile fixes */}
       <style jsx>{`
         .animated-gradient-border {
