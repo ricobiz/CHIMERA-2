@@ -42,9 +42,13 @@ history_steps: List[Dict[str, Any]] = []
 pending_user_prompt: Optional[str] = None
 pending_user_field: Optional[str] = None
 pending_user_value: Optional[str] = None
-# Planner state
+# Planner state (NEW STRUCTURE - plan-based execution)
 current_analysis: Optional[Dict[str, Any]] = None
-current_plan: Optional[Dict[str, Any]] = None
+current_plan: Optional[Dict[str, Any]] = None  # {strategy, steps: [{id, action, target, field, on_error, next}], hints}
+current_step_id: Optional[str] = None  # ID текущего шага из плана
+data_bundle: Dict[str, Any] = {}  # Сгенерированные данные (first_name, password и т.д.)
+policy: Dict[str, Any] = {}  # Политики и ограничения (name_generation_hint, stop_before_phone и т.д.)
+override_buffer: List[str] = []  # Очередь операторских указаний для применения
 # Automation chat history (отдельно от main chat)
 automation_chat_history: List[Dict[str, Any]] = []
 
