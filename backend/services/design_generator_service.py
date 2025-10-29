@@ -121,32 +121,46 @@ Style: Modern, clean, professional, high-quality, realistic."""
                     }
                 )
                 
-                # Извлекаем изображение из ответа - OpenRouter возвращает в images field
+                # Извлекаем изображение из ответа - OpenRouter возвращает в images field ВНУТРИ message
                 logger.info(f"🔍 [IMAGE GEN] Response type: {type(response)}")
                 
                 # Проверяем наличие images в ответе (через extra поле)
                 response_dict = response.model_dump() if hasattr(response, 'model_dump') else response.__dict__
                 logger.info(f"🔍 [IMAGE GEN] Response dict keys: {response_dict.keys()}")
-                logger.info(f"🔍 [IMAGE GEN] Full response dict: {response_dict}")
                 
-                if 'images' in response_dict and response_dict['images']:
-                    # Images field содержит массив base64 data URLs
-                    images = response_dict['images']
-                    mockup_url = images[0] if isinstance(images, list) else images
+                # OpenRouter возвращает images ВНУТРИ message, а не в корне response
+                if response.choices and len(response.choices) > 0:
+                    choice = response.choices[0]
+                    message = choice.message
                     
-                    logger.info(f"✅ [IMAGE GEN] Image generated successfully: {len(str(mockup_url))} chars")
+                    # Проверяем, есть ли images в message (новый формат OpenRouter)
+                    message_dict = message.model_dump() if hasattr(message, 'model_dump') else message.__dict__
+                    logger.info(f"🔍 [IMAGE GEN] Message dict keys: {message_dict.keys()}")
                     
-                    return {
-                        "mockup_data": mockup_url,
-                        "design_spec": design_spec,
-                        "is_image": True,
-                        "usage": {
-                            "prompt_tokens": response.usage.prompt_tokens if response.usage else 0,
-                            "completion_tokens": response.usage.completion_tokens if response.usage else 0,
-                            "total_tokens": response.usage.total_tokens if response.usage else 0
+                    if 'images' in message_dict and message_dict['images']:
+                        # Images field содержит массив объектов с image_url
+                        images = message_dict['images']
+                        logger.info(f"✅ [IMAGE GEN] Found images in message: {len(images)}")
+                        
+                        # Извлекаем первый image_url
+                        first_image = images[0]
+                        if isinstance(first_image, dict) and 'image_url' in first_image:
+                            mockup_url = first_image['image_url'].get('url') if isinstance(first_image['image_url'], dict) else first_image['image_url']
+                        else:
+                            mockup_url = first_image
+                        
+                        logger.info(f"✅ [IMAGE GEN] Image generated successfully: {len(str(mockup_url))} chars")
+                        
+                        return {
+                            "mockup_data": mockup_url,
+                            "design_spec": design_spec,
+                            "is_image": True,
+                            "usage": {
+                                "prompt_tokens": response.usage.prompt_tokens if response.usage else 0,
+                                "completion_tokens": response.usage.completion_tokens if response.usage else 0,
+                                "total_tokens": response.usage.total_tokens if response.usage else 0
+                            }
                         }
-                    }
-                elif response.choices and len(response.choices) > 0:
                     # Fallback: check message content
                     choice = response.choices[0]
                     message_content = choice.message.content
