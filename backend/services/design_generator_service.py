@@ -202,7 +202,7 @@ Style: Modern, clean, professional, high-quality, realistic."""
                                     "content": image_prompt
                                 }
                             ],
-                            "response_modality": "IMAGE"
+                            "modalities": ["image", "text"]
                         },
                         timeout=60.0
                     )
