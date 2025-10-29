@@ -10,7 +10,6 @@ import TaskProgress from './TaskProgress';
 import LoadingIndicator from './LoadingIndicator';
 import { toast } from '../hooks/use-toast';
 import { getSessions, getSession } from '../services/api';
-import { AutomationModal } from './automation/AutomationModal';
 
 const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBalance, activeModel, chatModel, validatorEnabled, validatorModel, generationStatus = 'idle', onOpenSettings, onOpenAutomation, onOpenDocVerification, onOpenSelfImprovement, onOpenAIEntry, onNewProject, currentSessionId, isGenerating, onStopGeneration, chatMode = 'chat', onChatModeChange, developmentPlan = [], currentTaskIndex = 0, showApprovalButtons = false, onApprove, onRevise, onDeleteMessage, onEditMessage, onRegenerateFromMessage, onApproveDesign, onRequestDesignChanges, onAnnotateMockup }) => {
   const [prompt, setPrompt] = useState('');
