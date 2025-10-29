@@ -380,6 +380,43 @@ async def exec_task(req: TaskRequest):
                     send_screenshot = True
                     log_step("⚠️ Previous action had NO EFFECT - sending screenshot for analysis")
             
+            # 🤖 SMART FORM FILLER - автоматическое определение и заполнение форм
+            # Если видим INPUT поля (>=2), пробуем автоматически заполнить
+            form_detected = None
+            if vision_before and len([v for v in vision_before if v.get('type', '').lower() in ['input', 'textarea']]) >= 2:
+                form_detected = form_filler_service.analyze_form(vision_before, current_url or '')
+                if form_detected and form_detected.get('confidence', 0) > 0.6:
+                    log_step(f"📋 [SMART FORM] Detected {form_detected.get('form_type')} form with {len(form_detected.get('fields', []))} fields")
+                    
+                    # Генерируем действия заполнения
+                    fill_actions = form_filler_service.generate_fill_actions(form_detected, used_data or {})
+                    
+                    if len(fill_actions) > 0:
+                        log_step(f"✅ [SMART FORM] Auto-filling {len(fill_actions)} fields...")
+                        
+                        # Выполняем каждое действие заполнения
+                        for idx, fill_action in enumerate(fill_actions):
+                            action_type = fill_action.get('action')
+                            cell = fill_action.get('cell')
+                            text = fill_action.get('text')
+                            
+                            log_step(f"  {idx+1}/{len(fill_actions)}: {action_type} at {cell}" + (f" = {text[:20]}..." if text else ""))
+                            
+                            if action_type == 'TYPE_AT_CELL' and cell and text:
+                                result = await browser_service.type_at_cell(session_id, cell, text, human_like=True)
+                                if not result.get('success'):
+                                    log_step(f"⚠️ Failed to type at {cell}: {result.get('error')}")
+                                await asyncio.sleep(random.uniform(0.5, 1.5))
+                            elif action_type == 'CLICK_CELL' and cell:
+                                result = await browser_service.click_cell(session_id, cell, human_like=True)
+                                if result.get('success'):
+                                    log_step(f"✅ Clicked submit button at {cell}")
+                                await asyncio.sleep(random.uniform(1.0, 2.0))
+                        
+                        # После заполнения формы - продолжаем цикл
+                        step_count += 1
+                        continue
+            
             brain_result = await supervisor_service.next_step(
                 goal=brain_goal,
                 history=history,
