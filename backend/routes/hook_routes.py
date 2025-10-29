@@ -286,7 +286,7 @@ async def exec_task(req: TaskRequest):
                     log_step(f"⏳ [EXECUTOR] Page still loading: {reason}")
                     # Ждём загрузки
                     await browser_service.wait_for_page_ready(page, timeout_ms=5000)
-                    log_step(f"✅ [EXECUTOR] Page loading complete")
+                    log_step("✅ [EXECUTOR] Page loading complete")
             except Exception as e:
                 log_step(f"⚠️ [EXECUTOR] Loading check failed: {str(e)}")
             
