@@ -17,8 +17,7 @@ from services.browser_automation_service import browser_service
 from services.supervisor_service import supervisor_service
 from services.anti_detect import HumanBehaviorSimulator
 from services.page_state_service import page_state_service
-# Import planner endpoints to reuse logic internally
-from routes.automation_planner_routes import analyze as planner_analyze, generate as planner_generate, AnalyzeRequest, GenerateRequest
+from services.head_brain_service import head_brain_service
 # Import automation endpoints for execution
 from routes.automation_routes import SmartTypeRequest, SmartClickRequest, smart_type_text, smart_click, FindElementsRequest
 from routes.profile_routes import CreateProfileRequest
