@@ -105,52 +105,74 @@ Design specifications:
 
 Style: Professional web interface mockup with clean design, modern colors, realistic layout. Show the main screen with all key UI elements clearly visible."""
             
-            # ПРАВИЛЬНЫЙ ФОРМАТ для OpenRouter image generation:
-            # 1. Добавляем modalities: ["image", "text"]
-            # 2. Используем chat.completions.create
-            response = self.client.chat.completions.create(
-                model=selected_model,
-                messages=[
-                    {
-                        "role": "user",
-                        "content": image_prompt
-                    }
-                ],
-                modalities=["image", "text"],  # КРИТИЧНО для генерации изображений!
-                temperature=0.7,
-                max_tokens=1000
-            )
+            # ПРАВИЛЬНЫЙ ФОРМАТ для OpenRouter image generation через httpx:
+            # OpenRouter требует специальный заголовок и формат для imagen
+            import httpx
             
-            # Ответ содержит images field с base64 данными
-            message = response.choices[0].message
+            api_key = os.environ.get('OPENROUTER_API_KEY')
             
-            # Проверяем есть ли images в ответе
-            if hasattr(message, 'images') and message.images:
-                # OpenRouter возвращает images как список base64 data URLs
-                mockup_url = message.images[0]
-                logger.info(f"✅ Image generated successfully: {len(mockup_url)} chars")
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
+                    "https://openrouter.ai/api/v1/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {api_key}",
+                        "HTTP-Referer": "https://chimera-aios.com",
+                        "X-Title": "Chimera AIOS"
+                    },
+                    json={
+                        "model": selected_model,
+                        "messages": [
+                            {
+                                "role": "user",
+                                "content": image_prompt
+                            }
+                        ],
+                        "temperature": 0.7,
+                        "max_tokens": 1000
+                    },
+                    timeout=60.0
+                )
                 
-                return {
-                    "mockup_data": mockup_url,  # base64 data URL: data:image/png;base64,...
-                    "design_spec": design_spec,
-                    "is_image": True,
-                    "usage": {
-                        "prompt_tokens": response.usage.prompt_tokens if response.usage else 0,
-                        "completion_tokens": response.usage.completion_tokens if response.usage else 0,
-                        "total_tokens": response.usage.total_tokens if response.usage else 0
+                data = response.json()
+                
+                if response.status_code != 200:
+                    logger.error(f"❌ OpenRouter error: {data}")
+                    raise Exception(f"OpenRouter API error: {data.get('error', {}).get('message', 'Unknown error')}")
+                
+                # Проверяем ответ
+                if 'choices' in data and len(data['choices']) > 0:
+                    choice = data['choices'][0]
+                    message = choice.get('message', {})
+                    content = message.get('content', '')
+                    
+                    # Imagen-3 возвращает base64 в content
+                    if content and (content.startswith('data:image') or content.startswith('http')):
+                        logger.info(f"✅ Image generated successfully: {len(content)} chars")
+                        
+                        return {
+                            "mockup_data": content,
+                            "design_spec": design_spec,
+                            "is_image": True,
+                            "usage": data.get('usage', {})
+                        }
+                    else:
+                        # Модель вернула текст вместо изображения
+                        logger.warning(f"⚠️ Model returned text instead of image: {content[:200]}")
+                        
+                        return {
+                            "mockup_data": f"⚠️ Image generation unavailable. Model returned text:\n\n{content}",
+                            "design_spec": design_spec,
+                            "is_image": False,
+                            "error": "Model returned text instead of image"
+                        }
+                else:
+                    logger.error(f"❌ Unexpected response format: {data}")
+                    return {
+                        "mockup_data": f"⚠️ Unexpected response format",
+                        "design_spec": design_spec,
+                        "is_image": False,
+                        "error": "Unexpected response"
                     }
-                }
-            else:
-                # Если images нет - модель вернула текст
-                content = message.content or ""
-                logger.warning(f"⚠️ No images in response, got text: {content[:100]}")
-                
-                return {
-                    "mockup_data": f"⚠️ Image generation failed. Model returned text instead:\n\n{content}",
-                    "design_spec": design_spec,
-                    "is_image": False,
-                    "error": "No images field in response"
-                }
             
         except Exception as e:
             logger.error(f"❌ Error generating mockup: {str(e)}")
@@ -159,7 +181,7 @@ Style: Professional web interface mockup with clean design, modern colors, reali
             
             # Fallback: вернем текстовое описание
             return {
-                "mockup_data": f"⚠️ Image generation unavailable: {str(e)}\n\nDesign description:\n\n{design_spec}",
+                "mockup_data": f"⚠️ Image generation failed: {str(e)}\n\nDesign description:\n\n{design_spec}",
                 "design_spec": design_spec,
                 "is_image": False,
                 "error": str(e)
