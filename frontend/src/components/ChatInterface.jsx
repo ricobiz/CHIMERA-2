@@ -354,100 +354,54 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
               
               {/* Consolidated: Functions moved into Settings menu to avoid duplication */}
               
-              {/* Automation Mode Toggle Button */}
-              <button
-                onClick={() => {
-                  setIsAutomationMode(!isAutomationMode);
-                  if (!isAutomationMode && onOpenAutomation) {
-                    // Открываем вкладку Browser Automation
-                    onOpenAutomation();
-                  }
-                }}
-                className={`p-2 rounded-lg border transition-all ${
-                  isAutomationMode 
-                    ? 'bg-purple-900/30 border-purple-600/50 hover:bg-purple-800/40' 
-                    : 'bg-gray-800/50 hover:bg-gray-700/50 border-gray-700 hover:border-gray-600'
-                }`}
-                title={isAutomationMode ? "Automation Mode Active" : "Activate Automation Mode"}
-              >
-                <Activity className={`w-4 h-4 transition-colors ${
-                  isAutomationMode ? 'text-purple-400' : 'text-gray-300 hover:text-white'
-                }`} />
-              </button>
-              
               {/* Settings Dropdown Menu */}
-              <div className="relative settings-menu-container">
-                <button
-                  onClick={() => setShowSettingsMenu(!showSettingsMenu)}
-                  className="p-2 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 border border-gray-700 hover:border-gray-600 transition-all"
-                  title="Menu"
-                >
-                  <Settings className="w-4 h-4 text-gray-300 hover:text-white transition-colors" />
-                </button>
-                
-                {showSettingsMenu && (
-                  <div className="absolute top-full right-0 mt-2 w-64 bg-gray-900 border border-gray-700 rounded-lg shadow-xl z-50 py-2">
-                    <button
-                      onClick={() => {
-                        onOpenSettings();
+              {showSettingsMenu && (
+                <div className="absolute top-full right-0 mt-2 w-64 bg-gray-900 border border-gray-700 rounded-lg shadow-xl z-50 py-2">
+                  <button
+                    onClick={() => {
+                      onOpenSettings();
+                      setShowSettingsMenu(false);
+                    }}
+                    className="w-full px-4 py-2 text-left text-sm text-gray-300 hover:bg-gray-800 transition-colors flex items-center gap-2"
+                  >
+                    <Settings className="w-4 h-4" />
+                    Settings
+                  </button>
+                  
+                  <button
+                    onClick={() => {
+                      if (onOpenSelfImprovement) {
+                        onOpenSelfImprovement();
                         setShowSettingsMenu(false);
-                      }}
-                      className="w-full px-4 py-2 text-left text-sm text-gray-300 hover:bg-gray-800 transition-colors flex items-center gap-2"
-                    >
-                      <Settings className="w-4 h-4" />
-                      Settings
-                    </button>
-                    
-                    {/* Browser Automation также оставим в меню для совместимости */}
-                    <button
-                      onClick={() => {
-                        if (onOpenAutomation) {
-                          onOpenAutomation();
-                          setShowSettingsMenu(false);
-                        }
-                      }}
-                      className="w-full px-4 py-2 text-left text-sm text-gray-300 hover:bg-gray-800 transition-colors flex items-center gap-2"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                      </svg>
-                      Browser Automation
-                    </button>
-                    
-                    <button
-                      onClick={() => {
-                        if (onOpenSelfImprovement) {
-                          onOpenSelfImprovement();
-                          setShowSettingsMenu(false);
-                        }
-                      }}
-                      className="w-full px-4 py-2 text-left text-sm text-gray-300 hover:bg-gray-800 transition-colors flex items-center gap-2"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                      </svg>
-                      Self-Improvement
-                    </button>
-                    
-                    <button
-                      onClick={() => {
-                        onNewProject();
-                        setShowSettingsMenu(false);
-                      }}
-                      className="w-full px-4 py-2 text-left text-sm text-gray-300 hover:bg-gray-800 transition-colors flex items-center gap-2"
-                    >
-                      <Plus className="w-4 h-4" />
-                      New Workspace
-                    </button>
-                    
-                    <button
-                      className="w-full px-4 py-2 text-left text-sm text-gray-300 hover:bg-gray-800 transition-colors flex items-center gap-2"
-                    >
-                      <Upload className="w-4 h-4" />
-                      Repository
-                    </button>
-                    
-                    <div className="border-t border-gray-700 my-2"></div>
+                      }
+                    }}
+                    className="w-full px-4 py-2 text-left text-sm text-gray-300 hover:bg-gray-800 transition-colors flex items-center gap-2"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    Self-Improvement
+                  </button>
+                  
+                  <button
+                    onClick={() => {
+                      onNewProject();
+                      setShowSettingsMenu(false);
+                    }}
+                    className="w-full px-4 py-2 text-left text-sm text-gray-300 hover:bg-gray-800 transition-colors flex items-center gap-2"
+                  >
+                    <Plus className="w-4 h-4" />
+                    New Workspace
+                  </button>
+                  
+                  <button
+                    className="w-full px-4 py-2 text-left text-sm text-gray-300 hover:bg-gray-800 transition-colors flex items-center gap-2"
+                  >
+                    <Upload className="w-4 h-4" />
+                    Repository
+                  </button>
+                  
+                  <div className="border-t border-gray-700 my-2"></div>
                     
                     <div className="px-4 py-2">
                       <p className="text-xs text-gray-500 mb-2">Load Session by ID</p>
