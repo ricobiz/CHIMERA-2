@@ -126,7 +126,9 @@ async def control(req: ControlRequest):
 
 @router.post('/exec')
 async def exec_task(req: TaskRequest):
-    """Start automation job with planning (analyze → generate) before execution."""
+    """Start automation job with planning (analyze → generate) THEN execute."""
+    global agent_status, current_session_id, last_observation
+    
     try:
         job_id = str(uuid.uuid4())
         current_task["text"] = req.text
@@ -139,14 +141,141 @@ async def exec_task(req: TaskRequest):
         global current_analysis, current_plan
         current_analysis = (await planner_analyze(AnalyzeRequest(goal=req.text)))
         log_step("Goal analyzed")
+        
         # Step 2: Generate plan
         current_plan = (await planner_generate(GenerateRequest(task_id=current_analysis['task_id'], analysis=current_analysis['analysis'])))
         current_plan.setdefault('hints', [])
         log_step("Plan generated")
-
-        return {"status": "PLANNED", "job_id": job_id, "analysis": current_analysis, "plan": current_plan}
+        
+        # Step 3: Check if we have warm profile
+        is_warm = current_analysis.get('analysis', {}).get('availability', {}).get('profile', {}).get('is_warm', False)
+        if not is_warm:
+            log_step("⚠️ No warm profile, execution paused")
+            agent_status = "IDLE"
+            return {"status": "PLANNED", "job_id": job_id, "analysis": current_analysis, "plan": current_plan}
+        
+        # Step 4: Start execution loop
+        agent_status = "ACTIVE"
+        log_step("🚀 Starting execution loop")
+        
+        # Get profile and create session
+        profile_id = current_analysis.get('analysis', {}).get('availability', {}).get('profile', {}).get('profile_id')
+        if not profile_id:
+            # Create new profile if needed
+            from routes.profile_routes import create_profile
+            prof_resp = await create_profile(CreateProfileRequest(warmup=False))
+            profile_id = prof_resp.get('profile_id')
+        
+        # Create browser session
+        from services.browser_automation_service import create_session_from_profile
+        session_id = await create_session_from_profile(profile_id)
+        current_session_id = session_id
+        log_step(f"✅ Session created: {session_id}")
+        
+        # Execute plan steps
+        steps = current_plan.get('steps', [])
+        data_bundle = current_plan.get('data_bundle', {})
+        
+        for idx, step in enumerate(steps):
+            if agent_status != "ACTIVE":
+                log_step(f"⏸️ Execution paused at step {idx+1}")
+                break
+                
+            step_id = step.get('id')
+            action = step.get('action')
+            log_step(f"Step {idx+1}/{len(steps)}: {action} - {step_id}")
+            
+            # Execute step based on action type
+            try:
+                if action == "NAVIGATE":
+                    target_url = step.get('target')
+                    from services.browser_automation_service import navigate
+                    await navigate(session_id, target_url)
+                    log_step(f"✅ Navigated to {target_url}", status="ok")
+                    
+                elif action == "TYPE":
+                    field = step.get('field')
+                    value = step.get('value') or data_bundle.get(field, '')
+                    target_desc = f"field for {field}"
+                    # Use smart-type (which uses vision + human typing)
+                    from routes.automation_routes import smart_type_endpoint
+                    await smart_type_endpoint(SmartTypeRequest(
+                        session_id=session_id,
+                        description=target_desc,
+                        text=value
+                    ))
+                    log_step(f"✅ Typed '{value}' into {field}", status="ok")
+                    
+                elif action == "CLICK":
+                    target_desc = step.get('target', 'next button')
+                    # Use smart-click (which uses vision + human clicking)
+                    from routes.automation_routes import smart_click_endpoint
+                    await smart_click_endpoint(SmartClickRequest(
+                        session_id=session_id,
+                        description=target_desc
+                    ))
+                    log_step(f"✅ Clicked {target_desc}", status="ok")
+                    
+                elif action == "VERIFY_PAGE_STATE":
+                    # Check current page state
+                    from services.page_state_service import detect_page_state
+                    page_state = await detect_page_state(session_id)
+                    log_step(f"📊 Page state: {page_state}", status="ok")
+                    
+                    # Handle conditional branching
+                    on_result = step.get('on_result', {})
+                    if page_state in on_result:
+                        next_action = on_result[page_state]
+                        if next_action == "WAITING_USER":
+                            agent_status = "WAITING_USER"
+                            log_step(f"⏸️ Waiting for user input: {page_state}")
+                            break
+                        # TODO: Handle conditional jumps to other steps
+                    
+                elif action == "USER_HINT":
+                    # Just a marker, skip
+                    log_step(f"💡 User hint: {step.get('note', '')}", status="ok")
+                    continue
+                    
+                else:
+                    log_step(f"⚠️ Unknown action: {action}", status="warning")
+                
+                # Take screenshot after each step
+                from services.browser_automation_service import capture_screenshot
+                screenshot_b64 = await capture_screenshot(session_id)
+                
+                # Store observation
+                last_observation = {
+                    "screenshot_base64": screenshot_b64,
+                    "step_id": step_id,
+                    "action": action
+                }
+                
+                # Small delay between steps
+                await asyncio.sleep(1.5)
+                
+            except Exception as step_error:
+                log_step(f"❌ Step failed: {str(step_error)}", status="fail")
+                agent_status = "ERROR"
+                break
+        
+        # Execution complete
+        if agent_status == "ACTIVE":
+            agent_status = "IDLE"
+            log_step("✅ Execution completed")
+        
+        return {
+            "status": agent_status,
+            "job_id": job_id,
+            "session_id": current_session_id,
+            "analysis": current_analysis,
+            "plan": current_plan
+        }
+        
     except Exception as e:
         logger.error(f"exec error: {e}")
+        agent_status = "ERROR"
+        log_step(f"❌ Error: {str(e)}", status="fail")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post('/adjust')
