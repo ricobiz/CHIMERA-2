@@ -817,10 +817,19 @@ function App() {
       
       const data = await response.json();
       
+      console.log('🔍 Image generation response:', {
+        has_image_url: !!data.image_url,
+        is_image: data.is_image,
+        data_length: data.image_url?.length,
+        starts_with: data.image_url?.substring(0, 30)
+      });
+      
       // Add AI message with image
       const imageMessage = {
         role: 'assistant',
-        content: data.image_url ? `![Generated Image](${data.image_url})` : data.error || 'Image generation failed',
+        content: `✅ Image generated successfully`,
+        image: data.image_url,  // Put image in image field, not in content as markdown
+        type: 'generated-image',
         isImage: true,
         imageUrl: data.image_url
       };
