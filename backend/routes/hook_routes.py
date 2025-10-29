@@ -321,13 +321,26 @@ async def exec_task(req: TaskRequest):
                 log_step(f"❌ [INITIAL] Navigation failed: {str(e)}")
                 current_url = "about:blank"
         
+        # ============================================================
+        # PHASE 3: PLAN-BASED EXECUTION LOOP (NEW ARCHITECTURE)
+        # ============================================================
         # Данные для использования в автоматизации
         used_data = data_bundle
         
-        # Счётчик последовательных WAIT
-        consecutive_waits = 0
+        # Получаем план шагов
+        plan_steps = current_plan.get('steps', [])
+        if not plan_steps:
+            log_step("⚠️ [PLAN] No steps in plan, using fallback mode")
+            # Fallback на старую логику если плана нет
+            # (оставляем это как safety net, но основной путь - план)
         
-        while agent_status == "ACTIVE" and step_count < max_steps:
+        log_step(f"📋 [PLAN] Total steps in plan: {len(plan_steps)}")
+        
+        # Счётчик попыток retry для текущего шага
+        step_retry_count = 0
+        max_retries_per_step = 3
+        
+        while agent_status == "ACTIVE" and current_step_id and step_count < max_steps:
             step_count += 1
             log_step(f"🔄 [CYCLE {step_count}/{max_steps}]")
             
