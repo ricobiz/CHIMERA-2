@@ -199,6 +199,7 @@ class HeadBrainService:
                 "success_probability": result.get('success_probability', 0.65),
                 "plan_outline": result.get('plan_outline', ''),
                 "data_bundle": data_bundle,
+                "data_source": data_source,  # user_provided или generated
                 "can_proceed": result.get('can_proceed', True),
                 "reason": result.get('reason', 'Analysis complete'),
                 "profile_status": {
@@ -207,7 +208,7 @@ class HeadBrainService:
                 }
             }
             
-            logger.info(f"✅ [HEAD BRAIN] Analysis complete: strategy={analysis['strategy']}, can_proceed={analysis['can_proceed']}")
+            logger.info(f"✅ [HEAD BRAIN] Analysis complete: strategy={analysis['strategy']}, data_source={data_source}, can_proceed={analysis['can_proceed']}")
             return analysis
             
         except Exception as e:
