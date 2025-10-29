@@ -91,16 +91,78 @@ class LocalVisionService:
     def set_grid(self, rows: int, cols: int) -> None:
         self.grid = GridConfig(rows=rows, cols=cols)
 
+    def detect_with_florence(self, 
+                           screenshot_base64: str,
+                           viewport_w: int,
+                           viewport_h: int) -> List[Dict]:
+        """
+        Use Florence-2 to detect UI elements in screenshot
+        Returns: List of detected elements with bboxes
+        """
+        try:
+            if not self.model_loaded:
+                logger.info("🔄 [VISION] Model not loaded, loading Florence-2...")
+                if not self.load_florence_model():
+                    logger.warning("⚠️ [VISION] Failed to load Florence-2, falling back to DOM")
+                    return []
+            
+            logger.info("🔍 [VISION] Starting Florence-2 detection...")
+            
+            # Decode base64 image
+            image_data = base64.b64decode(screenshot_base64)
+            image = Image.open(io.BytesIO(image_data))
+            logger.info(f"📷 Image size: {image.size}")
+            
+            # For UI detection, we use "<OD>" (Object Detection) task
+            prompt = "<OD>"
+            
+            # Preprocess image
+            logger.info("🔄 Preprocessing image...")
+            inputs = self.processor(
+                text=prompt,
+                images=image,
+                return_tensors="np"
+            )
+            logger.info(f"✅ Preprocessed: {inputs.keys()}")
+            
+            # Run vision encoder
+            logger.info("🚀 Running vision encoder...")
+            pixel_values = inputs["pixel_values"].astype(np.float32)
+            vision_outputs = self.vision_session.run(
+                None,
+                {"pixel_values": pixel_values}
+            )
+            logger.info(f"✅ Vision encoder output: {len(vision_outputs)} tensors")
+            
+            # Extract detected objects (simplified - real implementation needs decoder)
+            # For now, return empty list as we need full pipeline
+            # This is placeholder for object detection results
+            detections = []
+            
+            logger.info(f"🎯 [VISION] Florence-2 detected {len(detections)} objects")
+            return detections
+            
+        except Exception as e:
+            logger.error(f"❌ [VISION] Florence-2 detection failed: {e}")
+            import traceback
+            traceback.print_exc()
+            return []
+
     def detect(self,
                screenshot_base64: str,
                viewport_w: int,
                viewport_h: int,
                dom_clickables: Optional[List[Dict]] = None,
-               model_path: Optional[str] = MODEL_PATH,
+               model_path: Optional[str] = None,
                rows: Optional[int] = None,
                cols: Optional[int] = None) -> List[Dict]:
         """
         Returns list of {cell, bbox:{x,y,w,h}, label, type, confidence}
+        
+        Strategy:
+        1. Try Florence-2 for visual detection (future)
+        2. Fall back to DOM clickables (current reliable method)
+        3. Merge results if both available
         """
         try:
             logger.info(f"🔍 [VISION] detect() called with {len(dom_clickables or [])} DOM clickables, viewport {viewport_w}x{viewport_h}")
@@ -109,14 +171,25 @@ class LocalVisionService:
             if rows and cols:
                 self.set_grid(rows, cols)
                 logger.info(f"🔍 [VISION] Grid set to {rows}x{cols}")
-            # Try model if available (placeholder – not producing detections yet)
-            if model_path:
-                self.maybe_load_model(model_path)
-            # If session exists, you can add real model inference here later
 
             results: List[Dict] = []
 
-            # Fallback: use dom_clickables if provided
+            # Strategy: For now, prioritize DOM clickables (reliable)
+            # Florence-2 is loaded but not yet fully integrated for object detection
+            # We'll add Florence-2 detection gradually
+            
+            # Try Florence-2 detection (experimental)
+            if screenshot_base64 and False:  # Disabled for now until full pipeline
+                florence_results = self.detect_with_florence(
+                    screenshot_base64,
+                    viewport_w,
+                    viewport_h
+                )
+                if florence_results:
+                    logger.info(f"✅ [VISION] Florence-2 detected {len(florence_results)} objects")
+                    results.extend(florence_results)
+
+            # Primary path: use dom_clickables (reliable)
             if dom_clickables:
                 logger.info(f"🔍 [VISION] Processing {len(dom_clickables)} DOM clickables...")
                 for idx, el in enumerate(dom_clickables):
@@ -130,7 +203,8 @@ class LocalVisionService:
                             'bbox': bbox,
                             'label': label[:64],
                             'type': etype,
-                            'confidence': float(el.get('confidence', 0.75))
+                            'confidence': float(el.get('confidence', 0.75)),
+                            'source': 'dom'  # Mark source
                         })
                     except Exception as e:
                         logger.error(f"🔍 [VISION] Error processing element {idx}: {e}")
