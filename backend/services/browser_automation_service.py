@@ -468,6 +468,53 @@ class BrowserAutomationService:
                 'error': str(e)
             }
     
+    async def click_cell(self, session_id: str, cell: str, human_like: bool = True) -> Dict[str, Any]:
+        """Click on a grid cell (e.g., 'A1', 'C7') - используется для визуального управления"""
+        if session_id not in self.sessions:
+            raise ValueError(f"Session {session_id} not found")
+        
+        page = self.sessions[session_id]['page']
+        
+        try:
+            # Импортируем GridConfig
+            from services.grid_service import GridConfig
+            
+            # Получаем viewport
+            viewport = page.viewport_size
+            viewport_w = viewport['width']
+            viewport_h = viewport['height']
+            
+            # Преобразуем cell в координаты (используем grid 12x8 по умолчанию)
+            grid = GridConfig(rows=12, cols=8)
+            x, y = grid.cell_to_xy(cell, viewport_w, viewport_h)
+            
+            logger.info(f"Clicking cell {cell} at coordinates ({x}, {y})")
+            
+            if human_like:
+                # Человекоподобное движение к точке и клик
+                await HumanBehaviorSimulator.human_move_and_click(page, x, y)
+            else:
+                # Прямой клик
+                await page.mouse.click(x, y)
+            
+            await human_like_delay(300, 800)
+            
+            screenshot = await self.capture_screenshot(session_id)
+            
+            return {
+                'success': True,
+                'screenshot': screenshot,
+                'cell': cell,
+                'coordinates': {'x': x, 'y': y}
+            }
+        except Exception as e:
+            logger.error(f"Click cell error: {str(e)}")
+            return {
+                'success': False,
+                'error': str(e),
+                'cell': cell
+            }
+    
     async def wait_for_element(self, session_id: str, selector: str, timeout: int = 10000) -> Dict[str, Any]:
         """Wait for element to appear"""
         if session_id not in self.sessions:
