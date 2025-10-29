@@ -122,10 +122,12 @@ Style: Modern, clean, professional, high-quality, realistic."""
                 )
                 
                 # Извлекаем изображение из ответа - OpenRouter возвращает в images field
-                logger.info(f"🔍 [IMAGE GEN] Response structure: {dir(response)}")
+                logger.info(f"🔍 [IMAGE GEN] Response type: {type(response)}")
                 
                 # Проверяем наличие images в ответе (через extra поле)
                 response_dict = response.model_dump() if hasattr(response, 'model_dump') else response.__dict__
+                logger.info(f"🔍 [IMAGE GEN] Response dict keys: {response_dict.keys()}")
+                logger.info(f"🔍 [IMAGE GEN] Full response dict: {response_dict}")
                 
                 if 'images' in response_dict and response_dict['images']:
                     # Images field содержит массив base64 data URLs
