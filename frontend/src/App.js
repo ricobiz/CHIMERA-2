@@ -494,7 +494,9 @@ function App() {
             // Show mockup to user
             const mockupMessage = {
               role: 'assistant',
-              content: `## 🎨 Design Mockup\n\nHere's how your app will look:\n\n![Design Mockup](${mockupUrls[0]})\n\n**Do you approve this design?**\n- Type "yes" or "approve" to proceed with code generation\n- Type "change [details]" to revise the design`,
+              content: `## 🎨 Design Mockup\n\nHere's how your app will look:\n\n**Do you approve this design?**\n- Type "yes" or "approve" to proceed with code generation\n- Type "change [details]" to revise the design`,
+              image: mockupUrls[0],  // Add image field for proper rendering
+              type: 'mockup',  // Add type for special handling
               isDesign: true,
               mockupUrls: mockupUrls
             };
