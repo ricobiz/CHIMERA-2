@@ -416,7 +416,8 @@ async def exec_task(req: TaskRequest):
                 "action": action,
                 "target": target_cell,
                 "text": text_value if action == 'TYPE_AT_CELL' else None,
-                "result": "executed"
+                "result": "executed",
+                "needs_visual": needs_visual  # Флаг для следующей итерации
             })
             
             last_observation = {
