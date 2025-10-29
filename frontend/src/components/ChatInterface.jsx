@@ -468,7 +468,7 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
                     </div>
                   </div>
                 )}
-              </button>
+              </div>
             </div>
             
             {/* Bottom row: Session ID - editable yellow */}
