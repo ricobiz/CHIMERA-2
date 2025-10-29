@@ -706,6 +706,25 @@ function App() {
     // For now, user will see automation page with empty input
   };
 
+  // УМНАЯ ФУНКЦИЯ PREVIEW - зависит от chatMode
+  const handleOpenPreview = () => {
+    console.log('[CHIMERA] Opening Preview in mode:', chatMode);
+    
+    if (chatMode === 'automation') {
+      // AUTOMATION MODE → открываем AutomationPage
+      console.log('[CHIMERA] Opening AutomationPage...');
+      setShowAutomation(true);
+    } else if (chatMode === 'agent') {
+      // CODE MODE → открываем PreviewPanel с кодом
+      console.log('[CHIMERA] Opening Code Preview...');
+      setShowPreview(true);
+    } else {
+      // CHAT MODE → открываем артефакты (пока что просто preview)
+      console.log('[CHIMERA] Opening Artifacts Preview...');
+      setShowPreview(true);
+    }
+  };
+
   const handleSaveProject = async () => {
     if (!generatedCode) {
       toast({
