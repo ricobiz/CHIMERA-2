@@ -901,32 +901,37 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
             
             {/* Bottom left controls */}
             <div className="absolute bottom-2 md:bottom-3 left-3 flex items-center gap-3">
-              {/* Mode Toggle Switch - DISABLED during generation */}
-              {/* Triple mode toggle: Chat | Code | Automation */}
-              <div className="flex items-center gap-2 bg-gray-800/50 rounded-full p-1">
+              {/* Mode Toggle Switch - Minimalist icons */}
+              <div className="flex items-center gap-1 bg-gray-800/80 rounded-full p-1 backdrop-blur-sm">
                 <button
                   onClick={() => !isGenerating && onChatModeChange('chat')}
                   disabled={isGenerating}
-                  className={`px-3 py-1 rounded-full text-[10px] font-medium transition-all ${
+                  className={`px-3 py-1.5 rounded-full text-[10px] font-medium transition-all flex items-center gap-1.5 ${
                     chatMode === 'chat'
-                      ? 'bg-purple-600 text-white shadow-lg'
-                      : 'text-gray-500 hover:text-gray-300'
+                      ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg'
+                      : 'text-gray-400 hover:text-gray-200'
                   } ${isGenerating ? 'opacity-50 cursor-not-allowed' : ''}`}
                   title="Chat mode"
                 >
-                  💬 Chat
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
+                  Chat
                 </button>
                 <button
                   onClick={() => !isGenerating && onChatModeChange('agent')}
                   disabled={isGenerating}
-                  className={`px-3 py-1 rounded-full text-[10px] font-medium transition-all ${
+                  className={`px-3 py-1.5 rounded-full text-[10px] font-medium transition-all flex items-center gap-1.5 ${
                     chatMode === 'agent'
-                      ? 'bg-blue-600 text-white shadow-lg'
-                      : 'text-gray-500 hover:text-gray-300'
+                      ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg'
+                      : 'text-gray-400 hover:text-gray-200'
                   } ${isGenerating ? 'opacity-50 cursor-not-allowed' : ''}`}
                   title="Code generation mode"
                 >
-                  🤖 Code
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                  </svg>
+                  Code
                 </button>
                 <button
                   onClick={() => !isGenerating && onChatModeChange('automation')}
