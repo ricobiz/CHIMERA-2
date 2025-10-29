@@ -154,12 +154,42 @@ function App() {
     localStorage.setItem('chatMode', chatMode);
   }, [chatMode]);
   
-  // Auto-save messages to localStorage
+  // Auto-save messages to localStorage (excluding large images to prevent quota exceeded)
   useEffect(() => {
     if (messages.length > 0) {
       const sessionKey = currentSessionId || 'default_session';
-      localStorage.setItem(`session_${sessionKey}_messages`, JSON.stringify(messages));
-      console.log(`💾 Auto-saved ${messages.length} messages for ${sessionKey}`);
+      try {
+        // Filter out large base64 images to prevent localStorage quota exceeded
+        const messagesToSave = messages.map(msg => {
+          if (msg.image && msg.image.length > 100000) {
+            // Don't save large base64 images (>100KB), only save a placeholder
+            return {
+              ...msg,
+              image: null,
+              hadImage: true // Mark that there was an image
+            };
+          }
+          return msg;
+        });
+        localStorage.setItem(`session_${sessionKey}_messages`, JSON.stringify(messagesToSave));
+        console.log(`💾 Auto-saved ${messages.length} messages for ${sessionKey}`);
+      } catch (error) {
+        if (error.name === 'QuotaExceededError') {
+          console.warn('⚠️ LocalStorage quota exceeded, clearing old sessions...');
+          // Clear old session data
+          const keysToRemove = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith('session_') && key !== `session_${sessionKey}_messages`) {
+              keysToRemove.push(key);
+            }
+          }
+          keysToRemove.forEach(key => localStorage.removeItem(key));
+          console.log(`🗑️ Cleared ${keysToRemove.length} old sessions`);
+        } else {
+          console.error('Failed to save messages:', error);
+        }
+      }
     }
   }, [messages, currentSessionId]);
   
