@@ -90,96 +90,136 @@ Style: Modern, clean, professional UI design suitable for a web application."""
             raise Exception(f"Failed to generate design: {str(e)}")
     
     async def generate_visual_mockup(self, design_spec: str, user_request: str, model: str = None) -> Dict:
-        """Generate visual mockup IMAGE using Gemini Nano Banana (imagen-3)"""
+        """Generate visual mockup IMAGE using Imagen-3 via OpenRouter images.generate endpoint"""
         try:
-            # Gemini Nano Banana (imagen-3.0-generate-002) - image generation model
+            # Imagen-3 model for image generation
             selected_model = model or "google/imagen-3.0-generate-002"
             
-            logger.info(f"🎨 Generating visual mockup IMAGE with: {selected_model}")
+            logger.info(f"🎨 [IMAGE GEN] Using model: {selected_model}")
             
-            # Промпт для генерации изображения UI
-            image_prompt = f"""Create a clean, modern UI mockup image for: {user_request}
+            # Промпт для UI мокапа
+            image_prompt = f"""Create a professional UI mockup for: {user_request}
 
-Design specifications:
-{design_spec}
+Design: {design_spec[:500]}
 
-Style: Professional web interface mockup with clean design, modern colors, realistic layout. Show the main screen with all key UI elements clearly visible."""
+Style: Modern web interface, clean layout, professional colors, realistic mockup showing main screen with all key UI elements."""
             
-            # ПРАВИЛЬНЫЙ ФОРМАТ для OpenRouter image generation через httpx:
-            # OpenRouter требует специальный заголовок и формат для imagen
-            import httpx
+            logger.info(f"🎨 [IMAGE GEN] Prompt: {image_prompt[:100]}...")
             
-            api_key = os.environ.get('OPENROUTER_API_KEY')
-            
-            async with httpx.AsyncClient() as client:
-                response = await client.post(
-                    "https://openrouter.ai/api/v1/chat/completions",
-                    headers={
-                        "Authorization": f"Bearer {api_key}",
-                        "HTTP-Referer": "https://chimera-aios.com",
-                        "X-Title": "Chimera AIOS"
-                    },
-                    json={
-                        "model": selected_model,
-                        "messages": [
-                            {
-                                "role": "user",
-                                "content": image_prompt
-                            }
-                        ],
-                        "temperature": 0.7,
-                        "max_tokens": 1000
-                    },
-                    timeout=60.0
+            # ПРАВИЛЬНЫЙ СПОСОБ: использовать images.generate() endpoint
+            try:
+                # OpenAI SDK поддерживает images.generate для OpenRouter
+                response = self.client.images.generate(
+                    model=selected_model,
+                    prompt=image_prompt,
+                    n=1,
+                    response_format="b64_json"  # base64 JSON format
                 )
                 
-                data = response.json()
-                
-                if response.status_code != 200:
-                    logger.error(f"❌ OpenRouter error: {data}")
-                    raise Exception(f"OpenRouter API error: {data.get('error', {}).get('message', 'Unknown error')}")
-                
-                # Проверяем ответ
-                if 'choices' in data and len(data['choices']) > 0:
-                    choice = data['choices'][0]
-                    message = choice.get('message', {})
-                    content = message.get('content', '')
+                # Извлекаем base64 изображение
+                if response.data and len(response.data) > 0:
+                    image_data = response.data[0]
                     
-                    # Imagen-3 возвращает base64 в content
-                    if content and (content.startswith('data:image') or content.startswith('http')):
-                        logger.info(f"✅ Image generated successfully: {len(content)} chars")
+                    # Проверяем формат ответа
+                    if hasattr(image_data, 'b64_json') and image_data.b64_json:
+                        b64_image = image_data.b64_json
+                        mockup_url = f"data:image/png;base64,{b64_image}"
+                        
+                        logger.info(f"✅ [IMAGE GEN] Image generated successfully: {len(mockup_url)} chars")
                         
                         return {
-                            "mockup_data": content,
+                            "mockup_data": mockup_url,
                             "design_spec": design_spec,
                             "is_image": True,
-                            "usage": data.get('usage', {})
+                            "usage": {}
                         }
-                    else:
-                        # Модель вернула текст вместо изображения
-                        logger.warning(f"⚠️ Model returned text instead of image: {content[:200]}")
+                    elif hasattr(image_data, 'url') and image_data.url:
+                        # Если вернулся URL вместо base64
+                        mockup_url = image_data.url
+                        
+                        logger.info(f"✅ [IMAGE GEN] Image URL generated: {mockup_url}")
                         
                         return {
-                            "mockup_data": f"⚠️ Image generation unavailable. Model returned text:\n\n{content}",
+                            "mockup_data": mockup_url,
                             "design_spec": design_spec,
-                            "is_image": False,
-                            "error": "Model returned text instead of image"
+                            "is_image": True,
+                            "usage": {}
                         }
+                    else:
+                        logger.error(f"❌ [IMAGE GEN] No image data in response: {image_data}")
+                        raise Exception("No image data in response")
                 else:
-                    logger.error(f"❌ Unexpected response format: {data}")
-                    return {
-                        "mockup_data": f"⚠️ Unexpected response format",
-                        "design_spec": design_spec,
-                        "is_image": False,
-                        "error": "Unexpected response"
-                    }
+                    logger.error(f"❌ [IMAGE GEN] Empty response.data")
+                    raise Exception("Empty response from images.generate")
+                    
+            except Exception as sdk_error:
+                logger.error(f"❌ [IMAGE GEN] SDK error: {str(sdk_error)}")
+                logger.info("🔄 [IMAGE GEN] Trying fallback with httpx...")
+                
+                # Fallback: прямой HTTP запрос
+                import httpx
+                api_key = os.environ.get('OPENROUTER_API_KEY')
+                
+                async with httpx.AsyncClient() as http_client:
+                    response = await http_client.post(
+                        "https://openrouter.ai/api/v1/images/generations",
+                        headers={
+                            "Authorization": f"Bearer {api_key}",
+                            "Content-Type": "application/json",
+                            "HTTP-Referer": "https://chimera-aios.com",
+                            "X-Title": "Chimera AIOS"
+                        },
+                        json={
+                            "model": selected_model,
+                            "prompt": image_prompt,
+                            "n": 1,
+                            "response_format": "b64_json"
+                        },
+                        timeout=60.0
+                    )
+                    
+                    if response.status_code != 200:
+                        error_text = response.text
+                        logger.error(f"❌ [IMAGE GEN] HTTP error: {error_text}")
+                        raise Exception(f"HTTP {response.status_code}: {error_text}")
+                    
+                    data = response.json()
+                    
+                    if 'data' in data and len(data['data']) > 0:
+                        image_obj = data['data'][0]
+                        
+                        if 'b64_json' in image_obj:
+                            b64_image = image_obj['b64_json']
+                            mockup_url = f"data:image/png;base64,{b64_image}"
+                            
+                            logger.info(f"✅ [IMAGE GEN] Image generated via fallback")
+                            
+                            return {
+                                "mockup_data": mockup_url,
+                                "design_spec": design_spec,
+                                "is_image": True,
+                                "usage": {}
+                            }
+                        elif 'url' in image_obj:
+                            mockup_url = image_obj['url']
+                            
+                            logger.info(f"✅ [IMAGE GEN] Image URL via fallback: {mockup_url}")
+                            
+                            return {
+                                "mockup_data": mockup_url,
+                                "design_spec": design_spec,
+                                "is_image": True,
+                                "usage": {}
+                            }
+                    
+                    raise Exception(f"No image data in fallback response: {data}")
             
         except Exception as e:
-            logger.error(f"❌ Error generating mockup: {str(e)}")
+            logger.error(f"❌ [IMAGE GEN] Complete failure: {str(e)}")
             import traceback
             traceback.print_exc()
             
-            # Fallback: вернем текстовое описание
+            # Вернем текстовое описание как fallback
             return {
                 "mockup_data": f"⚠️ Image generation failed: {str(e)}\n\nDesign description:\n\n{design_spec}",
                 "design_spec": design_spec,
