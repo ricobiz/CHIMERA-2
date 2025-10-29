@@ -1181,6 +1181,20 @@ agent_communication:
         agent: "testing"
         comment: "✅ EXCELLENT: Complete JustFans.uno registration flow tested successfully (100% success rate - 7/7 steps passed). All critical automation features working: (1) Browser session creation with Playwright, (2) Website navigation to https://justfans.uno, (3) Vision-based element detection finding sign up button, (4) Smart click functionality, (5) Registration form detection (4 form elements found), (6) Screenshot capture (204KB), (7) Session cleanup. Generated realistic registration data (riley.miller8706@gmail.com, username, secure password, display name, bio). Local vision model integration operational. Ready for production use."
 
+  - task: "POST /api/generate-image endpoint - Image Generation via OpenRouter"
+    implemented: true
+    working: false
+    file: "/app/backend/routes/lovable_routes.py, /app/backend/services/design_generator_service.py"
+    stuck_count: 1
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "user"
+        comment: "User reports (Russian): Image generation button not working. Backend logs show HTTP 405 Method Not Allowed from OpenRouter."
+      - working: "NA"
+        agent: "main"
+        comment: "Fixed model configuration to use google/gemini-2.5-flash-image-preview with extra_body={'modalities': ['image', 'text']} via chat completions endpoint. Image data is now being returned by OpenRouter in base64 format nested in response_dict['choices'][0]['message']['images'], but extraction logic needs verification. Adding detailed debug logging to confirm exact response structure."
 
 frontend:
   - task: "API Balance Display"
