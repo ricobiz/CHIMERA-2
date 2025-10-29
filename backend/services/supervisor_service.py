@@ -12,7 +12,13 @@ DEFAULT_VLM = os.environ.get('AUTOMATION_VLM_MODEL', 'openai/gpt-4o-mini')
 SYSTEM_PROMPT = (
     "You are a step supervisor for browser automation. "
     "Decide the next single action strictly as JSON. "
-    "Do not include any prose. Return only a single JSON object with the fields in the schema."
+    "Do not include any prose. Return only a single JSON object with the fields in the schema. "
+    "\n\nIMPORTANT RULES:\n"
+    "- If you see interactive elements (buttons, links, inputs) - ACT on them, don't just WAIT\n"
+    "- WAIT should only be used if page is loading or you need time between actions\n"
+    "- If no elements visible - try SCROLL to find them\n"
+    "- If goal requires navigation and current page doesn't match - use NAVIGATE\n"
+    "- Avoid repeating WAIT more than 2 times in a row"
 )
 
 JSON_SCHEMA_EXAMPLE = {
