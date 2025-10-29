@@ -164,69 +164,110 @@ class LocalVisionService:
                viewport_w: int,
                viewport_h: int,
                dom_clickables: Optional[List[Dict]] = None,
-               model_path: Optional[str] = None,
                rows: Optional[int] = None,
                cols: Optional[int] = None) -> List[Dict]:
         """
-        Returns list of {cell, bbox:{x,y,w,h}, label, type, confidence}
+        Main vision detection function for 3-TIER ARCHITECTURE.
         
-        Strategy:
-        1. Try Florence-2 for visual detection (future)
-        2. Fall back to DOM clickables (current reliable method)
-        3. Merge results if both available
+        ARCHITECTURE ROLE:
+        - Called by: browser_automation_service._augment_with_vision()
+        - Used by: Spinal Cord (supervisor_service) for decision-making
+        - Output: vision[] array for grid-based automation
+        
+        STRATEGY (Cost-effective & Reliable):
+        1. PRIMARY: DOM elements (fast, reliable, free)
+        2. ENHANCEMENT: Florence-2 visual detection (experimental, when needed)
+        3. MERGE: Combine results, prioritize DOM, add visual-only finds
+        
+        Returns: List of {cell, bbox, label, type, confidence, source}
         """
         try:
-            logger.info(f"🔍 [VISION] detect() called with {len(dom_clickables or [])} DOM clickables, viewport {viewport_w}x{viewport_h}")
+            logger.info(f"🔍 [VISION] detect() called: viewport={viewport_w}x{viewport_h}, DOM={len(dom_clickables or [])}")
             
-            # Align grid to caller's config
+            # Set grid configuration
             if rows and cols:
                 self.set_grid(rows, cols)
-                logger.info(f"🔍 [VISION] Grid set to {rows}x{cols}")
+                logger.info(f"🔍 [VISION] Grid configured: {rows}x{cols}")
 
             results: List[Dict] = []
 
-            # Strategy: For now, prioritize DOM clickables (reliable)
-            # Florence-2 is loaded but not yet fully integrated for object detection
-            # We'll add Florence-2 detection gradually
-            
-            # Try Florence-2 detection (experimental)
-            if screenshot_base64 and False:  # Disabled for now until full pipeline
-                florence_results = self.detect_with_florence(
-                    screenshot_base64,
-                    viewport_w,
-                    viewport_h
-                )
-                if florence_results:
-                    logger.info(f"✅ [VISION] Florence-2 detected {len(florence_results)} objects")
-                    results.extend(florence_results)
-
-            # Primary path: use dom_clickables (reliable)
+            # ==============================================================
+            # PHASE 1: DOM-BASED DETECTION (PRIMARY, ALWAYS ON)
+            # ==============================================================
             if dom_clickables:
                 logger.info(f"🔍 [VISION] Processing {len(dom_clickables)} DOM clickables...")
                 for idx, el in enumerate(dom_clickables):
                     try:
                         bbox = el.get('bbox', {})
-                        label = el.get('label') or el.get('text') or el.get('name') or ''
+                        label = el.get('label') or el.get('text') or el.get('name') or el.get('type', '').upper()
                         etype = el.get('type') or 'button'
                         cell = self.grid.bbox_to_cell(bbox, viewport_w, viewport_h)
+                        
                         results.append({
                             'cell': cell,
                             'bbox': bbox,
-                            'label': label[:64],
+                            'label': label[:64],  # Cap label length
                             'type': etype,
-                            'confidence': float(el.get('confidence', 0.75)),
-                            'source': 'dom'  # Mark source
+                            'confidence': float(el.get('confidence', 0.90)),  # DOM is highly reliable
+                            'source': 'dom'  # Mark source for debugging
                         })
                     except Exception as e:
-                        logger.error(f"🔍 [VISION] Error processing element {idx}: {e}")
+                        logger.error(f"🔍 [VISION] Error processing DOM element {idx}: {e}")
                         continue
-                logger.info(f"🔍 [VISION] Returning {len(results)} results")
+                
+                logger.info(f"✅ [VISION] DOM detection: {len(results)} elements")
             else:
-                logger.warning("🔍 [VISION] No DOM clickables provided!")
-
-            return results
+                logger.warning("⚠️ [VISION] No DOM clickables provided - will rely on visual only")
+            
+            # ==============================================================
+            # PHASE 2: FLORENCE-2 VISUAL DETECTION (OPTIONAL, ENHANCEMENT)
+            # ==============================================================
+            # Enable this when:
+            # - DOM elements have unclear labels (INPUT fields without placeholder)
+            # - Need to find elements not in DOM (canvas, SVG, dynamically rendered)
+            # - Verification mode (check if button actually visible)
+            
+            USE_FLORENCE_ENHANCEMENT = False  # Feature flag (disabled for stability)
+            
+            if USE_FLORENCE_ENHANCEMENT and screenshot_base64:
+                logger.info("🔍 [VISION] Running Florence-2 visual enhancement...")
+                florence_results = self.detect_with_florence(
+                    screenshot_base64,
+                    viewport_w,
+                    viewport_h
+                )
+                
+                if florence_results:
+                    logger.info(f"✅ [VISION] Florence-2 found {len(florence_results)} additional elements")
+                    
+                    # Merge: Add Florence-2 detections that DON'T overlap with DOM
+                    existing_cells = {r['cell'] for r in results}
+                    for f_result in florence_results:
+                        if f_result['cell'] not in existing_cells:
+                            f_result['source'] = 'florence2'
+                            results.append(f_result)
+                            logger.info(f"  + Added visual element: {f_result['label']} at {f_result['cell']}")
+            
+            # ==============================================================
+            # PHASE 3: QUALITY CHECK & RETURN
+            # ==============================================================
+            # Remove duplicates by cell (keep highest confidence)
+            seen_cells = {}
+            unique_results = []
+            for r in results:
+                cell = r.get('cell')
+                if not cell:
+                    continue
+                if cell not in seen_cells or r.get('confidence', 0) > seen_cells[cell].get('confidence', 0):
+                    seen_cells[cell] = r
+            
+            unique_results = list(seen_cells.values())
+            
+            logger.info(f"✅ [VISION] Final output: {len(unique_results)} unique elements")
+            return unique_results
+            
         except Exception as e:
-            logger.error(f"🔍 [VISION] detect() FAILED: {e}")
+            logger.error(f"❌ [VISION] detect() FAILED: {e}")
             import traceback
             traceback.print_exc()
             return []
