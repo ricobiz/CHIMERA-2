@@ -4,8 +4,6 @@ import os
 import logging
 from typing import Dict
 
-load_dotenv()
-
 logger = logging.getLogger(__name__)
 
 class DesignGeneratorService:
