@@ -1226,6 +1226,21 @@ agent_communication:
         agent: "main"
         comment: "Fixed design approval buttons: (1) Changed ChatInterface.jsx to use props onAnnotateMockup and onApproveDesign instead of window.onAnnotateMockup/window.onApproveDesign. (2) Created handleAnnotateMockup and handleApproveDesign functions in App.js with proper dependency handling. (3) Fixed useEffect to include all dependencies (pendingPrompt, pendingDesign, messages, etc). (4) Added props to ChatInterface component. Added console logging for debugging. Ready for testing."
 
+  - task: "Session Management - Delete sessions and Artifacts from all sessions"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/components/Sidebar.jsx, /app/frontend/src/components/PreviewPanel.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "user"
+        comment: "User requests (Russian): Need ability to delete old sessions from list. All artifacts (code, images) should be saved in Artifacts panel from ALL user sessions."
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented: (1) DELETE session functionality already exists in Sidebar.jsx with Trash2 button (shows on hover). (2) Updated PreviewPanel.jsx to load artifacts from ALL sessions via getSessions() API. Collects generated_code and images from session.messages. Artifacts sorted by timestamp (newest first). Shows session name under each artifact. Ready for testing."
+
 frontend:
   - task: "API Balance Display"
     implemented: true
