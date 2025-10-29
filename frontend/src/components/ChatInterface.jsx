@@ -379,6 +379,21 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
               
               {/* Consolidated: Functions moved into Settings menu to avoid duplication */}
               
+              {/* Automation Mode Button */}
+              <button
+                onClick={() => setShowAutomationModal(true)}
+                className={`p-2 rounded-lg border transition-all ${
+                  automationActive 
+                    ? 'bg-purple-900/30 border-purple-600/50 hover:bg-purple-800/40' 
+                    : 'bg-gray-800/50 hover:bg-gray-700/50 border-gray-700 hover:border-gray-600'
+                }`}
+                title="Automation Mode"
+              >
+                <Activity className={`w-4 h-4 transition-colors ${
+                  automationActive ? 'text-purple-400' : 'text-gray-300 hover:text-white'
+                }`} />
+              </button>
+              
               {/* Settings Dropdown Menu */}
               <div className="relative settings-menu-container">
                 <button
