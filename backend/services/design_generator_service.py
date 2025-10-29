@@ -210,20 +210,35 @@ Style: Modern, clean, professional, high-quality, realistic."""
                     if response.status_code == 200:
                         data = response.json()
                         
-                        if 'choices' in data and len(data['choices']) > 0:
+                        # Проверяем наличие images в ответе (приоритет)
+                        if 'images' in data and data['images']:
+                            images = data['images']
+                            mockup_url = images[0] if isinstance(images, list) else images
+                            
+                            logger.info(f"✅ [IMAGE GEN] HTTP fallback successful (images field): {len(str(mockup_url))} chars")
+                            
+                            return {
+                                "mockup_data": mockup_url,
+                                "design_spec": design_spec,
+                                "is_image": True,
+                                "usage": data.get('usage', {})
+                            }
+                        elif 'choices' in data and len(data['choices']) > 0:
                             choice = data['choices'][0]
                             message_content = choice.get('message', {}).get('content', '')
                             
-                            if message_content:
+                            logger.warning(f"⚠️ [IMAGE GEN] HTTP fallback: No images field, got text response: {message_content[:100] if message_content else 'None'}")
+                            
+                            if message_content and (message_content.startswith('data:image') or 
+                                                  message_content.startswith('/9j/') or 
+                                                  message_content.startswith('iVBOR')):
                                 # Обработка base64
                                 if message_content.startswith('data:image'):
                                     mockup_url = message_content
-                                elif message_content.startswith('/9j/') or message_content.startswith('iVBOR'):
-                                    mockup_url = f"data:image/png;base64,{message_content}"
                                 else:
-                                    mockup_url = message_content
+                                    mockup_url = f"data:image/png;base64,{message_content}"
                                 
-                                logger.info(f"✅ [IMAGE GEN] HTTP fallback successful: {len(mockup_url)} chars")
+                                logger.info(f"✅ [IMAGE GEN] HTTP fallback successful (content field): {len(mockup_url)} chars")
                                 
                                 return {
                                     "mockup_data": mockup_url,
@@ -231,6 +246,10 @@ Style: Modern, clean, professional, high-quality, realistic."""
                                     "is_image": True,
                                     "usage": data.get('usage', {})
                                 }
+                            else:
+                                raise Exception(f"HTTP fallback: Model returned text instead of image: {message_content[:200] if message_content else 'No content'}")
+                        else:
+                            raise Exception("HTTP fallback: No images or choices in response")
                     else:
                         error_text = response.text
                         logger.error(f"❌ [IMAGE GEN] HTTP error: {error_text}")
