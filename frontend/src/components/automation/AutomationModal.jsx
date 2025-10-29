@@ -3,25 +3,19 @@ import { X, Pause, Play, Square, RotateCcw } from 'lucide-react';
 
 const BASE_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
 
-interface AutomationModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  initialTask?: string;
-}
-
-export const AutomationModal: React.FC<AutomationModalProps> = ({ 
+export const AutomationModal = ({ 
   isOpen, 
   onClose,
   initialTask 
 }) => {
-  const [logs, setLogs] = useState<any[]>([]);
+  const [logs, setLogs] = useState([]);
   const [status, setStatus] = useState('IDLE');
-  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [sessionId, setSessionId] = useState(null);
   const [isExecuting, setIsExecuting] = useState(false);
   const [taskInput, setTaskInput] = useState(initialTask || '');
   
   // Automation Chat state
-  const [chatMessages, setChatMessages] = useState<any[]>([]);
+  const [chatMessages, setChatMessages] = useState([]);
   const [chatInput, setChatInput] = useState('');
   
   // Polling logs
