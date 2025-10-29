@@ -835,6 +835,49 @@ class BrowserAutomationService:
         vw, vh = dom_data.get('vw', 1280), dom_data.get('vh', 800)
         dom_clickables = dom_data.get('clickables', [])
         return local_vision_service.detect(screenshot_base64, vw, vh, dom_clickables=dom_clickables, model_path=os.path.join('/app/backend/models/', 'ui-detector.onnx'), rows=self.grid_rows, cols=self.grid_cols)
+    
+    async def _collect_dom_clickables(self, page: Page) -> Dict[str, Any]:
+        """Collect clickable elements from DOM"""
+        try:
+            # Get viewport size
+            viewport = page.viewport_size
+            vw, vh = viewport['width'], viewport['height']
+            
+            # Collect all interactive elements
+            clickables_data = await page.evaluate("""() => {
+                const elements = [];
+                const selectors = 'a, button, input, select, textarea, [onclick], [role="button"], [role="link"]';
+                document.querySelectorAll(selectors).forEach((el, idx) => {
+                    const rect = el.getBoundingClientRect();
+                    if (rect.width > 0 && rect.height > 0) {
+                        const style = window.getComputedStyle(el);
+                        if (style.display !== 'none' && style.visibility !== 'hidden') {
+                            elements.push({
+                                bbox: {
+                                    x: Math.round(rect.left),
+                                    y: Math.round(rect.top),
+                                    w: Math.round(rect.width),
+                                    h: Math.round(rect.height)
+                                },
+                                label: el.innerText?.trim() || el.value || el.placeholder || el.getAttribute('aria-label') || el.getAttribute('title') || el.tagName,
+                                type: el.tagName.toLowerCase(),
+                                name: el.name || el.id || `element_${idx}`,
+                                confidence: 0.85
+                            });
+                        }
+                    }
+                });
+                return elements;
+            }""")
+            
+            return {
+                'vw': vw,
+                'vh': vh,
+                'clickables': clickables_data or []
+            }
+        except Exception as e:
+            logger.error(f"DOM collection error: {e}")
+            return {"vw": 1280, "vh": 800, "clickables": []}
 
     # Convenience actions for SCROLL and WAIT
     async def scroll(self, session_id: str, dx: int = 0, dy: int = 400) -> Dict[str, Any]:
