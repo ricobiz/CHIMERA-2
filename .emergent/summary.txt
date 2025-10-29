@@ -1,73 +1,1431 @@
 <analysis>
-The AI engineer continued enhancing Chimera AIOS's Browser Automation, initially focusing on frontend visual stability. Key efforts involved stabilizing the canvas overlay for detection frames on , debugging  React errors by downgrading React and refactoring hooks, and improving UI elements like the 'Go' button. The conversation then shifted to refining the UI layout, including frame thickness, color, and a brief detour into a zoom lens which was later removed as the user prioritized fixing mobile pinch-zoom issues.
+The AI engineer's trajectory focused on stabilizing and refining the Chimera AIOS application, particularly its complex multi-model browser automation. Initially, the work involved critical UI fixes and implementing an anti-bot layer. A significant challenge was a fundamental misunderstanding of the application's unique living plan architecture, where a Head Brain (Main Chat Model) generates dynamic plans, a Spinal Cord (Supervisor) adapts them based on Executor (Local Vision Model) feedback. The AI initially had  *generating* plans, leading to broken functionality.
 
-A major development involved implementing a comprehensive anti-bot and human simulation layer as per a detailed TZ (Technical Specification). This encompassed sophisticated profile management, warmup sequences,  for all interactions,  patches, and a robust new  architecture with task analysis and plan generation (, ). The UI was updated to display this plan, a warm profile banner, and new interaction buttons. Frontend JSX compilation errors were a recurring theme during UI refactoring. The current state reflects ongoing iterations on UI layout and button placement, with backend logic for the new planner largely in place.
+The trajectory chronicles a meticulous effort to align the backend and frontend with the user-defined architecture. Key changes included:
+1.  **Backend Rearchitecture:** Creation of  to correctly separate plan/resource generation from execution.
+2.  **Data Flow Optimization:** Transition from sending full screenshots every step to sending text selectors first, with screenshots only on demand () or when actions have no effect, significantly saving tokens.
+3.  **Robust Verification:** Implementation of pre- and post-action DOM comparisons and page readiness checks to ensure actions are effective.
+4.  **Enhanced UX for Data:** Implementation of realistic data generation using  and a  status to prompt the user for input or generation preference.
+5.  **Frontend Overhaul (Ongoing):** A major redesign of the main chat interface to integrate automation as a chat *mode* (Chat, Code, Automation) rather than a separate tab or modal. This involves dynamic header elements (mode toggles, icons, session ID) and a changing animated border color to visually indicate the active mode. The Preview button's function now adapts to the active mode.
+
+The current state is mid-frontend integration, with the user reporting that the code generation preview is broken after the recent UI changes. This indicates a potential conflict in the  button's new dynamic logic.
 </analysis>
 
 <product_requirements>
-The Chimera AIOS is an AI code generation tool with a dark theme, OpenRouter integration, live preview, and mobile responsiveness. Core features include Research Planner, Browser Automation (vision-based SMART_CLICK/SMART_TYPE, anti-detect, proxies, Supervisor, Visual Grid Control, local VLM, Playwright, OpenRouter Step Supervisor, Human Browser Profiles), Dynamic Context Management, Document Verification, Self-Improvement, Personalized Chat, and Multilingual Knowledge Base. Users requested auto-testing, design-first workflow, granular LLM assignment, OpenRouter details, robust browser automation UI, automated captcha solving, and a human browser profile with anti-detect for registration. The primary problem addressed in the trajectory was stabilizing the visual detection overlays and ensuring reliable automation functions, particularly fixing flickering frames and the 'Go' button. Further, the user requested a sophisticated Anti-Bot / Human Simulation / Fingerprint Layer for full imitation of live users during registration, a new Planner with task analysis, and extensive UI refinements including profile management, live session monitoring, and a mini-chat for automation adjustments.
+The Chimera AIOS is a full-stack AI code generation tool with a dark theme, OpenRouter integration, live preview, and mobile responsiveness. Its core capabilities span Research Planning, Browser Automation (vision-based SMART_CLICK/SMART_TYPE, anti-detect, proxies, Supervisor, Visual Grid Control, local VLM, Playwright, OpenRouter Step Supervisor, Human Browser Profiles), Dynamic Context Management, Document Verification, Self-Improvement, Personalized Chat, and Multilingual Knowledge Base.
+
+Explicit requests included auto-testing, a design-first workflow, granular LLM assignment, and robust browser automation. The primary problem during this trajectory involved stabilizing visual detection, fixing UI layouts, and implementing a sophisticated Anti-Bot/Human Simulation layer for user registration. A new Planner for task analysis was requested, along with UI refinements including profile management, live session monitoring, and a mini-chat for automation adjustments. The user emphasized a multi-model architecture where a Brain model dynamically updates a living plan based on visual feedback, separate from static plan generation. Recent requirements include:
+*   A 3-level brain architecture (Head, Spinal, Executor).
+*   Dynamic data generation with user prompting for input.
+*   A unified chat interface with switchable modes (Chat, Code, Automation).
+*   Dynamic visual feedback for active chat mode (header changes, animated border color).
+*   A  button that dynamically opens content based on the active mode (artifacts, code, automation page).
 </product_requirements>
 
 <key_technical_concepts>
-- **Full-stack:** React (18.3.1), FastAPI, MongoDB.
-- **Browser Automation:** Playwright, HumanBehaviorSimulator (Bezier curves, overshoot, missclick), AntiDetectFingerprint (WebGL, Canvas, Navigator, Plugins spoofing), SessionActivityManager.
-- **LLM/Vision Integration:** OpenRouter API (for agent decisions, VLM for Captcha).
-- **Frontend UI/Graphics:** Canvas API (for overlays), ResizeObserver, Tailwind CSS.
-- **Anti-Detection:** Proxy quality checks (ipinfo.io), profile lifecycle (warmup, cooldown, burned).
-- **Planning:** Task analysis, plan generation with conditional logic.
+-   **Full-stack:** React, FastAPI, MongoDB.
+-   **Browser Automation:** Playwright, HumanBehaviorSimulator, AntiDetectFingerprint, SessionActivityManager.
+-   **LLM/Vision Integration:** OpenRouter API (Supervisor/Brain), Local Vision Model (element detection),  (realistic data generation).
+-   **Architectural Pattern:** Multi-model orchestration (Head Brain, Spinal Cord, Executor).
+-   **Frontend UI:** Canvas API, ResizeObserver, Tailwind CSS, Dynamic CSS for themed borders.
+-   **Anti-Detection:** Profile management (warmup, cooldown, burned), proxy quality checks.
 </key_technical_concepts>
 
 <code_architecture>
 
-- ****: Modified to use  for , , , .  now uses  + .
-- ****: Added endpoint  which can optionally warm up a profile.  was added to save a current session as a warm profile.
-- ** (NEW)**: Introduced with  (task analysis, resource availability, risk assessment) and  (generates steps with conditional logic and data bundle).
-- ****: Modified  to integrate the new planner architecture (analyze then generate). The  response now includes  and the  for frontend rendering.  added for mini-chat corrections.
-- ****: Refactored  and . The  function now deeply integrates profile metadata (UA, viewport, timezone, language, proxy) and applies anti-detect patches.
-- ****: Continues to support higher grid densities and Excel-style column naming.
-- ****: Enhanced with  to apply various spoofing patches (navigator, window.chrome, WebGL, Canvas noise, fonts, plugins, WebRTC).  was re-integrated for VLM-based captcha solving.
-- ****: Extended to manage  (user-agent, viewport, locale, hardware, WebGL, fonts, plugins, proxy, warmup, captcha details), , and profile lifecycle. Includes  for generating consistent data, proxy quality checks via  through Playwright context, and  to load context.
-- ****: Synchronized grid resolution and prepared for ONNX integration.
-- ****: Normalizes actions and handles model fallbacks.
-- ** (NEW)**: Introduced with  to determine current page conditions (captcha, phone_request, success, etc.) from DOM/vision signals.
-- ****: Manages global states and routing.
-- ****: Added new icons for UI redesign.
-- ****: Central to UI rework.
-    - Extensive refactoring for mobile responsiveness, canvas overlay for detections (thinner blue frames),  for stability.
-    - Initial  was added and then removed.
-    - Implemented  and  for pinch-zoom blocking.
-    - UI elements for the new planner: Plan overlay display, warm profile banner with Warmup account, Continue without warmup, Import profile buttons.
-    - Mini-chat for user corrections ().
-    - Dynamic UI layout adjustments for action buttons (Map, Pin, Clear, Hide, Grid, Plan, MkUp, Logs), and a combined 'Run' button, along with Open URL for Login and Save from Current Session buttons. This is an ongoing iterative process.
-- ****: Expanded with new API calls for automation, profile management, and planner.
+
+-   ****: Critical documentation outlining the multi-phase, multi-model automation system.
+-   ****: (Newly created) Documents the 3-tier brain architecture (Head Brain, Spinal Cord, Executor).
+-   ****: Serves as the AI entry point, orchestrating the automation cycle.
+    -   **Summary**: Handles incoming task requests, orchestrates the entire automation cycle, including calling the Head Brain for initial planning/resource generation, interacting with the browser service, and managing the execution loop driven by the Spinal Cord. It logs every step and handles state transitions.
+    -   **Changes**: Removed / calls. Integrated , added  action, used /, implemented  flag, added pre/post-action DOM verification, integrated , passes , handles  status, added  endpoint, and  logging.
+-   ****:
+    -   **Summary**: Contains endpoints for plan analysis and generation, but its role for core plan generation has been superseded by .
+    -   **Changes**: No direct changes in this trajectory.
+-   ****: (Newly created)
+    -   **Summary**: Represents the Head Brain (main, intelligent LLM). Analyzes user tasks, determines necessary resources, generates realistic data using , formulates an initial high-level plan, and can pause execution to prompt user for data.
+    -   **Changes**: Created from scratch to encapsulate Head Brain logic, implemented  to structure task/requirements/strategy, integrated  for realistic data, added  status, and ensures  is output.
+-   ****:
+    -   **Summary**: Represents the Spinal Cord (cheaper vision LLM). Receives the plan and current visual state, then decides the .
+    -   **Changes**: Fixed to use , improved  for  and  scenarios, modified to handle calls without initial screenshots (), and updated JSON schema for  action.
+-   ****:
+    -   **Summary**: Interfaces with Playwright for browser control, screenshot capture, DOM element collection, and action execution. Represents the Executor.
+    -   **Changes**: Replaced  with  and . Added  and  for robust page load checks.
+-   ****:
+    -   **Summary**: The central UI for browser automation, now intended to be opened via the  button when in Automation mode.
+    -   **Changes**: No direct changes were made to this file during this trajectory.
+-   ****:
+    -   **Summary**: The main chat UI. Underwent significant refactoring to support dynamic chat modes and a redesigned header.
+    -   **Changes**: Removed . Implemented  state and modified  to route messages to . Header was completely redesigned with three mode indicators (Chat, Code, Automation), three right-aligned icons (Eye, Code, Settings), a centered Chimera logo, and a bottom-right session ID. Dynamic animated gradient border colors were added based on the active mode. The  button's  logic was updated to dynamically open content based on .
+-   ** / **:
+    -   **Summary**: Dependency management files.
+    -   **Changes**: Added 
+### faker.providers.address
+
+	fake.address()                                                              # 736 Jared Court Apt. 103 Greenbury, TN 41316
+	fake.administrative_unit()                                                  # Washington
+	fake.bothify(text='## ??',                                                  # 00 oG
+	  letters='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ')           
+	fake.building_number()                                                      # 472
+	fake.city()                                                                 # Lake Donald
+	fake.city_prefix()                                                          # South
+	fake.city_suffix()                                                          # berg
+	fake.country()                                                              # Sierra Leone
+	fake.country_code(representation='alpha-2')                                 # AF
+	fake.current_country()                                                      # United States
+	fake.current_country_code()                                                 # US
+	fake.hexify(text='^^^^', upper=False)                                       # c6d6
+	fake.language_code()                                                        # pap
+	fake.lexify(text='????',                                                    # sDdy
+	  letters='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ')           
+	fake.locale()                                                               # st_ZA
+	fake.military_apo()                                                         # PSC 9255, Box 1067
+	fake.military_dpo()                                                         # Unit 8186 Box 2921
+	fake.military_ship()                                                        # USS
+	fake.military_state()                                                       # AA
+	fake.numerify(text='###')                                                   # 713
+	fake.postalcode()                                                           # 31939
+	fake.postalcode_in_state(state_abbr=None)                                   # 39587
+	fake.postalcode_plus4()                                                     # 22781-5241
+	fake.postcode()                                                             # 56018
+	fake.postcode_in_state(state_abbr=None)                                     # 70521
+	fake.random_choices(elements=('a', 'b', 'c'), length=None)                  # ['b', 'b', 'c']
+	fake.random_digit()                                                         # 7
+	fake.random_digit_above_two()                                               # 3
+	fake.random_digit_not_null()                                                # 6
+	fake.random_digit_not_null_or_empty()                                       
+	fake.random_digit_or_empty()                                                
+	fake.random_element(elements=('a', 'b', 'c'))                               # a
+	fake.random_elements(elements=('a', 'b', 'c'), length=None, unique=False,   # ['a', 'b', 'c']
+	  use_weighting=None)                                                       
+	fake.random_int(min=0, max=9999, step=1)                                    # 6110
+	fake.random_letter()                                                        # R
+	fake.random_letters(length=16)                                              # ['h', 'a', 'W', 'a', 'a', 'w', 'C', 'o', 'D', 'f', 'n', 'u', 'Z', 'F',
+	                                                                              'j', 'B']
+	fake.random_lowercase_letter()                                              # e
+	fake.random_number(digits=None, fix_len=False)                              # 21
+	fake.random_sample(elements=('a', 'b', 'c'), length=None)                   # ['a', 'b', 'c']
+	fake.random_uppercase_letter()                                              # X
+	fake.randomize_nb_elements(number=10, le=False, ge=False, min=None,         # 13
+	  max=None)                                                                 
+	fake.secondary_address()                                                    # Apt. 997
+	fake.state()                                                                # Missouri
+	fake.state_abbr(include_territories=True,                                   # ID
+	  include_freely_associated_states=True)                                    
+	fake.street_address()                                                       # 76893 Gregory Ferry Suite 548
+	fake.street_name()                                                          # James Port
+	fake.street_suffix()                                                        # Islands
+	fake.zipcode()                                                              # 82668
+	fake.zipcode_in_state(state_abbr=None)                                      # 57673
+	fake.zipcode_plus4()                                                        # 46115-9712
+
+### faker.providers.automotive
+
+	fake.license_plate()                                                        # VZE 442
+	fake.vin()                                                                  # 4V3SUMCG1RE7S4947
+
+### faker.providers.bank
+
+	fake.aba()                                                                  # 058898277
+	fake.bank_country()                                                         # GB
+	fake.bban()                                                                 # ZKYB04086499946024
+	fake.iban()                                                                 # GB74YYJE56375539518338
+	fake.swift(length=None, primary=False, use_dataset=False)                   # UNAVGBJI
+	fake.swift11(primary=False, use_dataset=False)                              # VVLKGBJO9S5
+	fake.swift8(use_dataset=False)                                              # PFKBGBVP
+
+### faker.providers.barcode
+
+	fake.ean(length=13, prefixes=())                                            # 0414622875272
+	fake.ean13(prefixes=(), leading_zero=None)                                  # 6887598761476
+	fake.ean8(prefixes=())                                                      # 74738953
+	fake.localized_ean(length=13)                                               # 1000557875082
+	fake.localized_ean13()                                                      # 1157714849759
+	fake.localized_ean8()                                                       # 10334348
+	fake.upc_a(upc_ae_mode=False, base=None, number_system_digit=None)          # 945813302142
+	fake.upc_e(base=None, number_system_digit=None, safe_mode=True)             # 03161357
+
+### faker.providers.color
+
+	fake.color(hue=None, luminosity=None, color_format='hex')                   # #c7f79e
+	fake.color_hsl(hue=None, luminosity=None)                                   # (289, 58, 61)
+	fake.color_hsv(hue=None, luminosity=None)                                   # (184, 29, 87)
+	fake.color_name()                                                           # MediumVioletRed
+	fake.color_rgb(hue=None, luminosity=None)                                   # (22, 150, 65)
+	fake.color_rgb_float(hue=None, luminosity=None)                             # (0.57369, 0.78, 0.24180000000000004)
+	fake.hex_color()                                                            # #87e642
+	fake.rgb_color()                                                            # 80,109,185
+	fake.rgb_css_color()                                                        # rgb(128,145,46)
+	fake.safe_color_name()                                                      # white
+	fake.safe_hex_color()                                                       # #aa44dd
+
+### faker.providers.company
+
+	fake.bs()                                                                   # optimize wireless technologies
+	fake.catch_phrase()                                                         # Distributed human-resource artificial intelligence
+	fake.company()                                                              # White-Christensen
+	fake.company_suffix()                                                       # PLC
+
+### faker.providers.credit_card
+
+	fake.credit_card_expire(start='now', end='+10y', date_format='%m/%y')       # 05/32
+	fake.credit_card_full(card_type=None)                                       # VISA 16 digit Margaret Mclaughlin 4746786645567749 08/34 CVC: 370
+	fake.credit_card_number(card_type=None)                                     # 6540303944572397
+	fake.credit_card_provider(card_type=None)                                   # VISA 16 digit
+	fake.credit_card_security_code(card_type=None)                              # 741
+
+### faker.providers.currency
+
+	fake.cryptocurrency()                                                       # ('STC', 'SwiftCoin')
+	fake.cryptocurrency_code()                                                  # ETC
+	fake.cryptocurrency_name()                                                  # Ethereum Classic
+	fake.currency()                                                             # ('ETB', 'Ethiopian birr')
+	fake.currency_code()                                                        # JOD
+	fake.currency_name()                                                        # South African rand
+	fake.currency_symbol(code=None)                                             # $
+	fake.pricetag()                                                             # $118.46
+
+### faker.providers.date_time
+
+	fake.am_pm()                                                                # PM
+	fake.century()                                                              # XXI
+	fake.date(pattern='%Y-%m-%d', end_datetime=None)                            # 2024-06-20
+	fake.date_between(start_date='-30y', end_date='today')                      # 2012-03-16
+	fake.date_between_dates(date_start=None, date_end=None)                     # 2025-10-29
+	fake.date_object(end_datetime=None)                                         # 1984-08-20
+	fake.date_of_birth(tzinfo=None, minimum_age=0, maximum_age=115)             # 1984-11-23
+	fake.date_this_century(before_today=True, after_today=False)                # 2025-01-31
+	fake.date_this_decade(before_today=True, after_today=False)                 # 2024-07-15
+	fake.date_this_month(before_today=True, after_today=False)                  # 2025-10-08
+	fake.date_this_year(before_today=True, after_today=False)                   # 2025-10-28
+	fake.date_time(tzinfo=None, end_datetime=None)                              # 2011-05-18 12:09:05.114258
+	fake.date_time_ad(tzinfo=None, end_datetime=None, start_datetime=None)      # 0366-04-27 01:41:58.144043
+	fake.date_time_between(start_date='-30y', end_date='now', tzinfo=None)      # 2006-08-11 05:37:02.931304
+	fake.date_time_between_dates(datetime_start=None, datetime_end=None,        # 2025-10-29 09:53:26
+	  tzinfo=None)                                                              
+	fake.date_time_this_century(before_now=True, after_now=False, tzinfo=None)  # 2011-11-30 06:13:43.729062
+	fake.date_time_this_decade(before_now=True, after_now=False, tzinfo=None)   # 2023-08-22 09:56:29.584498
+	fake.date_time_this_month(before_now=True, after_now=False, tzinfo=None)    # 2025-10-11 23:27:37.402160
+	fake.date_time_this_year(before_now=True, after_now=False, tzinfo=None)     # 2025-08-04 11:39:14.174189
+	fake.day_of_month()                                                         # 23
+	fake.day_of_week()                                                          # Monday
+	fake.future_date(end_date='+30d')                                           # 2025-11-17
+	fake.future_datetime(end_date='+30d', tzinfo=None)                          # 2025-11-13 07:39:52.441173
+	fake.iso8601(tzinfo=None, end_datetime=None, sep='T', timespec='auto')      # 2013-06-20T18:38:12.650364
+	fake.month()                                                                # 03
+	fake.month_name()                                                           # November
+	fake.past_date(start_date='-30d', tzinfo=None)                              # 2025-10-06
+	fake.past_datetime(start_date='-30d', tzinfo=None)                          # 2025-10-23 00:04:02.517910
+	fake.pytimezone(*args, **kwargs)                                            # Europe/Budapest
+	fake.time(pattern='%H:%M:%S', end_datetime=None)                            # 08:19:21
+	fake.time_delta(end_datetime=None)                                          # 0:00:00
+	fake.time_object(end_datetime=None)                                         # 02:08:36.272546
+	fake.time_series(start_date='-30d', end_date='now', precision=None,         # <generator object Provider.time_series at 0xf8bfff0a3ba0>
+	  distrib=None, tzinfo=None)                                                
+	fake.timezone()                                                             # Asia/Nicosia
+	fake.unix_time(end_datetime=None, start_datetime=None)                      # 55784673.87630679
+	fake.year()                                                                 # 2010
+
+### faker.providers.doi
+
+	fake.doi()                                                                  # 10.37930147/m2y4w03
+
+### faker.providers.emoji
+
+	fake.emoji()                                                                # 🛐
+
+### faker.providers.file
+
+	fake.file_extension(category=None)                                          # png
+	fake.file_name(category=None, extension=None)                               # statement.mp4
+	fake.file_path(depth=1, category=None, extension=None, absolute=True,       # /page/unit.ods
+	  file_system_rule='linux')                                                 
+	fake.mime_type(category=None)                                               # multipart/signed
+	fake.unix_device(prefix=None)                                               # /dev/xvdd
+	fake.unix_partition(prefix=None)                                            # /dev/sdr4
+
+### faker.providers.geo
+
+	fake.coordinate(center=None, radius=0.001)                                  # 20.013338
+	fake.latitude()                                                             # 87.9993715
+	fake.latlng()                                                               # (Decimal('-82.6915825'), Decimal('-160.693855'))
+	fake.local_latlng(country_code='US', coords_only=False)                     # ('25.67927', '-80.31727', 'Kendall', 'US', 'America/New_York')
+	fake.location_on_land(coords_only=False)                                    # ('47.56494', '31.33078', 'Voznesensk', 'UA', 'Europe/Kyiv')
+	fake.longitude()                                                            # 168.589745
+
+### faker.providers.internet
+
+	fake.ascii_company_email(*args, **kwargs)                                   # ydavid@flowers-wilson.info
+	fake.ascii_email(*args, **kwargs)                                           # kristiebennett@gmail.com
+	fake.ascii_free_email(*args, **kwargs)                                      # hwilliams@hotmail.com
+	fake.ascii_safe_email(*args, **kwargs)                                      # brich@example.org
+	fake.company_email(*args, **kwargs)                                         # ericksonjessica@wall.com
+	fake.dga(year=None, month=None, day=None, tld=None, length=None)            # puymbtrpvnppbkcsxtuk.org
+	fake.domain_name(*args, **kwargs)                                           # pittman-cummings.com
+	fake.domain_word(*args, **kwargs)                                           # sullivan-bell
+	fake.email(*args, **kwargs)                                                 # sophiacampos@example.com
+	fake.free_email(*args, **kwargs)                                            # judithmartin@yahoo.com
+	fake.free_email_domain(*args, **kwargs)                                     # yahoo.com
+	fake.hostname(*args, **kwargs)                                              # srv-79.morris.com
+	fake.http_method()                                                          # OPTIONS
+	fake.http_status_code(include_unassigned=True)                              # 409
+	fake.iana_id()                                                              # 8816395
+	fake.image_url(width=None, height=None, placeholder_url=None)               # https://dummyimage.com/80x363
+	fake.ipv4(network=False, address_class=None, private=None)                  # 86.146.207.133
+	fake.ipv4_network_class()                                                   # c
+	fake.ipv4_private(network=False, address_class=None)                        # 172.21.192.122
+	fake.ipv4_public(network=False, address_class=None)                         # 173.84.93.79
+	fake.ipv6(network=False)                                                    # ce9c:82c5:8e3d:f640:32f7:3b4f:4a5f:8905
+	fake.mac_address(multicast=False)                                           # e4:3e:05:4a:c8:32
+	fake.nic_handle(suffix='FAKE')                                              # YD78-FAKE
+	fake.nic_handles(count=1, suffix='????')                                    # ['SJK44-XZSK']
+	fake.port_number(is_system=False, is_user=False, is_dynamic=False)          # 64019
+	fake.ripe_id()                                                              # ORG-JVCF9-RIPE
+	fake.safe_domain_name(*args, **kwargs)                                      # example.com
+	fake.safe_email(*args, **kwargs)                                            # hrussell@example.org
+	fake.slug(*args, **kwargs)                                                  # use-human-check-air
+	fake.tld()                                                                  # com
+	fake.uri(schemes=None, deep=None)                                           # http://www.yu.info/explorepost.html
+	fake.uri_extension()                                                        # .html
+	fake.uri_page()                                                             # homepage
+	fake.uri_path(deep=None)                                                    # explore
+	fake.url(schemes=None)                                                      # https://henderson.biz/
+	fake.user_name(*args, **kwargs)                                             # smoran
+
+### faker.providers.isbn
+
+	fake.isbn10(separator='-')                                                  # 1-77704-081-7
+	fake.isbn13(separator='-')                                                  # 978-1-159-42601-9
+
+### faker.providers.job
+
+	fake.job()                                                                  # Loss adjuster, chartered
+	fake.job_female()                                                           # Phytotherapist
+	fake.job_male()                                                             # Press photographer
+
+### faker.providers.lorem
+
+	fake.get_words_list(part_of_speech=None, ext_word_list=None)                # ['a', 'ability', 'able', 'about', 'above', 'accept', 'according',
+	                                                                              'account', 'across', 'act', 'action', 'activity', 'actually', 'add',
+	                                                                              'address', 'administration', 'admit', 'adult', 'affect', 'after', 'again',
+	                                                                              'against', 'age', 'agency', 'agent', 'ago', 'agree', 'agreement', 'ahead',
+	                                                                              'air', 'all', 'allow', 'almost', 'alone', 'along', 'already', 'also',
+	                                                                              'although', 'always', 'American', 'among', 'amount', 'analysis', 'and',
+	                                                                              'animal', 'another', 'answer', 'any', 'anyone', 'anything', 'appear',
+	                                                                              'apply', 'approach', 'area', 'argue', 'arm', 'around', 'arrive', 'art',
+	                                                                              'article', 'artist', 'as', 'ask', 'assume', 'at', 'attack', 'attention',
+	                                                                              'attorney', 'audience', 'author', 'authority', 'available', 'avoid',
+	                                                                              'away', 'baby', 'back', 'bad', 'bag', 'ball', 'bank', 'bar', 'base', 'be',
+	                                                                              'beat', 'beautiful', 'because', 'become', 'bed', 'before', 'begin',
+	                                                                              'behavior', 'behind', 'believe', 'benefit', 'best', 'better', 'between',
+	                                                                              'beyond', 'big', 'bill', 'billion', 'bit', 'black', 'blood', 'blue',
+	                                                                              'board', 'body', 'book', 'born', 'both', 'box', 'boy', 'break', 'bring',
+	                                                                              'brother', 'budget', 'build', 'building', 'business', 'but', 'buy', 'by',
+	                                                                              'call', 'camera', 'campaign', 'can', 'candidate', 'capital', 'car',
+	                                                                              'card', 'care', 'career', 'carry', 'case', 'catch', 'cause', 'cell',
+	                                                                              'center', 'central', 'century', 'certain', 'certainly', 'chair',
+	                                                                              'challenge', 'chance', 'change', 'character', 'charge', 'check', 'child',
+	                                                                              'choice', 'choose', 'church', 'citizen', 'city', 'civil', 'claim',
+	                                                                              'class', 'clear', 'clearly', 'close', 'coach', 'cold', 'collection',
+	                                                                              'college', 'color', 'commercial', 'common', 'community', 'company',
+	                                                                              'compare', 'computer', 'concern', 'condition', 'conference', 'Congress',
+	                                                                              'consider', 'consumer', 'contain', 'continue', 'control', 'cost', 'could',
+	                                                                              'country', 'couple', 'course', 'court', 'cover', 'create', 'crime',
+	                                                                              'cultural', 'culture', 'cup', 'current', 'customer', 'cut', 'dark',
+	                                                                              'data', 'daughter', 'day', 'deal', 'debate', 'decade', 'decide',
+	                                                                              'decision', 'deep', 'defense', 'degree', 'Democrat', 'democratic',
+	                                                                              'describe', 'design', 'despite', 'detail', 'determine', 'develop',
+	                                                                              'development', 'difference', 'different', 'difficult', 'dinner',
+	                                                                              'direction', 'director', 'discover', 'discuss', 'discussion', 'do',
+	                                                                              'doctor', 'dog', 'door', 'down', 'draw', 'dream', 'drive', 'drop', 'drug',
+	                                                                              'during', 'each', 'early', 'east', 'easy', 'eat', 'economic', 'economy',
+	                                                                              'edge', 'education', 'effect', 'effort', 'eight', 'either', 'election',
+	                                                                              'else', 'employee', 'end', 'energy', 'enjoy', 'enough', 'enter', 'entire',
+	                                                                              'environment', 'environmental', 'especially', 'establish', 'even',
+	                                                                              'evening', 'event', 'ever', 'every', 'everybody', 'everyone',
+	                                                                              'everything', 'evidence', 'exactly', 'example', 'executive', 'exist',
+	                                                                              'expect', 'experience', 'expert', 'explain', 'eye', 'face', 'fact',
+	                                                                              'factor', 'fall', 'family', 'far', 'fast', 'father', 'fear', 'federal',
+	                                                                              'feel', 'feeling', 'few', 'field', 'fight', 'figure', 'fill', 'film',
+	                                                                              'final', 'finally', 'financial', 'find', 'fine', 'finish', 'fire', 'firm',
+	                                                                              'first', 'fish', 'five', 'floor', 'fly', 'focus', 'follow', 'food',
+	                                                                              'foot', 'for', 'force', 'foreign', 'forget', 'form', 'former', 'forward',
+	                                                                              'four', 'free', 'friend', 'from', 'front', 'full', 'fund', 'future',
+	                                                                              'game', 'garden', 'gas', 'general', 'generation', 'get', 'girl', 'give',
+	                                                                              'glass', 'go', 'goal', 'good', 'government', 'great', 'green', 'ground',
+	                                                                              'group', 'grow', 'growth', 'guess', 'gun', 'guy', 'hair', 'half', 'hand',
+	                                                                              'happen', 'happy', 'hard', 'have', 'he', 'head', 'health', 'hear',
+	                                                                              'heart', 'heavy', 'help', 'her', 'here', 'herself', 'high', 'him',
+	                                                                              'himself', 'his', 'history', 'hit', 'hold', 'home', 'hope', 'hospital',
+	                                                                              'hot', 'hotel', 'hour', 'house', 'how', 'however', 'huge', 'human',
+	                                                                              'hundred', 'husband', 'I', 'idea', 'identify', 'if', 'image', 'imagine',
+	                                                                              'impact', 'important', 'improve', 'in', 'include', 'including',
+	                                                                              'increase', 'indeed', 'indicate', 'individual', 'industry', 'information',
+	                                                                              'inside', 'instead', 'institution', 'interest', 'interesting',
+	                                                                              'international', 'interview', 'into', 'investment', 'involve', 'issue',
+	                                                                              'it', 'item', 'its', 'itself', 'job', 'join', 'just', 'keep', 'key',
+	                                                                              'kid', 'kind', 'kitchen', 'know', 'knowledge', 'land', 'language',
+	                                                                              'large', 'last', 'late', 'later', 'laugh', 'law', 'lawyer', 'lay', 'lead',
+	                                                                              'leader', 'learn', 'least', 'leave', 'left', 'leg', 'less', 'let',
+	                                                                              'letter', 'level', 'life', 'light', 'like', 'likely', 'line', 'list',
+	                                                                              'listen', 'little', 'live', 'local', 'long', 'look', 'lose', 'loss',
+	                                                                              'lot', 'low', 'machine', 'magazine', 'main', 'maintain', 'major',
+	                                                                              'majority', 'make', 'man', 'manage', 'management', 'manager', 'many',
+	                                                                              'market', 'marriage', 'material', 'matter', 'may', 'maybe', 'me', 'mean',
+	                                                                              'measure', 'media', 'medical', 'meet', 'meeting', 'member', 'memory',
+	                                                                              'mention', 'message', 'method', 'middle', 'might', 'military', 'million',
+	                                                                              'mind', 'minute', 'miss', 'mission', 'model', 'modern', 'moment', 'money',
+	                                                                              'month', 'more', 'morning', 'most', 'mother', 'mouth', 'move', 'movement',
+	                                                                              'movie', 'Mr', 'Mrs', 'much', 'music', 'must', 'my', 'myself', 'name',
+	                                                                              'nation', 'national', 'natural', 'nature', 'near', 'nearly', 'necessary',
+	                                                                              'need', 'network', 'never', 'new', 'news', 'newspaper', 'next', 'nice',
+	                                                                              'night', 'no', 'none', 'nor', 'north', 'not', 'note', 'nothing', 'notice',
+	                                                                              'now', 'number', 'occur', 'of', 'off', 'offer', 'office', 'officer',
+	                                                                              'official', 'often', 'oil', 'ok', 'old', 'on', 'once', 'one', 'only',
+	                                                                              'onto', 'open', 'operation', 'opportunity', 'option', 'or', 'order',
+	                                                                              'organization', 'other', 'others', 'our', 'out', 'outside', 'over', 'own',
+	                                                                              'owner', 'page', 'painting', 'paper', 'parent', 'part', 'participant',
+	                                                                              'particular', 'particularly', 'partner', 'party', 'pass', 'past',
+	                                                                              'pattern', 'pay', 'peace', 'people', 'per', 'perform', 'performance',
+	                                                                              'perhaps', 'person', 'personal', 'phone', 'physical', 'pick', 'picture',
+	                                                                              'piece', 'place', 'plan', 'plant', 'play', 'player', 'PM', 'point',
+	                                                                              'police', 'policy', 'political', 'politics', 'poor', 'popular',
+	                                                                              'population', 'position', 'positive', 'possible', 'power', 'practice',
+	                                                                              'prepare', 'present', 'president', 'pressure', 'pretty', 'prevent',
+	                                                                              'price', 'probably', 'process', 'produce', 'product', 'production',
+	                                                                              'professional', 'professor', 'program', 'project', 'property', 'protect',
+	                                                                              'prove', 'provide', 'public', 'pull', 'purpose', 'push', 'put', 'quality',
+	                                                                              'question', 'quickly', 'quite', 'race', 'radio', 'raise', 'range', 'rate',
+	                                                                              'rather', 'reach', 'read', 'ready', 'real', 'reality', 'realize',
+	                                                                              'really', 'reason', 'receive', 'recent', 'recently', 'recognize',
+	                                                                              'record', 'red', 'reduce', 'reflect', 'region', 'relate', 'relationship',
+	                                                                              'religious', 'remain', 'remember', 'report', 'represent', 'Republican',
+	                                                                              'require', 'research', 'resource', 'respond', 'response',
+	                                                                              'responsibility', 'rest', 'result', 'return', 'reveal', 'rich', 'right',
+	                                                                              'rise', 'risk', 'road', 'rock', 'role', 'room', 'rule', 'run', 'safe',
+	                                                                              'same', 'save', 'say', 'scene', 'school', 'science', 'scientist', 'score',
+	                                                                              'sea', 'season', 'seat', 'second', 'section', 'security', 'see', 'seek',
+	                                                                              'seem', 'sell', 'send', 'senior', 'sense', 'series', 'serious', 'serve',
+	                                                                              'service', 'set', 'seven', 'several', 'shake', 'share', 'she', 'short',
+	                                                                              'should', 'shoulder', 'show', 'side', 'sign', 'significant', 'similar',
+	                                                                              'simple', 'simply', 'since', 'sing', 'single', 'sister', 'sit', 'site',
+	                                                                              'situation', 'six', 'size', 'skill', 'skin', 'small', 'smile', 'so',
+	                                                                              'social', 'society', 'soldier', 'some', 'somebody', 'someone',
+	                                                                              'something', 'sometimes', 'son', 'song', 'soon', 'sort', 'sound',
+	                                                                              'source', 'south', 'southern', 'space', 'speak', 'special', 'specific',
+	                                                                              'speech', 'spend', 'sport', 'spring', 'staff', 'stage', 'stand',
+	                                                                              'standard', 'star', 'start', 'state', 'statement', 'station', 'stay',
+	                                                                              'step', 'still', 'stock', 'stop', 'store', 'story', 'strategy', 'street',
+	                                                                              'strong', 'structure', 'student', 'study', 'stuff', 'style', 'subject',
+	                                                                              'success', 'successful', 'such', 'suddenly', 'suffer', 'suggest',
+	                                                                              'summer', 'support', 'sure', 'surface', 'system', 'table', 'take', 'talk',
+	                                                                              'task', 'tax', 'teach', 'teacher', 'team', 'technology', 'television',
+	                                                                              'tell', 'ten', 'tend', 'term', 'test', 'than', 'thank', 'that', 'the',
+	                                                                              'their', 'them', 'themselves', 'then', 'theory', 'there', 'these', 'they',
+	                                                                              'thing', 'think', 'third', 'this', 'those', 'though', 'thought',
+	                                                                              'thousand', 'threat', 'three', 'through', 'throughout', 'throw', 'thus',
+	                                                                              'time', 'to', 'today', 'together', 'tonight', 'too', 'top', 'total',
+	                                                                              'tough', 'toward', 'town', 'trade', 'traditional', 'training', 'travel',
+	                                                                              'treat', 'treatment', 'tree', 'trial', 'trip', 'trouble', 'true', 'truth',
+	                                                                              'try', 'turn', 'TV', 'two', 'type', 'under', 'understand', 'unit',
+	                                                                              'until', 'up', 'upon', 'us', 'use', 'usually', 'value', 'various', 'very',
+	                                                                              'view', 'visit', 'voice', 'vote', 'wait', 'walk', 'wall', 'want', 'war',
+	                                                                              'watch', 'water', 'way', 'we', 'wear', 'week', 'weight', 'well', 'west',
+	                                                                              'western', 'what', 'whatever', 'when', 'where', 'whether', 'which',
+	                                                                              'while', 'white', 'who', 'whole', 'whom', 'whose', 'why', 'wide', 'wife',
+	                                                                              'will', 'win', 'wind', 'window', 'wish', 'with', 'within', 'without',
+	                                                                              'woman', 'wonder', 'word', 'work', 'worker', 'world', 'worry', 'would',
+	                                                                              'write', 'writer', 'wrong', 'yard', 'yeah', 'year', 'yes', 'yet', 'you',
+	                                                                              'young', 'your', 'yourself']
+	fake.paragraph(nb_sentences=3, variable_nb_sentences=True,                  # Wide despite nature including day science positive. Party child loss
+	  ext_word_list=None)                                                         American realize stay.
+	fake.paragraphs(nb=3, ext_word_list=None)                                   # ['Develop kid want while painting air. Imagine start help imagine two
+	                                                                              morning it.', 'Radio economy those staff outside thousand. Fear enough
+	                                                                              movie key.', 'Far sort much lot risk. Manage after travel of work indicate
+	                                                                              cut.']
+	fake.sentence(nb_words=6, variable_nb_words=True, ext_word_list=None)       # Natural week current economy green bank.
+	fake.sentences(nb=3, ext_word_list=None)                                    # ['Yes rest include environment.', 'Too side board.', 'Culture maintain
+	                                                                              since scientist and low.']
+	fake.text(max_nb_chars=200, ext_word_list=None)                             # Make despite night not contain. Who high against someone pattern maintain
+	                                                                              town party. Past defense off man fine appear size laugh.
+	fake.texts(nb_texts=3, max_nb_chars=200, ext_word_list=None)                # ['Degree lot growth can actually. Part value themselves research debate
+	                                                                              visit race.', 'Special career success small. Drug space once everything
+	                                                                              close natural. Within theory fact they region a nice.\nStay time born
+	                                                                              million son.', 'New type town camera pass. Stuff gun serve present. Room
+	                                                                              professor keep body head most argue.\nDifferent play itself agent laugh
+	                                                                              skill spend.']
+	fake.word(part_of_speech=None, ext_word_list=None)                          # young
+	fake.words(nb=3, ext_word_list=None, part_of_speech=None, unique=False)     # ['guy', 'go', 'free']
+
+### faker.providers.misc
+
+	fake.binary(length=1048576)                                                 # b'\xa9\xfe\xb5#{\xc8\xdb\xc0\xe0\x8c:C\xbe|\x9b\xd4\x12\xba\xd7\xd3)P\xe8\
+	                                                                              \bC\xc5\x1f\xc9/\xdf8G\xae\xc1<\xf7L\xda\x1cS[\x06n\x1a<~\x0c\xbeY\x87\x11
+	                                                                              \xa7\x8e\x8bz\xcc\xf4\xbf\x87\x99\xdeR\x8bT\xc9\xbdV\xcf\x7f\xf6\x16\xf5k\
+	                                                                              x8a\xaf\xb8\xd6\r\xd7\xae\xe0\x1fn7\x80\xfd3%\xe2%T\xed\xe7\x93\xfdOf\xa9.
+	                                                                              \xbaVrIQC\xdb^~\x96\x07\x07\xa8\x85P\x8d\x7f\xa3\xa9!\xc3_\x9e\xe2\x80Y^\x
+	                                                                              00\xe9H\xef\x9c\xb1M3\x99-
+	                                                                              n;\x1b1sr\xf1\xdd\x05\xfc\x02\x10\x19J\x16Y\xb7\xc0o\x00,\x7f\x13\xe3n\x02
+	                                                                              I\xb4\xa5(T\xfc;\xbb\x1a\xa03\xb1\xb7\x8b\x8d-
+	                                                                              ;\xfbRl\x81\xa8\x80\xa8\xf3\xaefIbT\x8fd\x18\x88\\;\xd3\x02\'U\x8f\xf1Q<\x
+	                                                                              81\x89i*\x91\xbc0?\xa4\xacP\x0c\x06Q\xd4\x99#\x14\x05\x7fmA\xd3-
+	                                                                              \x0bW\xe7F\xb2)\x1f\xa6\xcb;\xbe\x8d\xad\xf5\x08]\x17\xf7U)\xf9\x0e.\xe2\x
+	                                                                              a5jg"\xf9K\xc6\xd1a\x03g\x98\x90O\xe1G_\xa3\x88\xfb\x9b9P\xa7P\x1bV\xb98\x
+	                                                                              05\xde5\xeb\x08\xf5\x07\xd0\x9f\x80\x0e+\xd48\xd8\x1b\xafoC\x96\xe1\xa2}\x
+	                                                                              ca\x92s\xc4U\xfa\xa5\x8f\xd1\xf0P\xfc\x1b\x111M8\x8b}T{\x1ahx_\xdf8\x8c\xb
+	                                                                              6M\x8a>0|\x0b\x02-
+	                                                                              ,\x0ba\x9dJ\xbc\xc1"\nb[\t\x14s\xf3D\xa5\xactd\x98AZF\xed\x14\xef\xac\x9ae
+	                                                                              *\n\xb9\xe9`\xd2bC3\xb7\xfdp\xd8P\xaa=\xf9\xc1\x0e\x8b\xc4\x1f\xd6\x17RX[\
+	                                                                              xaaG\xd5\xfd\xa3\n[\n\x13\x1a\xf7N7z\xb6\xe4o\x13b\xdc\xf7\xee\xd7Q\x1f\x8
+	                                                                              e\xa7\x9bH\xd9,\xd2P\xe3\x7f>hK\xba\xbb\xf8\x87\x80\x1d\x94\xd4\xe3\x05\xa
+	                                                                              d!G\xaa\xf5\xb3\xcd\xfeq\xee\xf3c\xc3\xbfn\x88\xa5&\xab\xdd\xc4\x031.@\xf0
+	                                                                              \xd9>\xe8 \xb1\x98\x1ct!f\xd6\x19\x9eQ\xe3|;\xe9 \xc9\xf9L\xd3\x8d\xc6\xab
+	                                                                              \xcb\xc6f\xfel\xe0a1\x8b\xf5A)c\x8e\x8f\x0e\xfa\x87L\xdcg\x8a\xdfb\x02\nL\
+	                                                                              x9fa\x8f\x05\x14W\x9d\xd1\r\x1f\xfc\x7f\xe6\x0f\xff\x18E\xa6\x88-
+	                                                                              \xdd\xce\xeb4u\xeb)\xdfRR\xe0\xe8\xf4\xdb\xcc\x05\xcd\x97L\xdb\xf6)k\xe91G
+	                                                                              R\x08y\xd0\x0c\xc9\xe5\x92?\x96\xc4\x89\xc9\xe5o\xfb\x96\xaf\xb4\x02
+	                                                                              \x95o\x90\x15\xd6\xcbi\x0b$\x80 \xc0\xcf\xcc,\x92\x87M\xcb\xcfd\x8aK\xfbZ5
+	                                                                              \x10\x1d\xf3=~\xe9\xc0V\xda\xa4\xa3\x9fLJ\x9b\xaa\x85q\xaai3(5:\xe1\x9c\xe
+	                                                                              5\x96\xd2\x88D\x1d\xac\xc6\x8bx\x81\x06cY\xe2D\x1d\xc9_\x85\xad\xbd\xc9\xd
+	                                                                              d\xaaZs\xc4\xdb\xa6\x8c\xc031\x82B\x8b\xb1}\'\xc1\xb1\x83\xd0\xce\x12\x9d\
+	                                                                              nN\xd4\xf1\xe3\xa3\xbc{(\xa5$\xbf\xfd\x8c\xc5\xa2\xbc\xbd\x16\xa4\x8a\xf7\
+	                                                                              xe9\xe8\xc2\x89|\xb9a\xed\xb6\xae1=i\x08\xb2)J\x9e\x08Q\xa5i\x0esQ\x0btF\x
+	                                                                              89\xd5\x19\x87M\x94\xe2ar\xd5 }\xb1S\x04\x06\x97\xcc%`\x03\x15\x9fh\xf6`\x
+	                                                                              b5\xd2j\xb0Iyu\x08\xd1\'\xdfef{\x1e\xe2\x9f\x8ejT\x10\xf8*\xca{\xebN;\x13Z
+	                                                                              \xcd\x8f\xcb\xa3\x99\xb9\xb9\xc1\xde\xfc\x85q!\xbe\x93\xe8;#\xc5\xde\xa9\x
+	                                                                              ff\xf6~g\xdc+t\x96\xe3\xad\xe81\xb9\x17=\xde\xb5|\xb2\xae\xc7\x98;\xa4\xe9
+	                                                                              \xc1tk\x13t;\xbd\xeb\x92a6\xb7$t\x1c`\t\xd0\xf4\x19H\x97\xad\x1c4\x1e\x08\
+	                                                                              xa9\x03\xda\xbd\xd4\xc2Cz[5\x02\x87F\rO\x05\xae\x80R\x0e6x_\xbbTu<\x02D\xa
+	                                                                              a\xb8\xa5\x12\xb2{\xfdv\xab\xa3\xfdu\x9f\xd2\x19\x80v|\xb2\xbc\xbd>8\x99\x
+	                                                                              f6\xb4\x8aR\x9f\xc0\x15\xddx\xc4<_\x9b\x8f8\xe4-
+	                                                                              5.\xf1\xb3G\xb2\xb6^\x8e\xadFsn\x11\x00`\xa3\xfd\x95\xfaI=k\xd1o~\x9dg\xf6
+	                                                                              \xae\xa8\xbd\x1fq\x1e\xd2/Y\xc5\x15\x93\xba\xe1\x02\xcf{;\xe5\xd4\rc\x0bA\
+	                                                                              xfec\xce\xc9[\x0b\x9b:l\x01\xf5\x9b0\x9e\xd1\x81\xbf3q\xd7J;\x19\x06[\xf3}
+	                                                                              \xfc'
+	fake.boolean(chance_of_getting_true=50)                                     # False
+	fake.csv(header=None, data_columns=('{{name}}', '{{address}}'),             # "Tammy Thomas","003 Mcclain Lakes Suite 639 North Catherine, IN 14445"
+	  num_rows=10, include_row_ids=False)                                         "Marilyn Johnson","12319 Sanders Divide Suite 557 Calhounview, PR 44497"
+	                                                                              "Eddie Gallegos","47170 Grant Lakes East Sheryl, IA 13285"  "Dawn
+	                                                                              Meyer","330 Adrienne Plain Suite 540 Weberbury, DE 33305"  "Jonathan
+	                                                                              Lopez","915 Henson Islands Port Alishaborough, NY 48205"  "Matthew
+	                                                                              Harris","1194 Gomez Plaza Suite 926 Allenfort, TX 79489"  "Patricia
+	                                                                              Collier","251 Herring Throughway Suite 167 South Jennifer, TN 09786"
+	                                                                              "Lisa Blair","11176 Joshua Wall New Mauriceland, NE 80515"  "Nancy
+	                                                                              Henderson","9265 Barnes Center Peterstad, NC 24959"  "Nicole Burns","1181
+	                                                                              Rodriguez Dam Suite 465 Tranmouth, WA 40279"
+	fake.dsv(dialect='faker-csv', header=None, data_columns=('{{name}}',        # "Cathy Castillo","592 Troy Bridge Eatonton, NC 10385"  "Robert
+	  '{{address}}'), num_rows=10, include_row_ids=False, **fmtparams)            Alexander","71591 Vaughn Passage Vaughanchester, MS 87022"  "Bryan
+	                                                                              Gates","04077 Garcia Fields Suite 591 Nelsonborough, OH 46986"  "Michael
+	                                                                              Love","USCGC Solis FPO AE 22615"  "Logan Swanson","837 Green Summit Port
+	                                                                              Brianbury, SD 99637"  "Patricia Stout","PSC 2801, Box 4600 APO AP 44219"
+	                                                                              "Priscilla Burgess","8425 Smith Mews Blairbury, SC 73320"  "James
+	                                                                              Ponce","139 Kristie Knoll Apt. 948 East Kristinberg, MA 00971"  "Paul
+	                                                                              Peters","3729 Cynthia Roads Lake Debraport, DE 08980"  "Tyler
+	                                                                              Hurley","5494 Jamie Throughway Smithbury, NC 05223"
+	fake.fixed_width(data_columns=None, num_rows=10, align='left')              # Kevin Weber         18  Tracy Peck          4   Kristina Meyers     11
+	                                                                              Jason Rodgers       11  Jeremy Moore        3   Susan Green         1
+	                                                                              Ronald Torres       13  Jessica Coffey MD   13  Charles Nichols     1
+	                                                                              Diane Oliver        19
+	fake.image(size=(256, 256), image_format='png', hue=None, luminosity=None)  # b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x01\x00\x00\x00\x01\x00\x08\
+	                                                                              x02\x00\x00\x00\xd3\x10?1\x00\x00\x054IDATx\x9c\xed\xdc\xcbq\x1c7\x14\x86Q
+	                                                                              \xc8\xe5b8JB\x1b1\x0b\xa5\xc1\x08\x94\x84\xf2\x107L\x82\x11(\x0e\xad\xbc\x
+	                                                                              b0K\xa6(>\xe6\xd1\x00.\xf0\x9f\x13\x01\x16\xfd\xdd\xdbS\x83\xea\x0f?\xbe}i
+	                                                                              \x90\xea\xaf\xd9\x07\x80\x99\x04@4\x01\x10M\x00D\x13\x00\xd1\x04@4\x01\x10
+	                                                                              M\x00D\x13\x00\xd1\x04@4\x01\x10M\x00D\x13\x00\xd1\x04@4\x01\x10M\x00D\x13
+	                                                                              \x00\xd1\x04@4\x01\x10M\x00D\x13\x00\xd1\x04@4\x01\x10M\x00D\x13\x00\xd1\x
+	                                                                              04@4\x01\x10M\x00D\x13\x00\xd1\x04@4\x01\x10M\x00D\x13\x00\xd1\x04@4\x01\x
+	                                                                              10M\x00D\x13\x00\xd1\x04@4\x01\x10M\x00D\x13\x00\xd1\x04@4\x01\x10M\x00D\x
+	                                                                              13\x00\xd1\x04@4\x01\x10M\x00D\x13\x00\xd1\x04P\xc8\xed\xd7\x8f\xb7_?\xce>
+	                                                                              E\x96\xbfg\x1f \xdd\xd3\'\xfe\xe6\xe1\xfe\xe7\xa7\xcf\x13\x0f\x13H\x00s\xf
+	                                                                              cz\xeeo\x1e\xee\xe7\x9e$\x9c\x00\xc6y6\xec\'\x9e\x84_\x04\xd0\x9da_\x99\x0
+	                                                                              0\xba0\xecW!\x80#]?\xeco\x1e\xeeo?}\xfe~\xf7x\xdc\xa1x\x8b\x00\xaee\xd8/M\
+	                                                                              x00\x17\xf2f\xbf\x07\x01\x9c\xc1\xb0\xdf\x8f\x00\xdeg\xd8oL\x00/3\xecC\x08
+	                                                                              \xe07\x86}\x1a\x01\x18\xf6\xd1r\x030\xecii\x01\x18\xf6<\x13\x11\x80a\xcfk\
+	                                                                              xb6\r\xc0\xb0\xe7\x14\xbb\x05\xb0\xc1\xb0w\x1dh\xa4\x1d\x020\xec\xb9\xd8\x
+	                                                                              c2\x01l0\xec\x99n\xb1\x00\x0c{\x8e\xb5F\x00\x86=\x9d\xd4\r\xc0\xb0g\x80r\x
+	                                                                              01\x18\xf6\x8cT"\x00\xc3\x9eYf\x06`\xd83\xdd\xe8\x00\x0c{J\x19\x17\xc0\xbf
+	                                                                              \x8f\xbe\x87\x9eR\xc6}\x1c\xd7\x7f\xfb\xa7\xbby\xb8\xf7\x95\xdc1\x86~\x1d\
+	                                                                              xfa\xfb\xdd\xa3\x8f\xbfR\x8a\xcf\xa3\x13mt\x00\x96\x00\xa5L\xd8\x00\x1a\xa
+	                                                                              0\x8e9\xaf@\x1a\xa0\x88i\xbf\x014@\x05~\x04\x13mf\x00\x96\x00\xd3M\xde\x00
+	                                                                              \x1a`\xae\xf9\xaf@\x1a`\xa2\xf9\x014\r0O\x89\x00\x9a\x06\xfe\xe0:\xd0\x18U
+	                                                                              \x02\x80)\n\x05`\t0^\xa1\x00\x9a\x06\x18\xaeV\x00M\x03\x8cU.\x80\xa6\x01\x
+	                                                                              06\xaa\x18\x00\x0cS4\x00K\x801\x8a\x06\xd04\xc0\x10u\x03h\x1a\xa0\xbf\xd2\
+	                                                                              x014\r\xd0Y\xf5\x00\x92\xb9\r1\xc0\x02\x01X\x02\xf4\xb3@\x00M\x03t\xb3F\x0
+	                                                                              0M\x03\xf4\xb1L\x00M\x03t\xb0R\x00p\xb8\xc5\x02\xb0\x048\xd6b\x014\rp\xa8\
+	                                                                              xf5\x02h\x1a\xe08K\x06\xd04\xc0AV\r\xa0i\x80#,\x1c\x00\\o\xed\x00\xb6_\x02
+	                                                                              \xae\x03\xf5\xb6v\x00-
+	                                                                              \xa0\x01\xbaZ>\x80\xa6\x01\xae\xb0C\x00M\x03\\j\x93\x00\xe02\xfb\x04`\tp\x
+	                                                                              81}\x02h\x1a\xe0|[\x05\xd04\xc0\x99v\x0b\xa0i\x80sl\x18\x00\x9cn\xcf\x00,\
+	                                                                              x01N\xb4g\x00m\xa3\x06\xdc\x86\xe8j\xdb\x00\xdaF\r\xd0\xcf\xce\x014\r\xf0\
+	                                                                              x9e\xcd\x03h\x1a\xe0M\xfb\x07\x00o\x88\x08\xc0\x12\xe05\x11\x014\r\xf0\x8a
+	                                                                              \x94\x00\x9a\x06xIP\x00M\x03\xfc!+\x00x&.\x00K\x80\xa7\xe2\x02h\x1a\xe0\x8
+	                                                                              9\xc4\x00\xdaj\r\xb8\x0e\xd4Oh\x00m\xb5\x06\xe8$7\x00h\xe1\x01X\x02D\x07\x
+	                                                                              d04\x10/=\x80\xa6\x81l\x02hM\x03\xc1\x04@4\x01\xfc\xc7\x12\xc8$\x80\xffi \
+	                                                                              x90\x00~\xa3\x814\x02xN\x03Q\x04\xf0\x82\x82\r\xb8\x0e\xd4\x89\x00\x88&\x8
+	                                                                              0\x97\x15\\\x02\xf4 \x80Wi \x81\x00\xde\xa2\x81\xed\t\xe0\x1d\x1a\xd8\x9b\
+	                                                                              x00\x88&\x80\xf7Y\x02\x1b\x13\xc0I4\xb0+\x01\x9cJ\x03[\x12\xc0\x194\xb0\x1
+	                                                                              f\x01,\xc3m\x88\x1e\x04p\x1eK`3\x028\x9b\x06v"\x80Kh`\x1b\x02\xb8\x90\x06\
+	                                                                              xf6 \x00\xa2\t\xe0r\x96\xc0\x06\x04p\x15\r\xacN\x00\xd7\xd2\xc0\xd2\x04p\x
+	                                                                              00\r\xacK\x00\xc7\xd0\xc0\xa2\x04@4\x01\x1cf\xc0\x12p\x1d\xe8p\x028\x92\x1
+	                                                                              7\xa1\xe5\x08\xe0`\x1aX\x8b\x00\x8e\xa7\x81\x85\x08\x80h\x02\xe8\xc2\x12X\
+	                                                                              x85\x00z\xd1\xc0\x12\x04\xd0\x91\x06\xea\x13@_\x1a(N\x00D\x13@w\x96@e\x02\
+	                                                                              x18\xe1\xc0\x06\xdc\x868\x96\x00\x06\xb1\x07j\x12\xc08\x1a(H\x00Ci\xa0\x1a
+	                                                                              \x01\x10M\x00\xa3Y\x02\xa5\x08`\x02\r\xd4!\x8094P\x84\x00\xa6\xd1@\x05\x02
+	                                                                              \x9a\x00f\xb2\x04\xa6\x13\xc0d\x1a\x98K\x00\xf3\x9d\xdb\x80\xeb@\x07\x12@\
+	                                                                              t\xf6\xc0,\x02 \x9a\x00\xaa\xb0\x04\xa6\x10@!\x1a\x18O\x00\xb5h`0\x01\x94\
+	                                                                              xa3\x81\x91\x04@4\x01Td\t\x0c#\x80\xa240\x86\x00\xea\xd2\xc0\x00\x02(\xed\
+	                                                                              xb5\x06\xdc\x868\x8a\x00\xaa\xb3\x07\xba\x12\x00\xd1\x04\xb0\x00K\xa0\x1f\
+	                                                                              x01\xacA\x03\x9d\x08`\x19\x1a\xe8A\x00+\xd1\xc0\xe1\x04@4\x01,\xc6\x128\x9
+	                                                                              6\x00\xd6\xa3\x81\x03\t\x80h\x02
+	                                                                              \x9a\x00V\xe5:\xd0!\x04\xb0$?\x03\x8e"\x00\xa2\t\x80h\x02
+	                                                                              \x9a\x00\x88&\x00\xa2\t\x80h\x02 \x9a\x00V\xf5\xfd\xeeq\xf6\x11v \x00\xa2\
+	                                                                              t`mnC\\I\x00D\x13\x00\xd1\x04@4\x01\x10M\x00D\x13\xc0\xc2\xfc\x15p=\x01\x1
+	                                                                              0M\x00D\x13\x00\xd1\x04@4\x01\x10M\x00\xcbs\x1d\xe8\x1a\x02
+	                                                                              \x9a\x00\xd6\xe6\xaf\x80+\t\x80h\x02 \x9a\x00\x88\xf6\xe1\xc7\xb7/\xb3\xcf
+	                                                                              \x00\xd3\xd8\x00D\x13\x00\xd1\x04@4\x01\x10M\x00D\x13\x00\xd1\x04@4\x01\x1
+	                                                                              0\xed\x1f\xb0=\t\x1e\xd4\x98\x9c\xeb\x00\x00\x00\x00IEND\xaeB`\x82'
+	fake.json(data_columns=None, num_rows=10, indent=None)                      # [{"name": "Rhonda Williams", "residency": "6729 Mary Lodge Apt. 770\nWest
+	                                                                              Frederickberg, NJ 34808"}, {"name": "Patricia Schroeder", "residency":
+	                                                                              "4667 Michael Inlet Suite 627\nBlackfurt, FL 42934"}, {"name": "Edwin
+	                                                                              Bowman", "residency": "0779 Sarah Field Suite 596\nSouth Courtneybury, MI
+	                                                                              18738"}, {"name": "Matthew Fitzgerald", "residency": "67479 Brittney
+	                                                                              Squares\nConwayfort, CT 14963"}, {"name": "Mary Harris", "residency":
+	                                                                              "06567 Avila Mill\nSheltonside, FM 15827"}, {"name": "Phillip Nelson",
+	                                                                              "residency": "79558 Brandon Overpass Suite 737\nLake Michaelland, ME
+	                                                                              86431"}, {"name": "Richard Martinez", "residency": "58718 Victor
+	                                                                              Trail\nAdkinsfort, OH 47552"}, {"name": "Lisa Schroeder", "residency":
+	                                                                              "603 Griffin Loaf\nSouth Carriefurt, PA 20710"}, {"name": "Melissa
+	                                                                              Holmes", "residency": "9001 Ryan Ways\nMeyersmouth, MI 84162"}, {"name":
+	                                                                              "Anthony Daniel", "residency": "7891 Jones Mills\nSaundersland, CT
+	                                                                              30885"}]
+	fake.json_bytes(data_columns=None, num_rows=10, indent=None)                # b'[{"name": "Madison Rice", "residency": "4404 Hunter Trail Suite
+	                                                                              106\\nStevenbury, GU 59663"}, {"name": "Alicia Griffin", "residency": "099
+	                                                                              Mitchell Square Apt. 084\\nNew Lisaberg, TN 63313"}, {"name": "Edward
+	                                                                              Mcclain", "residency": "78624 Stevens Views\\nNorth Jay, AS 88615"},
+	                                                                              {"name": "Kenneth Watkins DDS", "residency": "608 Richardson
+	                                                                              Glens\\nRoystad, NH 21886"}, {"name": "Jimmy Bishop MD", "residency":
+	                                                                              "27105 Harrison Station Apt. 506\\nNew Cynthia, KS 96009"}, {"name": "Dr.
+	                                                                              Peter Manning MD", "residency": "386 Edward Mall\\nSouth Brian, MH
+	                                                                              18335"}, {"name": "Deborah Mccormick", "residency": "718 Elizabeth
+	                                                                              Roads\\nLake Andrew, WY 74996"}, {"name": "Tracy Munoz", "residency": "915
+	                                                                              Kimberly Pine Suite 348\\nSouth Jasonbury, SC 40111"}, {"name": "Andrew
+	                                                                              Harper", "residency": "576 Angela Estate Apt. 696\\nEast Philiptown, NE
+	                                                                              72443"}, {"name": "Lynn Moore", "residency": "7733 Allen Row\\nWest
+	                                                                              Jonathanville, AK 54849"}]'
+	fake.md5(raw_output=False)                                                  # 426921ea4ba04b512f115d98e870ef6e
+	fake.null_boolean()                                                         # True
+	fake.password(length=10, special_chars=True, digits=True, upper_case=True,  # *38EOG2k(8
+	  lower_case=True)                                                          
+	fake.psv(header=None, data_columns=('{{name}}', '{{address}}'),             # "Diane Forbes"|"Unit 4107 Box 1520 DPO AE 57710"  "Gary Pham"|"8597
+	  num_rows=10, include_row_ids=False)                                         Zachary Bridge Lake Kimberlyfort, FM 86521"  "Eric Goodwin"|"10253 Juan
+	                                                                              Grove Dixonland, WV 83739"  "Amanda Scott"|"588 Antonio Island Lake
+	                                                                              Nicholas, NE 71233"  "Mrs. Amanda Campbell"|"39680 Robert Parkways
+	                                                                              Sabrinaville, MS 14550"  "Julie Nelson"|"74653 Lauren Ramp Apt. 749 Lake
+	                                                                              John, MO 74464"  "Michael Welch"|"53075 Christina Shore North Jessica, NE
+	                                                                              71122"  "Christine Fox"|"02632 Potter Shores Apt. 026 Eugeneport, AR
+	                                                                              94176"  "James Bailey"|"680 Walker Springs North Kellitown, DE 81122"
+	                                                                              "Corey Garcia"|"8799 Jose Forges Apt. 080 West Lee, MA 44129"
+	fake.sha1(raw_output=False)                                                 # 83b1f877a12d508f6ea99b44fa3d9ab5c931e451
+	fake.sha256(raw_output=False)                                               # c80e6403d195bda489f4946d1bb58be112c145da815a54a32f1637117b1cc67a
+	fake.tar(uncompressed_size=65536, num_files=1, min_file_size=4096,          # b'TBDhqyuXkcSeNVIVYauW1\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	  compression=None)                                                           0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x000000644\x000000000\x000000000\x
+	                                                                              0000000002000\x0000000000000\x00011530\x00 0\x00\x00\x00\x00\x00\x00\x00\x
+	                                                                              00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00
+	                                                                              \x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x
+	                                                                              00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00
+	                                                                              \x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x
+	                                                                              00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00
+	                                                                              ustar\x0000\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00LYj\x1d\x10l\xc8\x06\xad\xd6\xa9\t\xc
+	                                                                              7\x92\xab2!mYb\x87&=\x9c\x90\xe4\xaa\x15e\r\xbd=\x055|J\x82\xb6/\xe1G\x86R
+	                                                                              u\xa0\x8fx\x18#JH_\x19\xef\x99\xcbZ\x89\x9a<%@o\x05\xa9h\xc6\xde\x93\xc8\x
+	                                                                              f6\xaeD\xceg\xdf&&-
+	                                                                              }\x7fV\xae\x91\xa3f[\xb9\xe0qf\xb2\xc5\x89\xb4\xb4b\xda\x1fNA\te\x0e\xb3\x
+	                                                                              dcl\xb7\x8c\xfc=e/f\xb2\xce\xd7kta\xbe\x89~\\\xf8\xfa\xd9\xb9\xb7\xb3\xad\
+	                                                                              xf3T]\x06"toe\x07\x00\x9ejp\xafG\x8f`\xeeD\x1b1\x0c\x86\x0b\xae\xa8\x99\xb
+	                                                                              f\xe92F\xa3\xa8\x05\x95S\xe8\x86\xb0o9\x99)g<0G\xa6\x00\x00\x94\xeaz;\xff\
+	                                                                              xa4\x91\x14\xef\x83s\x1d\xffv%\xbc\x97\xc4\xfe&\xf79\x02\x82U\x80\xda\xd27
+	                                                                              \xe9\xe3\x83}\xc8\xca\x01\xfd\xe8\x8f~\x94\xda\t\x86\xa9:u\xd1J\x99\xafB\x
+	                                                                              f3\xad\x84\xa8\xa7}\x8a\x08\xd8j\xa3fg\xc3\\+\xa0\xbd\x98\x83\t4/\xff\xbf\
+	                                                                              x13\xb2\xd4\'\xf6\x15\xdfai\x00\x88\x1an\x04\xe0}R\xa3<j&\x96\n\xd6\xff\x8
+	                                                                              4*vOq\xa6\x87\x19\xf4=N/\x8b\x1d{\x12S\xf4\x13\x02b\xff\xdf\x91\xbc*C\xe5\
+	                                                                              \\n\n\x18;\xaf\x16\x1d\xf7M;\xd1H\xac%b\x1f8\x8e@pn?\xbcC\xedn\x87E\x1d\x1
+	                                                                              5\x95\xfco\xe2#\xf3c\x88\xa4\xfa,\x86\xf2\xb4k_\xad\xac\xde?p\xf7\xcf|\x9d
+	                                                                              \x16D\xe4\xd9\xfcL$b\x9b\xfc7\xd8+\xda\xf7\xad\x15\xb3\xae\xcc\x82~\xc0\xa
+	                                                                              7J\xde;\xe1\'niH\x80>\xa9\x13\xfc\xa8>\'32MU\xabQ\x9c\n\xa2\xc7\xc3\xfd\xf
+	                                                                              7m\xba\xda \x19\xc8\x04\xe0\xbb\x18\x1d8\x99^=J[\x07\x05\x01jBm\xc1\x1e\xa
+	                                                                              c\xcc\x81:\xe6\xf4\xf4\x12\xe1\xa0\xb5un\x15\xf58\x10\xbc*j#\xe5\x14a\x19K
+	                                                                              t\xcb\xe0\xa4\xf9\x9aj:\tO5!\xee\x98I\x00\x14q\xb1\x80\xa1\xe68\xe7a\x96S\
+	                                                                              xff\xb3m\xfe7+\x056r}\xb9>\xf1T\xe4rc\xbc\xca\xc4~\xcd\xff\xa6\xe0\xd3\xff
+	                                                                              \x9b\xe5zHA\xc6\x9a\xe5N\xaaS\xb1RG\xf2VI\xea\xc0\xddAK\xc0\x9e\n\x16\xdd\
+	                                                                              xfa\x0f!\xabN|%\x98\xc4\xde\xaadgd\x07#\xc8\x8a\x93u\'\x0e-
+	                                                                              \x15w\'\xd6|\xaf\x9c`^\xe5\x01\x06\xbcR\x10\x03\xf6s\xf6\xca:\xeb\x82\xc2\
+	                                                                              x86\x9e3{ \xe8\x16\xa0\xe0\x05\xe0\x02O\xda\x16\xf4\xc5/\xd7H\x16\xdf\x82O
+	                                                                              \xf2IU&\xef\x13\x00\x81\xca\xa00\xc3\xbfA\x87Rt\xa7)\xf0\x8d\xa0!\xe7K\xfe
+	                                                                              \xeee\x91\xc2\x87q\xea%\x9d\x7f\xb9IZ\x1dr\x03\x86\xed]\xae\xfaY\xe7$~\xf1
+	                                                                              \xf5\x7f\x02\'dg\xcc\xeas\xd6H\x18\xf2\xc7\xb6\x07\x99)\xf0\x98,T\xd8\xfe0
+	                                                                              \xb7\x19M\xc6\n/\xe9\xcd\xd8\x00\xcfVf.\x14ta\xcaR\x89\x13?5\xf4d\xf6*\x89
+	                                                                              \xacy\x93\x81\x89\x06\xc7\xf8\xfc>\xb6\x0b\x04\x8f\xc6\x1a\xb7L\xfb\xa5\x8
+	                                                                              e\xfd\xba\xbb\xcc\xd9\xec\x18D\x15\x0cW\x86v\x89q\xc6\xd7\xcd\x8ek\x94\x14
+	                                                                              \'\x13^\xda\x8f\xafi\xbe\x1d\x9fF\xa4\xf5\xba\xed[P\xc2kc\xdf\x1d\xf2\xcd\
+	                                                                              xca\x8e\xb1\xd9\'\xd7\x0b,\x9dpa\xceg\'\xad\xcb7F[\xf7\xf3\x96\x1b6\xfd\xe
+	                                                                              4\xf3T\xdf\xd8P\xc3O`\xb2\x10-
+	                                                                              \x1c\xf9\xdd^\xc8\xb9\xdfz\\\xb9\xee\x17\xd3\x9f\xacU\xa8\xa5\x07\xdf\xd4\
+	                                                                              x91\x12E\x1e\x0b\x87!\xbf\xaf\xa6\xda\n|\x86O\xea\xffd\x02\xd3^\xf8\xd8\x9
+	                                                                              7\xec\xef\'t\xb2L+\x1e\xea\x1d\xd5\ty\xef\x9cp\r\xe3\xc9t\xb2\xc5\xc8Db\xa
+	                                                                              5\xd7";\xdf\x8cszl\x08\xf4\xaf\x0e\x15\xa3\xd3\xdc\xef\xe78\xba96%C\x02\xa
+	                                                                              4T\xc7P)\xaa+t\xc3p\xe9\xb3o\x05\xf3\x93\xdca\x1e\xb4\xd2\x9de\x149\xb7\x0
+	                                                                              7@=P\xf0\xc9\xcd/\xc5\xab\xe6}\xa3\xf3\xbb\xe3\x83\x9f\xbeV\t\x05\xef\xa2\
+	                                                                              xa3!\xc4(\xda1\xe0\xc2\xd3e\xf9\xc0\x02^\xf2\xbc\x86\xef\x9b\x84\xae\xb2\x
+	                                                                              b1\x83[1m\xc7(\xb6\x90f\xeb\xde\xe6:\xd2U\xfd\x97\xc1\xb9\x98\xf9\xeb\x8a\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0
+	                                                                              0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\
+	                                                                              x00\x00\x00\x00\x00\x00\x00\x00\x00'
+	fake.tsv(header=None, data_columns=('{{name}}', '{{address}}'),             # "Vanessa Burns" "6575 Donna Bypass Suite 866 Johnview, WY 29300"  "Matthew
+	  num_rows=10, include_row_ids=False)                                         Brown" "17865 Williams Light Suite 567 South Ashleyberg, NJ 48155"
+	                                                                              "Stephanie Murray"      "12416 Wilson Ville East Bryanview, NV 11998"
+	                                                                              "Aaron Clarke"  "352 Jennifer Course Apt. 347 West Andrewton, CA 13303"
+	                                                                              "Micheal Martin"        "8810 Lisa Stream Apt. 647 New Jose, WY 19946"
+	                                                                              "Paul Lynch"    "92024 Paul Track New John, CO 80099"  "Erin Medina"
+	                                                                              "5623 Barnett Way Suite 437 Williamsonfurt, ND 02325"  "Emily Davis"
+	                                                                              "16067 Leslie Lodge Lake Mariamouth, NH 17626"  "Mr. Jason Banks"
+	                                                                              "9523 White Shoals East Christopher, OK 85992"  "Theresa Stewart"
+	                                                                              "21180 Debra Mills Rickview, MH 08873"
+	fake.uuid4(cast_to=<class 'str'>)                                           # b3e60b69-f35b-48e2-aaf1-ce96c6d2dac5
+	fake.zip(uncompressed_size=65536, num_files=1, min_file_size=4096,          # b'PK\x03\x04\x14\x00\x00\x00\x00\x00\xadN][\th\xc1v\x00\x04\x00\x00\x00\x0
+	  compression=None)                                                           4\x00\x00\x15\x00\x00\x00AbAZszAJaQeiqpTSjGkB1\xa2\xad\x00\x1e\x96\x08\x8a
+	                                                                              i.\xd8\xdb\x03d\xcd\xd9\xd18\x0bK\xd7\xac\xabF\x81\x91\x1afF\x9d\xf1\xbe &
+	                                                                              \x88\xf1\x04IM\x8b?,@\xcd\x01`Gb\x93\xd8\xc2$\xe0)s\xe3h\xc3\xbcOi\xd2\x0f
+	                                                                              \x02\xcb\xd9\xc5\x13\x14\xfd(.B\x97.+\xc9h\x97\xb4)\x8b\xb7\xa3KSAo\xbf[\\
+	                                                                              mY\xdb]m\x1e\x9f\xf2\'\x05\x1e$}\xd5=\x9a\x87\xeb3\x9a\xda!\xfaQ$\x1c\xfc\
+	                                                                              xd3\x1eeR\x8aO\x1a.\xc5\xa2U\x1e\xc8\xb4O\xc1\xeb1|\xd0$g~\xd0t\x94\xfaPF\
+	                                                                              xcfOlE\x01\xa1\xa4\xe7\x8d\xaez#v \xb2d\xd1|\xc8\xa5\xec\x18\xfc$w\xcb\xb2
+	                                                                              \x1c\xb6Y\xc5\xe4\xd7%\xd15DW[\xe5\xb7Q!.\xc9\xb9\xdau8\xc9\xb4\x80:Ff\xe6
+	                                                                              \xd7<\xad\x95A&\t`\x84*\n\x95\x8cc:\xb8\x94\x02\xd2\xf1\x8a\xa8\xfa\xd3\xb
+	                                                                              5\x83\xd3\x8f#`\xafp\xfa\xa8Z\x94\xa0\x99l\xdc\x8ea\xd0\xda\xd7F\xc1\xcd\x
+	                                                                              9e\x8e\x06e\x7f\xa9e\x8a6\xcdaZb\xc34\xff\x84\x11\\Tu\xbb\xa3q\'?\xf5\xe3[
+	                                                                              \x16\x1ez\xd8\x03\x8f0\xfd\xb28Rt?r\xe8\xbc\xb2\x98\x87l/\xf6sC!\xfe\xc9Uc
+	                                                                              \x86\x14\xa5\x91\xb42*\xb6\xba,y\xd1\xa6{\x01\xe0\xae\x94ty\xe5\x9d\x04_2s
+	                                                                              \xfaf\x12\xf9\x87\xf9\x1a\rP\xcd\x92]\x8dU\xb1\x1f\r\xe8z\x15\xdf?\xef\x17
+	                                                                              \xe8^\xb8p}\xf2S!\x92\xda\xc5\xb9\xf1~\x19&\x1f\xa8\xd4\xc0\x12+Kn\xc6\x94
+	                                                                              [\xf1R\x9e\x1e\xd9b\xdf\x9c\xd6\x01\x048\xebB\xf2nvg\xf3GV\xab7\xf3\x9fzIt
+	                                                                              \xd1\x7f%ey\x177\xb3Z\x98\xc0B:.g\x8f\x859\xa2\xdc\xc0\xba\xaeI\nh~aA/\xcf
+	                                                                              D\x8e]\x87\x90\x82\xb1G\xaf\x83oFw\x8b.\x95\xd7(\xa5\x07`\xc7\x7fTx\x0c\xa
+	                                                                              5\xc0x\xf8\x1cevZ\x0e\tm\x8a\xc0t\x07\xaen&\x9c\xd5\xd0W\xae\x89\xe2\xd5\x
+	                                                                              1f6\xef=\xc1r\x1co_\xd9\xbcS\xe3\xe2\x95\x95\x80|+,\x8a\xe7\x9bx\xf5\x19\x
+	                                                                              b8\xc9\x9e^\xe6\x8e\x85v\xce\xd3IX\xd3\xb02\xaa\xdb\xc0\xc0\xfaXlO\x82[V\x
+	                                                                              15S\xa7\xeaSt\x02\x87\xa4\x0b\xa6\xef\xd7\xe0n\xd1U\xc9\xe2j\xa8\xaa[\x1eD
+	                                                                              \xabS\xe9\xf3\xdfn\xd7\xe0gh$B?\xa9\x7f\xf9^Sx\xd9Z\xec\xe6n\x9e\xd8\x85\x
+	                                                                              b4:|\x8eY\xf4\xf7\x1e\xe8\x9c]Ae\xb6s\x94\x8f\xa5Ie\xcdo0-
+	                                                                              \xff\r\xcc\xb6\xc3\x11\x16Q%~\xbb\xaf\xea\xf6\x96\x18FWhrb\xac%K\xde\x1d\x
+	                                                                              88nLX\t|\xce*i\xbd\x90o\x97&\xd1\x9a\xb89\xd0K\xc6y\x06\x9a\xc2\xff\xe8xP\
+	                                                                              x12P\xf5\xad\xd06\x96\x0c0\xc5e\xc8\x06\x9d\xfeD\x9c\xbe\x7f\'jI\xa7_\x89\
+	                                                                              xfa\x85:\xfb\xc2\xb2\xcch"%\xb0\xfa\x90v\xdd\x90\x1b6.1h YyOp\xf2P\x12\x11
+	                                                                              {T\x17?g4\n?\x14\xff\xb4\xbf\xd7\xe9\x82\xa4Bz\xd2\xfcv\xd4\\\xd1\xf9\xc3\
+	                                                                              x178\xea\x0f!\xd8d0\xf4t`yg\xe1\xb5=\x86{s\xc3\xbf\x19\xe9\xe2XE\xf4\x18\x
+	                                                                              840u\x11V\x8d\xb0\r\xc0r\x9fr_\xd2i\xf2\xdat\x1e\x1b>i\xae\xc5l\x1d\x13\x1
+	                                                                              1Dj\xdf\x17]\xc6\x89\xc0\x1d\x0e\x99\xb9\xf2\xdf[\x9b:O\xdfK\xfb\x0e\xadB*
+	                                                                              \xe7\x04\xcb\x00\xe8\x96a\xb3\xbdl\xef\xfa\xdc1\xe6\x82U\x99fl`@[v\x102\x0
+	                                                                              eU\x151\xea&\xb1\x15\x1f\x0b\x84\xd5Zq\xd4\x92(+\xba\xbb\x9cd*8\xd4\xa6\xe
+	                                                                              6qI\xd5\xc3U~\xc8\xf6\x18Y\x9f\xb0+\xb4\xff`)\xe9\xbd\x9b\x7f\xff\xf6\xf4\
+	                                                                              xd6TUC\x9d\xf7\xe8\xdc\xe57r\xc73|a\x11;6\xff\x13\x19E\xcc\x05]J}\x8a\xe2(
+	                                                                              )`\xc2\x1b:\x02\xfd\xcd\x96:\x8bA\xe4\xd2p0\xae\x18\xb1l{\xccyq\x98\xd0\x1
+	                                                                              bd\x90\x84\x0eta\xc7\xd5\x0fI1\x17E\x98\xc8\xd1L\x8c\xafIW7&9\xac\xaed\x94
+	                                                                              ?N\xbe,%+E\xdd\xb5\x9aH\x99\x03\x85\xec?Fq\x18)\xcbPK\x01\x02\x14\x03\x14\
+	                                                                              x00\x00\x00\x00\x00\xadN][\th\xc1v\x00\x04\x00\x00\x00\x04\x00\x00\x15\x00
+	                                                                              \x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80\x01\x00\x00\x00\x00AbAZszAJaQ
+	                                                                              eiqpTSjGkB1PK\x05\x06\x00\x00\x00\x00\x01\x00\x01\x00C\x00\x00\x003\x04\x0
+	                                                                              0\x00\x00\x00'
+
+### faker.providers.passport
+
+	fake.passport_dates(birthday=2025-10-29)                                    # ('29 Oct 2025', '29 Oct 2025', '29 Oct 2030')
+	fake.passport_dob()                                                         # 1971-11-29
+	fake.passport_full()                                                        # Jonathan Gilmore M 14 Nov 2013 05 Sep 2023 05 Sep 2028 V90889321
+	fake.passport_gender(seed=0)                                                # M
+	fake.passport_number()                                                      # 663154428
+	fake.passport_owner(gender='X')                                             # ('Francisco', 'Cole')
+
+### faker.providers.person
+
+	fake.first_name()                                                           # Jennifer
+	fake.first_name_female()                                                    # Michelle
+	fake.first_name_male()                                                      # Benjamin
+	fake.first_name_nonbinary()                                                 # Christopher
+	fake.language_name()                                                        # Ganda
+	fake.last_name()                                                            # Warren
+	fake.last_name_female()                                                     # Small
+	fake.last_name_male()                                                       # Richardson
+	fake.last_name_nonbinary()                                                  # Curry
+	fake.name()                                                                 # Michael Finley
+	fake.name_female()                                                          # Cheryl Nelson
+	fake.name_male()                                                            # David Ward
+	fake.name_nonbinary()                                                       # Madison Clements
+	fake.prefix()                                                               # Mrs.
+	fake.prefix_female()                                                        # Mrs.
+	fake.prefix_male()                                                          # Mr.
+	fake.prefix_nonbinary()                                                     # Mx.
+	fake.suffix()                                                               # Jr.
+	fake.suffix_female()                                                        # DVM
+	fake.suffix_male()                                                          # II
+	fake.suffix_nonbinary()                                                     # DDS
+
+### faker.providers.phone_number
+
+	fake.basic_phone_number()                                                   # 266-449-7832
+	fake.country_calling_code()                                                 # +61 89162
+	fake.msisdn()                                                               # 0682056892250
+	fake.phone_number()                                                         # 529.648.9197x52164
+
+### faker.providers.profile
+
+	fake.profile(fields=None, sex=None)                                         # {'job': 'Petroleum engineer', 'company': 'Gonzales-Robinson', 'ssn':
+	                                                                              '305-06-8268', 'residence': '958 Susan Light\nLake Heatherport, AK 45186',
+	                                                                              'current_location': (Decimal('-88.531662'), Decimal('159.491350')),
+	                                                                              'blood_group': 'AB-', 'website': ['https://www.knight.org/'], 'username':
+	                                                                              'deborahwillis', 'name': 'Deborah Hernandez', 'sex': 'F', 'address': '254
+	                                                                              Smith Pike\nCastilloview, MH 77146', 'mail': 'laura89@gmail.com',
+	                                                                              'birthdate': datetime.date(1977, 12, 21)}
+	fake.simple_profile(sex=None)                                               # {'username': 'ashleyreyes', 'name': 'Patricia Moore', 'sex': 'F',
+	                                                                              'address': '819 Carr Mountain Apt. 323\nNew Sierra, VI 41196', 'mail':
+	                                                                              'sanchezryan@hotmail.com', 'birthdate': datetime.date(1938, 2, 26)}
+
+### faker.providers.python
+
+	fake.enum(enum_cls)                                                         # FakerEnum.A
+	fake.pybool(truth_probability=50)                                           # False
+	fake.pydecimal(left_digits=None, right_digits=None, positive=None,          # 4380464104374350413501807416016831790531539187602024144.299343358390767692
+	  min_value=None, max_value=None)                                             99012075988766597017330130055200483714781835065685428684334378300042960
+	fake.pydict(nb_elements=10, variable_nb_elements=True, value_types=None,    # {'ask': 2196, 'story': 'ydRfPIZYjKMmKioTBsGW', 'around':
+	  allowed_types=None)                                                         'https://cabrera.com/wp-content/main/wp-contentabout.asp', 'measure':
+	                                                                              datetime.datetime(1986, 3, 9, 23, 6, 42, 86482), 'work':
+	                                                                              'nBQLmIchorCfqUNLUpvq', 'law': 'gbTkaAdMsmsTaaIuNRie', 'include':
+	                                                                              -6.25067699678808, 'daughter': datetime.datetime(1995, 11, 19, 15, 35, 33,
+	                                                                              650367)}
+	fake.pyfloat(left_digits=None, right_digits=None, positive=None,            # 753.462332720952
+	  min_value=None, max_value=None)                                           
+	fake.pyint(min_value=0, max_value=9999, step=1)                             # 511
+	fake.pyiterable(nb_elements=10, variable_nb_elements=True,                  # {'http://anderson-rivera.com/mainprivacy.php', datetime.datetime(1976, 7,
+	  value_types=None, allowed_types=None)                                       24, 1, 45, 49, 463826), 'KkxruASxXmVCqTYcwbyo', datetime.datetime(1975, 1,
+	                                                                              15, 15, 53, 34, 564021), -99.6788830834976, 'kfLiNipoNUQnIQKjQQov',
+	                                                                              'ikelley@example.net', 54578.4461551099, 'kevinfrazier@example.org',
+	                                                                              'tUAHrzIGvZljvFmHEbYI'}
+	fake.pylist(nb_elements=10, variable_nb_elements=True, value_types=None,    # [8228, 'bJMqEiBbFwgwfLeODnDi', 'joseph61@example.org',
+	  allowed_types=None)                                                         'pjJCswnvKtXMxAwHzpUb', datetime.datetime(1983, 2, 13, 7, 21, 47, 959537),
+	                                                                              'tWFBXGMCGLMfGZLLszPx',
+	                                                                              Decimal('-1794069.0301377019876028585476631407359489511051'),
+	                                                                              'FoLnTNQVuURBdwilSmCu']
+	fake.pyobject(object_type=None)                                             # None
+	fake.pyset(nb_elements=10, variable_nb_elements=True, value_types=None,     # {4064, Decimal('11356020944.6345364642786071820967506977805542895430219790
+	  allowed_types=None)                                                         160472343477074430098215428362716244'), 'mNdddZhHeqZnFfkZivwO',
+	                                                                              Decimal('-8701498383161680267418681396364217968271.8793156'),
+	                                                                              59827626629319.8, 'crFgcPGDzZykDYMyxKFr', 'aoIRxFhOhlvMyILYWuto', 7838}
+	fake.pystr(min_chars=None, max_chars=20, prefix='', suffix='')              # WHYolzMXuweSLVXSHQqr
+	fake.pystr_format(string_format='?#-###{{random_int}}{{random_letter}}',    # X3-4844894y
+	  letters='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ')           
+	fake.pystruct(count=10, value_types=None, allowed_types=None)               # ([8930, 'afZIAuNRxeHQsmFkwMzh', 'UBOhJJakxFnzpSBwYpNF',
+	                                                                              'UfcOScfmPQRKGrlVyrxX', datetime.datetime(1995, 1, 12, 23, 51, 52,
+	                                                                              622276), 'KsOuZPrbYtQpolxzyRHG', datetime.datetime(1998, 4, 21, 1, 57, 26,
+	                                                                              574521), 'wkbCHQfSYoJviJOuSnnl', 'uhvVKltjUHKSpeadCEBr',
+	                                                                              'http://www.love.com/main/categoriesmain.html'], {'while':
+	                                                                              datetime.datetime(2013, 2, 24, 6, 15, 5, 353661), 'sense':
+	                                                                              datetime.datetime(2003, 10, 2, 0, 31, 59, 574336), 'deep':
+	                                                                              'https://www.rodgers-ellis.com/wp-content/search/postsmain.htm', 'relate':
+	                                                                              datetime.datetime(1975, 3, 13, 23, 58, 23, 183808), 'goal': Decimal('-
+	                                                                              1545835987176266956296838050378787162836108138189986757.636172913825447354
+	                                                                              9749189198446141219509596572157117846829004239'), 'attention':
+	                                                                              'PwJMFgYlzNysICFlzyIN', 'the': 'LXiJhyYUsvvdYphVkOyD', 'discuss':
+	                                                                              'JujSpwPDKBuzFovaFuxY', 'leader': 'uwLvatCjmDSrWyYGmXVi'}, {'necessary':
+	                                                                              {0: datetime.datetime(1986, 2, 27, 22, 10, 12, 709880), 1: [Decimal('94279
+	                                                                              26216611983721014640061270415889257429755991195228053803029747642900741984
+	                                                                              52730218073032911755.0024948308'), 3521, 'http://sanders-
+	                                                                              reyes.net/blogregister.asp'], 2: {0:
+	                                                                              'https://gonzalez.com/tag/appregister.php', 1: -69.5888423016987, 2:
+	                                                                              ['vOesrzbuaEkvEHDKFuQx',
+	                                                                              'https://caldwell.com/main/app/categoriesregister.html']}}, 'sport': {1:
+	                                                                              'XIztxFKBvtdJWtcfAffe', 2: ['SQSFCoDZUUTONWQuzCYD', -13484171518411.0,
+	                                                                              'FiLFnjcBhuhuFmEZhFBT'], 3: {1: 4891, 2: 5767, 3: [5418,
+	                                                                              'ryanthomas@example.net']}}, 'kitchen': {2: 'VLCCEXEaqQfNqzPgThKB', 3:
+	                                                                              ['viLjKKQblOUPrsGATXeA', 45775.3294211816, 'uivJNwROxYATKOXCPACs'], 4: {2:
+	                                                                              6709, 3: 'asOcPtWcexFmPtlnYGpS', 4: ['RSFjDkFmKdFLHjkTYwhk',
+	                                                                              'zJkUShuNzvWXFxCITmjE']}}, 'parent': {3: 'BvtUGOGSgmROpvOpVwsN', 4: [7917,
+	                                                                              'https://norris.com/category/exploreregister.jsp',
+	                                                                              'lBuxBHlzMfuhFdljiFpv'], 5: {3: 'lekEvqeRHlSJuYroLZyV', 4:
+	                                                                              'EtKdCtFRUNwlyvHMCEFZ', 5: ['fgLrnWuyhwfppEpbbThT',
+	                                                                              datetime.datetime(1992, 3, 2, 5, 32, 32, 5852)]}}, 'someone': {4:
+	                                                                              'XcdBXcJTqZiNtLSjIQSP', 5: ['TVbdUnnlfOVuYiMPQbng',
+	                                                                              'aQZYGVbpdefFniRXdDrS', 'YBUVjRUcsEoUiZACmxdE'], 6: {4:
+	                                                                              'peter33@example.com', 5: 'lwilson@example.com', 6:
+	                                                                              ['ifWhhhzOcMilBTohGbRG', 36625740955.5761]}}, 'travel': {5:
+	                                                                              Decimal('50152587061601821375280111784.6581923'), 6:
+	                                                                              ['kevin49@example.net', 'ecbYTsRLdbdBAlDhCXRA', 'OeoujfAhTnCcFFUXLkEp'],
+	                                                                              7: {5: 'gGMbpeDTzizZepEQdMPA', 6:
+	                                                                              Decimal('389087386795829415147151457.1583105358509'), 7:
+	                                                                              ['http://moore.com/blog/list/appfaq.html', 865]}}, 'year': {6: Decimal('-
+	                                                                              34391986492032092132299460379737494139838088216960224536887089927.53739659
+	                                                                              93773386335693628215'), 7: ['http://www.washington-
+	                                                                              taylor.com/blog/categoriesfaq.html', datetime.datetime(1991, 5, 2, 15, 35,
+	                                                                              31, 938799), 'nvWvmQsOdSZhcPhsxIWW'], 8: {6: 'wwoods@example.net', 7:
+	                                                                              8399.2826361236, 8: [datetime.datetime(1985, 3, 3, 4, 47, 6, 280129),
+	                                                                              'FVCkPDUtGiEMYJmInkoD']}}, 'to': {7: 'iFuLXIQdxcDnUGvlbCfC', 8:
+	                                                                              [70280835429259.7, 2652.400929137, datetime.datetime(1980, 2, 22, 16, 20,
+	                                                                              39, 225448)], 9: {7: 'UwSdwCJyJVIqVKwSBEPj', 8: 'millssharon@example.org',
+	                                                                              9: ['OInFurHJmPCSeJxJwgvX', Decimal('4540035570357879651376730265250350236
+	                                                                              6064343165850926255567575098412195949.540567771947007193621504386835073661
+	                                                                              6654')]}}, 'former': {8: 'nboone@example.com', 9: ['bIoXxYNjxMtzVxWMqoTl',
+	                                                                              'https://simpson-anderson.com/categoryhome.php', 613], 10: {8:
+	                                                                              'IUUXcXgkDzayORwPZQze', 9: 6940, 10: [datetime.datetime(2017, 4, 20, 18,
+	                                                                              18, 51, 866366), 'NyjbsrzUetFYcfElpDVS']}}, 'ago': {9:
+	                                                                              'NtLRSQHsEhHBleqkSQBB', 10:
+	                                                                              ['http://www.costa.org/categories/tag/blogsearch.php',
+	                                                                              'lDRngciVnwIJvrhDlOKz', 'LKvNrHPEelAnNNCWLsjT'], 11: {9:
+	                                                                              Decimal('5455541489046602115225065019816.0'), 10: 'MUdwiAzmbMzAbWTaGEhi',
+	                                                                              11: ['WaLxLxqRivRtpZLhXTsV', 'deansmith@example.org']}}})
+	fake.pytuple(nb_elements=10, variable_nb_elements=True, value_types=None,   # (26.4451265978298, 'wiVNwJyTFmQbRQUKBYMi', 'hnichols@example.org',
+	  allowed_types=None)                                                         'UPBtoSxFEjZHZUxWdFKY', 819, datetime.datetime(2006, 9, 17, 14, 52, 55,
+	                                                                              852343), 'WdXgiNmvlaAaxqAuPTyj', 'https://clark.net/tag/blogauthor.php',
+	                                                                              4062, 'http://ramos.com/wp-content/list/listcategory.htm',
+	                                                                              'kathylucas@example.net', 'ReGvFytoKnrfJLlYdeag')
+
+### faker.providers.sbn
+
+	fake.sbn9(separator='-')                                                    # 576-76341-6
+
+### faker.providers.ssn
+
+	fake.ein()                                                                  # 45-1320923
+	fake.invalid_ssn()                                                          # 173-98-0000
+	fake.itin()                                                                 # 948-96-3574
+	fake.ssn(taxpayer_identification_number_type='SSN')                         # 175-71-3598
+
+### faker.providers.user_agent
+
+	fake.android_platform_token()                                               # Android 2.3.2
+	fake.chrome(version_from=13, version_to=63, build_from=800, build_to=899)   # Mozilla/5.0 (Linux; Android 4.0) AppleWebKit/531.2 (KHTML, like Gecko)
+	                                                                              Chrome/46.0.879.0 Safari/531.2
+	fake.firefox()                                                              # Mozilla/5.0 (iPhone; CPU iPhone OS 17_2_1 like Mac OS X) AppleWebKit/534.2
+	                                                                              (KHTML, like Gecko) FxiOS/12.3e2802.0 Mobile/98S450 Safari/534.2
+	fake.internet_explorer()                                                    # Mozilla/5.0 (compatible; MSIE 7.0; Windows CE; Trident/3.1)
+	fake.ios_platform_token()                                                   # iPhone; CPU iPhone OS 17_1_2 like Mac OS X
+	fake.linux_platform_token()                                                 # X11; Linux i686
+	fake.linux_processor()                                                      # i686
+	fake.mac_platform_token()                                                   # Macintosh; PPC Mac OS X 10_8_7
+	fake.mac_processor()                                                        # Intel
+	fake.opera()                                                                # Opera/8.36.(X11; Linux i686; mn-MN) Presto/2.9.174 Version/10.00
+	fake.safari()                                                               # Mozilla/5.0 (iPod; U; CPU iPhone OS 3_0 like Mac OS X; hr-HR)
+	                                                                              AppleWebKit/535.17.1 (KHTML, like Gecko) Version/3.0.5 Mobile/8B115
+	                                                                              Safari/6535.17.1
+	fake.user_agent()                                                           # Opera/8.78.(Windows NT 4.0; wal-ET) Presto/2.9.164 Version/10.00
+	fake.windows_platform_token()                                               # Windows NT 6.2 dependency.
 </code_architecture>
 
 <pending_tasks>
-- Full implementation and re-integration of code export.
-- Full implementation of the Visual Validator (beyond navigation validation).
-- Complete  context compression logic testing.
-- Implement the core logic for Self-Improvement code modification.
-- Refine the  UI (finalizing button placement and viewer sizing).
-- Implement photo recognition for generated images with metadata extraction for Document Verification.
-- Add subtitles (current action/plan) overlay in the viewer.
-- Implement an honest Pause function that truly stops the automation cycle.
-- Prioritize detection targets (e.g., Sign in button, search field) and add fallback scrolling if targets aren't found.
-- Implement SSE-stream for the live viewer to prevent UI flickering.
-- Possibly connect a real local ONNX model for UI element detection.
-- Finalize the UX flow for Import profile (desktop helper vs. Login within viewer for mobile).
-- Integrate Automation button in the main chat to open AutomationPage.
+-   Full implementation and re-integration of code export.
+-   Full implementation of the Visual Validator.
+-   Complete  context compression logic testing.
+-   Implement the core logic for Self-Improvement code modification.
+-   Implement photo recognition for Document Verification.
+-   Implement an honest Pause function.
+-   Prioritize detection targets and add fallback scrolling.
+-   Implement SSE-stream for the live viewer.
+-   Integrate animated background for visual observation of brain flows (from ).
 </pending_tasks>
 
 <current_work>
-Immediately before this summary, the AI engineer was engaged in a complex, iterative process of refactoring the  UI to align with user-specified layout and functionality requests. This involved:
-1.  **UI Layout Refinement**: The most recent messages concern adjusting the dimensions of the browser viewer and the placement of numerous control buttons. The user reported that buttons were still overlapping or not positioned correctly. The AI attempted to narrow the viewer horizontally using padding and  properties, then tried a three-column grid layout, and finally reverted to a compact bottom control strip as per user's latest guidance. This is an ongoing visual debugging process.
-2.  **Plan and Profile Integration**: The backend planner (analyze/generate) is fully integrated into , returning the plan and analysis. The frontend displays this plan as an overlay. A banner for warm profile status (with Warmup, Continue, Import buttons) is implemented.
-3.  **Profile Creation/Import**:  is implemented to save a current browsing session as a warm profile, serving as a no-install mobile alternative for profile import. Buttons Open URL for Login and Save from Current Session are present in the UI.
-4.  **Mini-Chat Corrections**: A mini-chat input is available below the viewer to send real-time corrections via , updating the plan overlay.
-5.  **Ongoing UI Bugs**: The frontend is experiencing persistent JSX compilation errors (, ) during these layout adjustments, which the AI is actively debugging and fixing. The last reported issue from the user is that buttons are still misplaced or overlapping.
+Immediately before this summary request, the AI engineer was engaged in a significant frontend UI overhaul of the  component. This followed extensive backend re-architecture to correctly implement the multi-model (Head Brain, Spinal Cord, Executor) automation flow, including dynamic plan generation, realistic data generation with user prompting, robust action verification, and page readiness checks.
+
+The current work focuses on integrating the automation functionality into the main chat by changing chat modes (Chat, Code, Automation) via header buttons. This involved:
+1.  **Removing the ** (incorrect previous approach).
+2.  **Redesigning the header** with three small, colored, rounded square mode indicators (left), three interactive icons (Eye, Code, Settings) on the right, the Chimera logo centrally, and a small, editable session ID in the bottom right.
+3.  Implementing **dynamic animated gradient border colors** for the entire app, changing with the active chat mode.
+4.  Adjusting the  button's functionality to open content (artifacts, code, automation page) based on the current mode.
+
+The user reported that the code generation preview functionality is now broken. The AI is currently investigating this issue by checking frontend logs, indicating a potential conflict in the dynamic  button's logic or missing integration for the code preview.
 </current_work>
 
 <optional_next_step>
-I will continue iterating on the  UI to correctly position the control buttons in the compact bottom strip and ensure proper viewer sizing.
+Debug and fix the  functionality that stopped working in the frontend.
 </optional_next_step>
-

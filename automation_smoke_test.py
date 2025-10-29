@@ -10,7 +10,7 @@ import time
 from datetime import datetime
 
 # Backend URL from frontend/.env
-BACKEND_URL = "https://brain-automation-1.preview.emergentagent.com/api"
+BACKEND_URL = "https://aios-automation.preview.emergentagent.com/api"
 
 class AutomationSmokeTest:
     def __init__(self):
