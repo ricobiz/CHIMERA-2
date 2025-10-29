@@ -164,7 +164,7 @@ async def exec_task(req: TaskRequest):
         
         # Проверяем статус
         if head_analysis.get('status') == 'NEEDS_USER_DATA':
-            log_step(f"⏸️ [HEAD BRAIN] Waiting for user data")
+            log_step("⏸️ [HEAD BRAIN] Waiting for user data")
             log_step(f"📋 Required fields: {', '.join(head_analysis['required_fields'])}")
             agent_status = "IDLE"
             return {
