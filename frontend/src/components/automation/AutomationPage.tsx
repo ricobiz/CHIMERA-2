@@ -255,11 +255,7 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
       setJobId(null);
       setSessionId(null);
       setAgentStatus('IDLE');
-      setIsExecuting(false);
       setIsSubmitting(false);
-      setIsWarming(false);
-      setWarmupProgress('');
-      setExecutionSubtitle('');
       setDisplaySrc(null);
       setPendingSrc(null);
       setShowWarmBanner(false);
