@@ -267,14 +267,14 @@ async def exec_task(req: TaskRequest):
             # 3. ИСПОЛНИТЕЛЬ: Выполнить действие
             if action == 'CLICK_CELL':
                 if not target_cell:
-                    log_step(f"⚠️ [EXECUTOR] No target cell for CLICK_CELL")
+                    log_step("⚠️ [EXECUTOR] No target cell for CLICK_CELL")
                     continue
                 log_step(f"👆 [EXECUTOR] Clicking {target_cell}")
                 await browser_service.click_cell(session_id, target_cell)
                 
             elif action == 'TYPE_AT_CELL':
                 if not target_cell or not text_value:
-                    log_step(f"⚠️ [EXECUTOR] Missing target or text for TYPE_AT_CELL")
+                    log_step("⚠️ [EXECUTOR] Missing target or text for TYPE_AT_CELL")
                     continue
                 log_step(f"⌨️  [EXECUTOR] Typing '{text_value}' at {target_cell}")
                 await browser_service.type_at_cell(session_id, target_cell, text_value)
