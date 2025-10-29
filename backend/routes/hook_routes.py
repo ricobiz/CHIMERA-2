@@ -878,7 +878,11 @@ async def get_log():
         "logs": execution_logs,
         "observation": last_observation,
         "session_id": current_session_id,
-        "plan": current_plan
+        "plan": current_plan,
+        "current_step_id": current_step_id,  # NEW: текущий шаг
+        "policy": policy,  # NEW: текущая политика
+        "data_bundle": data_bundle,  # NEW: используемые данные
+        "ask_user": pending_user_prompt  # NEW: что нужно от оператора
     }
 
 
