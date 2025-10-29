@@ -543,41 +543,241 @@ async def exec_task(req: TaskRequest):
                         log_step(f"✅ [VERIFICATION] Page CHANGED: URL={url_changed}, Elements={elements_changed} ({num_elements_before}→{num_elements_after})")
                         # Отправляем ТЕКСТ новых селекторов в следующей итерации
                         consecutive_waits = 0
-                    else:
-                        log_step("⚠️ [VERIFICATION] NO CHANGE detected - will send screenshot to Brain for analysis")
-                        # Отправляем СКРИНШОТ (до и после) в следующей итерации для анализа
-                        needs_visual = True
-                        consecutive_waits = 0
-                        
+                import traceback
+                traceback.print_exc()
+            
+            # Если не удалось выполнить действие из-за ошибки - переходим к retry
+            if action_error and not action_executed:
+                log_step(f"❌ [EXECUTOR] Action failed: {action_error}")
+                # Обработка ошибки на следующем шаге (валидатор решит)
+            
+            # ============================================================
+            # STEP 5: CAPTURE STATE AFTER ACTION (для валидации)
+            # ============================================================
+            screenshot_after = None
+            vision_after = []
+            
+            if action_executed or action_error:
+                try:
+                    await asyncio.sleep(random.uniform(1.0, 2.0))  # wait for page update
+                    page = browser_service.sessions[session_id]['page']
+                    await browser_service._inject_grid_overlay(page)
+                    dom_data_after = await browser_service._collect_dom_clickables(page)
+                    screenshot_after = await browser_service.capture_screenshot(session_id)
+                    vision_after = await browser_service._augment_with_vision(screenshot_after, dom_data_after)
+                    log_step(f"📸 [VALIDATOR] Captured state AFTER action: {len(vision_after)} elements")
                 except Exception as e:
-                    log_step(f"❌ [VERIFICATION] Failed: {str(e)}")
-                    page_changed = False
+                    log_step(f"⚠️ [VALIDATOR] Failed to capture AFTER state: {e}")
             
-            # 5. История для следующей итерации
-            history.append({
-                "step": step_count,
-                "action": action,
-                "target": target_cell,
-                "text": text_value if action == 'TYPE_AT_CELL' else None,
-                "result": "executed",
-                "page_changed": page_changed if action_executed else None,
-                "needs_visual": needs_visual  # Флаг для следующей итерации
-            })
+            # ============================================================
+            # STEP 6: VALIDATE STEP (Florence-2 → fallback VLM)
+            # ============================================================
+            validation_result = None
             
+            if action_executed and screenshot_after:
+                log_step(f"🔍 [VALIDATOR] Validating step {current_step_id}")
+                
+                # PHASE 1: Try Florence-2 local validation (FAST, FREE)
+                try:
+                    from services.local_vision_service import local_vision_service
+                    
+                    # Florence-2 для поиска ошибок на экране
+                    florence_loaded = local_vision_service.load_florence_model()
+                    
+                    if florence_loaded:
+                        log_step("🔍 [VALIDATOR] Using Florence-2 (local)")
+                        # TODO: Florence-2 full pipeline для детекции ошибок
+                        # Пока что упрощённая логика
+                        florence_validation = {"step_status": "ok", "confidence": 0.5}
+                    else:
+                        florence_validation = {"step_status": "unknown", "confidence": 0.0}
+                        log_step("⚠️ [VALIDATOR] Florence-2 not available")
+                except Exception as e:
+                    log_step(f"⚠️ [VALIDATOR] Florence-2 failed: {e}")
+                    florence_validation = {"step_status": "unknown", "confidence": 0.0}
+                
+                # PHASE 2: Fallback to external VLM if low confidence
+                if florence_validation.get('confidence', 0) < 0.7:
+                    log_step("🔍 [VALIDATOR] Low confidence, using external VLM fallback")
+                    
+                    # Формируем промпт для валидатора
+                    validator_prompt = f"""Analyze this screenshot after executing: {step_action} on field '{step_field or step_target}'.
+
+Expected result: Field should be filled / button clicked / page changed.
+
+Check for:
+1. Error messages (red text, "invalid", "already taken", "required")
+2. Success indicators (page change, new form, confirmation)
+3. Stuck state (nothing happened)
+
+Return JSON:
+{{
+  "step_status": "ok" | "needs_fix_and_retry" | "waiting_user",
+  "field_fix": {{"field": "first_name", "new_value": "John"}} (if needs fix),
+  "reason": "explanation",
+  "waiting_reason": "phone number required" (if waiting_user),
+  "confidence": 0.0-1.0
+}}
+
+CRITICAL: Only use "waiting_user" for phone/SMS/2FA/captcha. NOT for simple validation errors."""
+                    
+                    try:
+                        # Вызываем валидатор через supervisor (переиспользуем существующий сервис)
+                        validation_result = await supervisor_service.next_step(
+                            goal=validator_prompt,
+                            history=[],
+                            screenshot_base64=screenshot_after,
+                            vision=vision_after,
+                            available_data={},
+                            model='qwen/qwen2.5-vl',
+                            mode='validate'  # Специальный режим валидации
+                        )
+                        
+                        log_step(f"✅ [VALIDATOR] External VLM: {validation_result.get('next_action', 'ok')}")
+                        
+                        # Преобразуем ответ supervisor в формат валидации
+                        if validation_result.get('next_action') == 'ERROR':
+                            step_status = "needs_fix_and_retry"
+                            reason = validation_result.get('ask_user', 'Validation error')
+                        elif validation_result.get('next_action') == 'WAIT':
+                            step_status = "waiting_user"
+                            reason = "User input required"
+                        else:
+                            step_status = "ok"
+                            reason = "Step validated successfully"
+                        
+                        validation_result = {
+                            "step_status": step_status,
+                            "reason": reason,
+                            "confidence": validation_result.get('confidence', 0.7)
+                        }
+                        
+                    except Exception as e:
+                        log_step(f"❌ [VALIDATOR] External VLM failed: {e}")
+                        validation_result = {"step_status": "ok", "reason": "Validation unavailable, assuming ok", "confidence": 0.5}
+                else:
+                    validation_result = florence_validation
+                    log_step(f"✅ [VALIDATOR] Florence-2 validated: {validation_result.get('step_status')}")
+            else:
+                # Нет действия или скриншота - пропускаем валидацию
+                validation_result = {"step_status": "ok", "reason": "No validation needed", "confidence": 1.0}
+            
+            # ============================================================
+            # STEP 7: PROCESS VALIDATION RESULT
+            # ============================================================
+            step_status = validation_result.get('step_status', 'ok')
+            
+            log_step(f"📊 [VALIDATOR] Result: {step_status} (confidence={validation_result.get('confidence', 0)})")
+            
+            if step_status == 'ok':
+                # ✅ Шаг успешен - переходим к следующему
+                log_step(f"✅ [PLAN] Step {current_step_id} PASSED, moving to next")
+                current_step_id = step_next
+                step_retry_count = 0  # Reset retry counter
+                
+                if not current_step_id or current_step_id == 'done':
+                    log_step("🎉 [PLAN] All steps completed!")
+                    agent_status = "DONE"
+                    break
+                    
+            elif step_status == 'needs_fix_and_retry':
+                # 🔧 Автофикс и повтор шага
+                log_step(f"🔧 [PLAN] Step {current_step_id} needs fix: {validation_result.get('reason')}")
+                
+                step_retry_count += 1
+                if step_retry_count >= max_retries_per_step:
+                    log_step(f"❌ [PLAN] Max retries ({max_retries_per_step}) reached for step {current_step_id}")
+                    agent_status = "ERROR"
+                    break
+                
+                # Попытка автофикса данных (например, имя без цифр)
+                field_fix = validation_result.get('field_fix')
+                if field_fix:
+                    fix_field = field_fix.get('field')
+                    fix_value = field_fix.get('new_value')
+                    if fix_field and fix_value:
+                        log_step(f"🔧 [AUTO-FIX] Updating {fix_field} = {fix_value}")
+                        used_data[fix_field] = fix_value
+                        data_bundle[fix_field] = fix_value
+                
+                # Применяем политику для генерации новых данных
+                if step_data_key and policy.get('name_generation_hint'):
+                    if 'name' in step_data_key.lower():
+                        # Регенерируем имя согласно политике
+                        if 'russian' in policy['name_generation_hint']:
+                            russian_first_names = ['Иван', 'Александр', 'Дмитрий', 'Сергей', 'Андрей']
+                            russian_last_names = ['Иванов', 'Петров', 'Сидоров', 'Смирнов', 'Кузнецов']
+                            if 'first' in step_data_key.lower():
+                                new_value = random.choice(russian_first_names)
+                            elif 'last' in step_data_key.lower():
+                                new_value = random.choice(russian_last_names)
+                            else:
+                                new_value = fake.first_name()
+                        else:
+                            # Без цифр
+                            new_value = fake.first_name() if 'first' in step_data_key.lower() else fake.last_name()
+                        
+                        log_step(f"🔧 [AUTO-FIX] Regenerated {step_data_key} = {new_value} (policy: {policy.get('name_generation_hint')})")
+                        used_data[step_data_key] = new_value
+                        data_bundle[step_data_key] = new_value
+                
+                # НЕ меняем current_step_id - повторяем тот же шаг
+                log_step(f"🔄 [PLAN] Retrying step {current_step_id} (attempt {step_retry_count}/{max_retries_per_step})")
+                
+            elif step_status == 'waiting_user':
+                # ⏸️ КРИТИЧНО: Реально нужен оператор (телефон/SMS/2FA)
+                reason = validation_result.get('waiting_reason') or validation_result.get('reason', 'User input required')
+                log_step(f"⏸️ [PLAN] Step {current_step_id} requires operator: {reason}")
+                
+                # ПРОВЕРКА: это реально телефон/SMS/2FA или просто ошибка валидации?
+                is_real_blocker = any(kw in reason.lower() for kw in ['phone', 'sms', '2fa', 'captcha', 'verification code'])
+                
+                if not is_real_blocker:
+                    log_step(f"⚠️ [VALIDATOR] False WAITING_USER (не телефон/SMS), treating as needs_fix_and_retry")
+                    # Переводим в retry вместо блокировки оператора
+                    step_retry_count += 1
+                    if step_retry_count >= max_retries_per_step:
+                        agent_status = "ERROR"
+                        break
+                    continue
+                
+                # Реально нужен оператор
+                agent_status = "WAITING_USER"
+                pending_user_prompt = reason
+                
+                # Сохраняем состояние
+                try:
+                    page = browser_service.sessions[session_id]['page']
+                    storage = await page.context.storage_state()
+                    with open(f"/tmp/waiting_state_{session_id}.json", 'w') as f:
+                        import json
+                        json.dump(storage, f)
+                    log_step(f"✅ [WAITING_USER] State saved: {reason}")
+                except Exception as e:
+                    log_step(f"⚠️ [WAITING_USER] Failed to save state: {e}")
+                
+                break
+            
+            else:
+                log_step(f"⚠️ [VALIDATOR] Unknown status: {step_status}, treating as ok")
+                current_step_id = step_next
+            
+            # ============================================================
+            # STEP 8: UPDATE OBSERVATION FOR UI
+            # ============================================================
             last_observation = {
                 "screenshot_base64": screenshot_after or screenshot_before,
-                "vision": vision_after or vision_before or [],
+                "screenshot_id": f"step_{step_count}",
+                "vision": vision_after or [],
                 "url": current_url,
                 "step": step_count,
-                "action": action,
-                "verification": {
-                    "action_executed": action_executed,
-                    "page_changed": page_changed if action_executed else None
-                },
-                "grid": {"rows": browser_service.grid_rows, "cols": browser_service.grid_cols}
+                "action": step_action,
+                "validation": validation_result,
+                "grid": {"rows": browser_service.grid_rows, "cols": browser_service.grid_cols},
+                "status": agent_status
             }
             
-            await asyncio.sleep(1.5)
+            await asyncio.sleep(0.5)
         
         if step_count >= max_steps:
             log_step("⚠️  Max steps reached")
