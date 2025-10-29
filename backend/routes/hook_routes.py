@@ -266,20 +266,30 @@ async def exec_task(req: TaskRequest):
             
             # 3. ИСПОЛНИТЕЛЬ: Выполнить действие
             if action == 'CLICK_CELL':
-                target = brain_result.get('target_cell')
-                log_step(f"👆 [EXECUTOR] Clicking {target}")
-                await browser_service.click_cell(session_id, target)
+                if not target_cell:
+                    log_step(f"⚠️ [EXECUTOR] No target cell for CLICK_CELL")
+                    continue
+                log_step(f"👆 [EXECUTOR] Clicking {target_cell}")
+                await browser_service.click_cell(session_id, target_cell)
                 
             elif action == 'TYPE_AT_CELL':
-                target = brain_result.get('target_cell')
-                value = brain_result.get('text')
-                log_step(f"⌨️  [EXECUTOR] Typing '{value}' at {target}")
-                await browser_service.type_at_cell(session_id, target, value)
+                if not target_cell or not text_value:
+                    log_step(f"⚠️ [EXECUTOR] Missing target or text for TYPE_AT_CELL")
+                    continue
+                log_step(f"⌨️  [EXECUTOR] Typing '{text_value}' at {target_cell}")
+                await browser_service.type_at_cell(session_id, target_cell, text_value)
                 
             elif action == 'NAVIGATE':
                 url = brain_result.get('url', 'https://accounts.google.com/signup')
                 log_step(f"🌐 [EXECUTOR] Navigating to {url}")
                 await browser_service.navigate(session_id, url)
+                
+            elif action == 'SCROLL':
+                direction = brain_result.get('direction', 'down')
+                amount = brain_result.get('amount', 400)
+                log_step(f"📜 [EXECUTOR] Scrolling {direction} by {amount}px")
+                dy = amount if direction == 'down' else -amount
+                await browser_service.scroll(session_id, 0, dy)
                 
             elif action == 'WAIT':
                 log_step("⏳ [EXECUTOR] Waiting...")
@@ -290,16 +300,22 @@ async def exec_task(req: TaskRequest):
                 agent_status = "IDLE"
                 break
                 
-            elif action == 'WAITING_USER':
-                log_step("⏸️  [SPINAL CORD] Needs user input")
-                agent_status = "WAITING_USER"
+            elif action == 'ERROR':
+                error_msg = brain_result.get('ask_user', 'Unknown error')
+                log_step(f"❌ [SPINAL CORD] Error: {error_msg}")
+                agent_status = "ERROR"
                 break
+                
+            else:
+                log_step(f"⚠️ [SPINAL CORD] Unknown action: {action}, treating as WAIT")
+                await asyncio.sleep(1)
             
             # 4. История для следующей итерации
             history.append({
                 "step": step_count,
                 "action": action,
-                "target": brain_result.get('target_cell'),
+                "target": target_cell,
+                "text": text_value if action == 'TYPE_AT_CELL' else None,
                 "result": "executed"
             })
             
