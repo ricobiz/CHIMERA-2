@@ -1,6 +1,6 @@
 import os
 import base64
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 import httpx
 import json
 import re
