@@ -198,14 +198,23 @@ async def generate_mockup(request: dict):
         if not user_request:
             raise HTTPException(status_code=400, detail="user_request is required")
         
+        logger.info(f"🖼️ [MOCKUP] Generating mockup for: {user_request[:50]}... with model: {model}")
+        
         result = await design_generator_service.generate_visual_mockup(
             design_spec, user_request, model
         )
         
+        logger.info(f"🖼️ [MOCKUP] Result keys: {result.keys()}")
+        logger.info(f"🖼️ [MOCKUP] is_image: {result.get('is_image')}")
+        logger.info(f"🖼️ [MOCKUP] mockup_data type: {type(result.get('mockup_data'))}")
+        logger.info(f"🖼️ [MOCKUP] mockup_data length: {len(str(result.get('mockup_data')))}")
+        logger.info(f"🖼️ [MOCKUP] mockup_data first 100 chars: {str(result.get('mockup_data'))[:100]}")
+        
         return {
             "mockup_data": result["mockup_data"],
             "design_spec": result["design_spec"],
-            "usage": result.get("usage", {})
+            "usage": result.get("usage", {}),
+            "is_image": result.get("is_image", False)
         }
     except Exception as e:
         logger.error(f"Error in generate-mockup endpoint: {str(e)}")
