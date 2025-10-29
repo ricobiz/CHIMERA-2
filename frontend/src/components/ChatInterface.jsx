@@ -49,12 +49,41 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
     }
   }, []);
 
-  const handleSubmit = () => {
-    if (prompt.trim()) {
+  const handleSubmit = async () => {
+    if (!prompt.trim()) return;
+    
+    if (isAutomationMode) {
+      // Automation Mode: отправляем в automation brain
+      try {
+        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/hook/automation-chat`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: prompt })
+        });
+        const data = await response.json();
+        
+        // Добавляем сообщения в чат как обычно
+        onSendPrompt(prompt); // User message
+        // TODO: показать ответ от automation brain через messages
+        
+        toast({
+          title: "Automation Brain",
+          description: data.reply || "Message sent"
+        });
+      } catch (e) {
+        toast({
+          title: "Error",
+          description: "Failed to send message to automation brain",
+          variant: "destructive"
+        });
+      }
+    } else {
+      // Normal Mode: обычный чат
       onSendPrompt(prompt);
-      setPrompt('');
-      setShowSamples(false);
     }
+    
+    setPrompt('');
+    setShowSamples(false);
   };
 
   const handleSampleClick = (sample) => {
