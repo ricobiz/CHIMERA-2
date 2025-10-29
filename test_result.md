@@ -1210,6 +1210,12 @@ agent_communication:
       - working: "NA"
         agent: "main"
         comment: "Fixed localStorage quota issue: Modified auto-save logic to filter out large Base64 images (>100KB) before saving to localStorage. Large images are replaced with null and marked with hadImage flag. Added QuotaExceededError handling to automatically clear old session data. Images still display correctly in chat but won't be persisted across page reloads. Ready for testing."
+      - working: false
+        agent: "user"
+        comment: "User reports (Russian): Image generation button (🖼️) displays Base64 code as TEXT in chat instead of rendering it as a visual image. Chat message does not parse this code as an image."
+      - working: "NA"
+        agent: "main"
+        comment: "Fixed handleGenerateImage function in App.js: Changed from storing markdown ![Generated Image](${data.image_url}) in content field to storing actual image data in image field. Now creates message with image: data.image_url and content: 'Image generated successfully'. ChatInterface will render this as actual image. Ready for testing."
 
 frontend:
   - task: "API Balance Display"
