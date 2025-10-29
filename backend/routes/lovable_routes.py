@@ -30,12 +30,12 @@ db = client[os.environ['DB_NAME']]
 @router.post("/generate-image")
 async def generate_image(request: dict):
     """
-    Generate image using Gemini Nano Banana (imagen-3)
+    Generate image using Gemini 2.5 Flash Image (Nano Banana)
     Works in all chat modes - Chat, Code, Automation
     """
     try:
         prompt = request.get("prompt")
-        model = request.get("model", "google/imagen-3.0-generate-002")
+        model = request.get("model", "google/gemini-2.5-flash-image")
         
         if not prompt:
             raise HTTPException(status_code=400, detail="Prompt is required")
