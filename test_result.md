@@ -1204,6 +1204,12 @@ agent_communication:
       - working: "NA"
         agent: "main"
         comment: "Fixed two issues: (1) Changed mockupMessage in App.js to add `image` field instead of markdown in `content` - ChatInterface expects images in `msg.image` field, not markdown syntax. (2) Explicitly set correct models for design-first workflow: 'google/gemini-2.5-flash-image' for text design spec, 'google/gemini-2.5-flash-image-preview' for image mockup generation. Ready for testing."
+      - working: false
+        agent: "user"
+        comment: "User reports (Russian): Image is generated but localStorage quota exceeded error when trying to save. Error: 'The quota has been exceeded' at setItem. Large Base64 images (>1MB) filling up localStorage."
+      - working: "NA"
+        agent: "main"
+        comment: "Fixed localStorage quota issue: Modified auto-save logic to filter out large Base64 images (>100KB) before saving to localStorage. Large images are replaced with null and marked with hadImage flag. Added QuotaExceededError handling to automatically clear old session data. Images still display correctly in chat but won't be persisted across page reloads. Ready for testing."
 
 frontend:
   - task: "API Balance Display"
