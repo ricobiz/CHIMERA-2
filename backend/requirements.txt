@@ -185,3 +185,4 @@ tenacity==8.2.3
 pydantic-settings==2.11.0
 pyautogui==0.9.54
 bezier==2024.6.20
+Faker==37.12.0
