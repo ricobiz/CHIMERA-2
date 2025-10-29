@@ -341,6 +341,10 @@ async def exec_task(req: TaskRequest):
             target_cell = brain_result.get('target_cell')
             text_value = brain_result.get('text')
             
+            # Логирование режима работы
+            mode = "📸 VISUAL" if send_screenshot else "📝 TEXT-ONLY"
+            log_step(f"{mode} | 🧠 [SPINAL CORD] Decision: {action} at {target_cell or 'N/A'}")
+            
             # Защита от зацикливания на WAIT
             if action == 'WAIT':
                 consecutive_waits += 1
