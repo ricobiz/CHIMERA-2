@@ -298,15 +298,25 @@ async def exec_task(req: TaskRequest):
             brain_context = {
                 "goal": goal,
                 "strategy": head_analysis['strategy'],
-                "data_available": data_bundle,  # Спинной мозг знает что у нас есть имя/пароль/etc
+                "data_available": data_bundle,
                 "plan_outline": head_analysis.get('plan_outline', ''),
+                "current_url": current_url,
                 "history": history[-10:]  # Последние 10 шагов для контекста
             }
             
+            # Формируем расширенный промпт для спинного мозга
+            brain_goal = (
+                f"{goal}\n"
+                f"Strategy: {brain_context['strategy']}\n"
+                f"Current URL: {current_url}\n"
+                f"Available data: {list(data_bundle.keys())}\n"
+                f"Elements visible: {len(vision_elements or [])}"
+            )
+            
             brain_result = await supervisor_service.next_step(
-                goal=f"{goal} | Strategy: {brain_context['strategy']} | Data: {list(data_bundle.keys())}",
+                goal=brain_goal,
                 history=history,
-                screenshot_base64=screenshot_b64,
+                screenshot_base64=screenshot_b64 or "",
                 vision=vision_elements or [],
                 model='qwen/qwen2.5-vl'  # Дешёвая vision модель для спинного мозга
             )
