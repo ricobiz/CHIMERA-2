@@ -254,7 +254,7 @@ async def exec_task(req: TaskRequest):
         else:
             # Если URL не найден - спросим у пользователя или используем дефолт
             start_url = None
-            log_step(f"⚠️ No URL found in goal. Will rely on Brain to navigate.")
+            log_step("⚠️ No URL found in goal. Will rely on Brain to navigate.")
         
         # ОБЯЗАТЕЛЬНАЯ начальная навигация
         current_url = "about:blank"
