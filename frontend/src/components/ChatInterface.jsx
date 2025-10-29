@@ -491,10 +491,6 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-3 md:p-6">
         <div className="max-w-3xl mx-auto">
-
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-3 md:p-6">
-        <div className="max-w-3xl mx-auto">
           {/* Task Progress Panel */}
           {developmentPlan.length > 0 && chatMode === 'agent' && (
             <div className="mb-6">
