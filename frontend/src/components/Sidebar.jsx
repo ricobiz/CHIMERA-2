@@ -5,7 +5,7 @@ import { getSessions, deleteSession, getSession } from '../services/api';
 import { toast } from '../hooks/use-toast';
 import ChimeraLogo from './ChimeraLogo';
 
-const Sidebar = ({ onNewProject, onProjectSelect, onOpenSettings, onSessionSelect, currentSessionId }) => {
+const Sidebar = ({ onNewProject, onProjectSelect, onOpenSettings, onSessionSelect, currentSessionId, onOpenAutomation }) => {
   const [projects, setProjects] = useState([]);
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
