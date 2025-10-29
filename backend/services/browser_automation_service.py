@@ -541,10 +541,19 @@ class BrowserAutomationService:
             
             # Сначала кликаем на ячейку
             if human_like:
-                await HumanBehaviorSimulator.human_move_and_click(page, x, y)
+                await HumanBehaviorSimulator.human_move(page, x, y)
+                await human_like_delay(100, 300)
+                await HumanBehaviorSimulator.human_click(page, x, y)
                 await human_like_delay(200, 500)
                 # Вводим текст человекоподобно через keyboard
-                await HumanBehaviorSimulator.human_type_keyboard(page, text)
+                # Сначала ищем активный элемент (input/textarea), иначе просто через keyboard
+                active_element = await page.evaluate("document.activeElement.tagName")
+                if active_element in ['INPUT', 'TEXTAREA']:
+                    # Используем keyboard.type для активного элемента
+                    await page.keyboard.type(text, delay=random.randint(50, 150))
+                else:
+                    # Просто вводим через keyboard
+                    await page.keyboard.type(text, delay=random.randint(50, 150))
             else:
                 await page.mouse.click(x, y)
                 await human_like_delay(100, 300)
