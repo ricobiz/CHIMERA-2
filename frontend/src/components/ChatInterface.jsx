@@ -486,16 +486,40 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
                 {showSessionMenu && (
                   <div className="absolute top-full right-0 mt-2 w-80 bg-gray-900 border border-gray-700 rounded-lg shadow-xl z-50 max-h-96 overflow-y-auto">
                     <div className="p-3 border-b border-gray-700">
-                      <p className="text-xs text-gray-400 font-medium">Sessions</p>
+                      <p className="text-xs text-gray-400 font-medium">Your Sessions ({allSessions.length})</p>
                     </div>
                     
-                    {/* Sessions will be loaded from parent/API */}
+                    {/* Sessions List */}
                     <div className="p-2">
-                      <div className="text-xs text-gray-500 text-center py-4">
-                        Loading sessions...
-                      </div>
-                      {/* TODO: Load and display actual sessions here */}
-                      {/* This needs sessions prop from parent App.js */}
+                      {allSessions.length === 0 ? (
+                        <div className="text-xs text-gray-500 text-center py-4">
+                          No sessions found
+                        </div>
+                      ) : (
+                        <div className="space-y-1">
+                          {allSessions.map((session) => (
+                            <button
+                              key={session.id}
+                              onClick={() => {
+                                if (onSessionSelect) {
+                                  onSessionSelect(session);
+                                  setShowSessionMenu(false);
+                                }
+                              }}
+                              className={`w-full text-left px-3 py-2 rounded-lg text-xs transition-colors ${
+                                currentSessionId === session.id
+                                  ? 'bg-purple-600 text-white'
+                                  : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                              }`}
+                            >
+                              <div className="font-medium truncate">{session.name}</div>
+                              <div className="text-[10px] text-gray-400 mt-0.5">
+                                {session.message_count} msgs • {session.last_updated}
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
                     
                     <div className="p-3 border-t border-gray-700">
