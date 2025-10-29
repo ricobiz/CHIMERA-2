@@ -23,8 +23,8 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
   const [editingMessageIndex, setEditingMessageIndex] = useState(null);
   const [editedContent, setEditedContent] = useState('');
   
-  // Automation mode state - переключатель режима чата
-  const [isAutomationMode, setIsAutomationMode] = useState(false);
+  // Automation mode определяется на основе chatMode
+  const isAutomationMode = chatMode === 'automation';
   
   // Personalization: User and AI names
   const [userName, setUserName] = useState(localStorage.getItem('chimera_user_name') || null);
