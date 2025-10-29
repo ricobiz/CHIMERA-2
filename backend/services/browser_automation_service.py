@@ -886,11 +886,29 @@ class BrowserAutomationService:
             return {"vw": 1280, "vh": 800, "clickables": []}
 
     async def _augment_with_vision(self, screenshot_base64: str, dom_data: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """
+        Augment DOM clickables with Florence-2 visual detection.
+        
+        Strategy:
+        1. Use DOM elements as PRIMARY source (reliable, fast)
+        2. Optionally use Florence-2 for VISUAL enhancement (slower but can see unlabeled elements)
+        3. Merge results prioritizing DOM + adding visual-only detections
+        """
         from .local_vision_service import local_vision_service
         vw, vh = dom_data.get('vw', 1280), dom_data.get('vh', 800)
         dom_clickables = dom_data.get('clickables', [])
         logger.info(f"🔍 [AUGMENT] Calling vision with {len(dom_clickables)} DOM clickables, viewport {vw}x{vh}")
-        result = local_vision_service.detect(screenshot_base64, vw, vh, dom_clickables=dom_clickables, model_path=os.path.join('/app/backend/models/', 'ui-detector.onnx'), rows=self.grid_rows, cols=self.grid_cols)
+        
+        # Call vision service (Florence-2 will be used if enabled)
+        result = local_vision_service.detect(
+            screenshot_base64, 
+            vw, 
+            vh, 
+            dom_clickables=dom_clickables,
+            rows=self.grid_rows, 
+            cols=self.grid_cols
+        )
+        
         logger.info(f"🔍 [AUGMENT] Vision returned {len(result)} elements")
         return result
     
