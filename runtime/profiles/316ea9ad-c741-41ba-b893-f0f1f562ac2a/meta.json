@@ -1,14 +1,14 @@
 {
-  "profile_id": "1a92f7f3-3f37-4756-a236-eca535ea9d5e",
-  "created_at": "2025-10-29T15:39:58.993604+00:00",
-  "last_used": "2025-10-29T15:39:58.993615+00:00",
+  "profile_id": "316ea9ad-c741-41ba-b893-f0f1f562ac2a",
+  "created_at": "2025-10-29T15:40:04.420340+00:00",
+  "last_used": "2025-10-29T15:40:04.420350+00:00",
   "used_count": 0,
   "status": "warm",
   "browser": {
     "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0 Safari/537.36",
     "viewport": {
-      "width": 1398,
-      "height": 775
+      "width": 1368,
+      "height": 874
     },
     "platform": "Win32",
     "vendor": "Google Inc.",
@@ -30,7 +30,7 @@
   "webgl": {
     "vendor": "Intel Inc.",
     "renderer": "Intel Iris OpenGL Engine",
-    "canvas_noise_seed": "662992"
+    "canvas_noise_seed": "590029"
   },
   "fonts": [
     "Arial",
@@ -64,7 +64,7 @@
   },
   "warmup": {
     "is_warm": true,
-    "warmed_at": "2025-10-29T15:41:06.228601+00:00",
+    "warmed_at": "2025-10-29T15:41:09.839573+00:00",
     "sites_visited": [
       "google.com",
       "youtube.com",
