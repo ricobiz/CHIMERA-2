@@ -217,7 +217,6 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
     if (!taskText.trim()) return;
     setIsSubmitting(true);
     try {
-      // Just trigger hook/exec to create analysis/plan
       const resp = await fetch(`${BASE_URL}/api/hook/exec`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -226,48 +225,16 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
       const data = await resp.json();
       if (resp.ok) {
         setJobId(data.job_id);
-        setLogs([]); // Clear old logs
-        setAgentStatus('ACTIVE');
+        setLogs([]);
         
-        // Setup ExecutionAgent callback to update UI
-        executionAgent.setStateCallback((updates) => {
-          // Update display with screenshots
-          if (updates.browserState?.screenshot) {
-            setDisplaySrc(updates.browserState.screenshot);
-          }
-          
-          // Update logs in UI from ExecutionAgent
-          if (updates.logEntries && updates.logEntries.length > 0) {
-            const newLogs = updates.logEntries.map(entry => ({
-              timestamp: new Date().toLocaleTimeString(),
-              message: entry.details || entry.actionType,
-              status: entry.status || 'info'
-            }));
-            setLogs(prev => [...prev, ...newLogs]);
-          }
-          
-          // Update status
-          if (updates.status) {
-            const statusMap = {
-              'planning': 'ACTIVE',
-              'executing': 'ACTIVE', 
-              'completed': 'IDLE',
-              'failed': 'ERROR',
-              'paused': 'PAUSED'
-            };
-            setAgentStatus(statusMap[updates.status] || 'ACTIVE');
-          }
-        });
-        
-        // Start automation
-        await executionAgent.startAutomation(taskText, {
-          browserState: { currentUrl: '', screenshot: '', highlightBoxes: [], pageTitle: '', timestamp: Date.now() },
-          logEntries: [],
-          currentStepIndex: 0,
-          status: 'idle',
-          requiresUserInput: null,
-          result: null
-        });
+        if (data.status === 'NEEDS_REQUIREMENTS') {
+          // Missing requirements - show warmup banner
+          setShowWarmBanner(true);
+          setAgentStatus('IDLE');
+          alert('⚠️ ' + (data.message || 'Missing requirements'));
+        } else {
+          setAgentStatus('ACTIVE');
+        }
       } else {
         alert(data.detail || 'Failed to start');
       }
