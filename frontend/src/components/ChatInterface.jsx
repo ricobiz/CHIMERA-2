@@ -934,6 +934,36 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
           animation: gradientShift 3s ease infinite;
         }
         
+        .animated-gradient-border-purple {
+          position: relative;
+          border: 2px solid transparent;
+          background: linear-gradient(#0f0f10, #0f0f10) padding-box,
+                      linear-gradient(90deg, 
+                        rgba(139, 92, 246, 0.5),
+                        rgba(168, 85, 247, 0.5),
+                        rgba(192, 132, 252, 0.5),
+                        rgba(168, 85, 247, 0.5),
+                        rgba(139, 92, 246, 0.5)
+                      ) border-box;
+          background-size: 200% 100%;
+          animation: gradientShift 3s ease infinite;
+        }
+        
+        .animated-gradient-border-green {
+          position: relative;
+          border: 2px solid transparent;
+          background: linear-gradient(#0f0f10, #0f0f10) padding-box,
+                      linear-gradient(90deg, 
+                        rgba(16, 185, 129, 0.5),
+                        rgba(52, 211, 153, 0.5),
+                        rgba(110, 231, 183, 0.5),
+                        rgba(52, 211, 153, 0.5),
+                        rgba(16, 185, 129, 0.5)
+                      ) border-box;
+          background-size: 200% 100%;
+          animation: gradientShift 3s ease infinite;
+        }
+        
         @keyframes gradientShift {
           0%, 100% { background-position: 0% 50%; }
           50% { background-position: 100% 50%; }
@@ -949,7 +979,9 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
         
         /* Mobile viewport fixes */
         @media (max-width: 768px) {
-          .animated-gradient-border {
+          .animated-gradient-border,
+          .animated-gradient-border-purple,
+          .animated-gradient-border-green {
             height: 100vh;
             height: 100dvh; /* Dynamic viewport height for mobile browsers */
             max-height: 100vh;
