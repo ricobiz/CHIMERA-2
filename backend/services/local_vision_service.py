@@ -22,8 +22,8 @@ from .grid_service import GridConfig
 
 # Florence-2 model path
 FLORENCE_MODEL_DIR = "/app/backend/onnx_models/florence-2-base"
-FLORENCE_VISION_ENCODER = os.path.join(FLORENCE_MODEL_DIR, "onnx/vision_encoder_q4f16.onnx")
-FLORENCE_ENCODER = os.path.join(FLORENCE_MODEL_DIR, "onnx/encoder_model_q4f16.onnx")
+FLORENCE_VISION_ENCODER = os.path.join(FLORENCE_MODEL_DIR, "onnx/vision_encoder_q4.onnx")
+FLORENCE_ENCODER = os.path.join(FLORENCE_MODEL_DIR, "onnx/encoder_model_q4.onnx")
 
 logger.info(f"🔧 [VISION] Florence-2 paths configured:")
 logger.info(f"  Vision Encoder: {FLORENCE_VISION_ENCODER}")
