@@ -289,11 +289,10 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
             {/* Chat Mode - Blue Square */}
             <button
               onClick={() => {
-                setIsAutomationMode(false);
                 if (onChatModeChange) onChatModeChange('chat');
               }}
               className={`w-4 h-4 rounded transition-all relative group ${
-                !isAutomationMode && chatMode === 'chat'
+                chatMode === 'chat'
                   ? 'bg-gradient-to-br from-blue-400 to-blue-600 shadow-lg shadow-blue-500/50 ring-2 ring-blue-400/40'
                   : 'bg-blue-900/40 hover:bg-blue-800/60 border border-blue-700/60 hover:scale-105'
               }`}
@@ -307,11 +306,10 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
             {/* Code Mode - Purple Square */}
             <button
               onClick={() => {
-                setIsAutomationMode(false);
                 if (onChatModeChange) onChatModeChange('agent');
               }}
               className={`w-4 h-4 rounded transition-all relative group ${
-                !isAutomationMode && chatMode === 'agent'
+                chatMode === 'agent'
                   ? 'bg-gradient-to-br from-purple-400 to-purple-600 shadow-lg shadow-purple-500/50 ring-2 ring-purple-400/40'
                   : 'bg-purple-900/40 hover:bg-purple-800/60 border border-purple-700/60 hover:scale-105'
               }`}
@@ -325,12 +323,10 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
             {/* Automation Mode - Green Square */}
             <button
               onClick={() => {
-                setIsAutomationMode(true);
-                // НЕ переключаем сразу на вкладку, только меняем режим
-                // Вкладка откроется через Preview
+                if (onChatModeChange) onChatModeChange('automation');
               }}
               className={`w-4 h-4 rounded transition-all relative group ${
-                isAutomationMode
+                chatMode === 'automation'
                   ? 'bg-gradient-to-br from-green-400 to-green-600 shadow-lg shadow-green-500/50 ring-2 ring-green-400/40'
                   : 'bg-green-900/40 hover:bg-green-800/60 border border-green-700/60 hover:scale-105'
               }`}
