@@ -1016,6 +1016,7 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
                 </Button>
               )}
             </div>
+            </div>
           </div>
         </div>
       </div>
