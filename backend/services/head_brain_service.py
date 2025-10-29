@@ -4,7 +4,7 @@ Head Brain Service - Главная модель для планирования
 1. Анализа задачи
 2. Определения требований (прогретый профиль, данные)
 3. Создания общего плана для спинного мозга
-4. Генерации необходимых данных
+4. Генерации необходимых данных (реалистичных!)
 """
 
 import os
@@ -13,15 +13,15 @@ import random
 import logging
 from typing import Dict, Any, List, Optional
 import httpx
+from faker import Faker
 
 logger = logging.getLogger(__name__)
 
 # Назначаемая модель (можно менять)
 DEFAULT_HEAD_MODEL = os.environ.get('HEAD_BRAIN_MODEL', 'openai/gpt-4o')
 
-# Генерация данных
-FIRST_NAMES = ["Ivan","Alex","John","Peter","Michael","Ethan","Liam","Noah","Mason","James","Oliver","Lucas","Henry","Alexander","Daniel"]
-LAST_NAMES  = ["Petrov","Smirnov","Johnson","Miller","Brown","Davis","Wilson","Moore","Taylor","Anderson","Thomas","Jackson","White","Harris","Martin"]
+# Faker для реалистичной генерации данных
+fake = Faker(['en_US', 'en_GB'])  # Английские локали для реалистичности
 
 def _gen_username(fn: str, ln: str) -> str:
     suffix = random.randint(1000, 9999)
