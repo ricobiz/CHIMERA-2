@@ -167,7 +167,7 @@ class HeadBrainService:
             
             # КРИТИЧНО: Если нужны данные но их НЕТ и auto_generate=False → СТОП
             if mandatory_data and not user_data and not auto_generate:
-                logger.warning(f"⚠️ [HEAD BRAIN] Task requires data but none provided. STOPPING for user input.")
+                logger.warning("⚠️ [HEAD BRAIN] Task requires data but none provided. STOPPING for user input.")
                 return {
                     "status": "NEEDS_USER_DATA",
                     "task_id": result.get('task_id', 'head-' + str(random.randint(1000, 9999))),
