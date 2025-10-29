@@ -212,6 +212,9 @@ class BrowserAutomationService:
         try:
             await page.goto(url, wait_until='networkidle', timeout=30000)
             
+            # ВАЖНО: Ждём полной загрузки страницы
+            await self.wait_for_page_ready(page)
+            
             # Auto-detect and solve CAPTCHA if present
             if self.captcha_solver:
                 await asyncio.sleep(2)  # Wait for CAPTCHA to load
@@ -236,6 +239,62 @@ class BrowserAutomationService:
                 'success': False,
                 'error': str(e)
             }
+    
+    async def wait_for_page_ready(self, page: Page, timeout_ms: int = 10000) -> bool:
+        """
+        Ждёт полной загрузки страницы (не только DOM, но и скрипты, стили).
+        Проверяет:
+        1. document.readyState = 'complete'
+        2. Нет активных network запросов (networkidle)
+        3. Стабильность DOM (количество элементов не меняется)
+        4. Нет loading спиннеров
+        """
+        try:
+            # 1. Ждём document.readyState = 'complete'
+            await page.wait_for_load_state('load', timeout=timeout_ms)
+            
+            # 2. Ждём network idle
+            await page.wait_for_load_state('networkidle', timeout=timeout_ms)
+            
+            # 3. Проверяем стабильность DOM (2 проверки с интервалом 500ms)
+            count1 = await page.evaluate("() => document.querySelectorAll('*').length")
+            await asyncio.sleep(0.5)
+            count2 = await page.evaluate("() => document.querySelectorAll('*').length")
+            
+            if abs(count2 - count1) > 5:
+                # DOM ещё меняется, ждём ещё немного
+                logger.debug(f"DOM still changing: {count1} → {count2}, waiting...")
+                await asyncio.sleep(1)
+            
+            # 4. Проверяем нет ли loading индикаторов
+            loading_selectors = [
+                '[class*="loading"]',
+                '[class*="spinner"]',
+                '[class*="loader"]',
+                '[aria-busy="true"]'
+            ]
+            
+            for selector in loading_selectors:
+                try:
+                    elements = await page.query_selector_all(selector)
+                    visible_loaders = []
+                    for el in elements:
+                        is_visible = await el.is_visible()
+                        if is_visible:
+                            visible_loaders.append(el)
+                    
+                    if visible_loaders:
+                        logger.debug(f"Found {len(visible_loaders)} visible loading indicators, waiting...")
+                        await asyncio.sleep(1)
+                except Exception:
+                    pass
+            
+            logger.debug("✅ Page fully loaded and stable")
+            return True
+            
+        except Exception as e:
+            logger.warning(f"wait_for_page_ready timeout or error: {e}")
+            return False
     
     async def detect_and_solve_captcha(self, session_id: str) -> Dict[str, Any]:
         """Manually trigger CAPTCHA detection and solving"""
