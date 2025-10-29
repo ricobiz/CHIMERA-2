@@ -161,7 +161,8 @@ async def exec_task(req: TaskRequest):
             }
         
         # Вызываем головной мозг для анализа и планирования
-        auto_generate = req.user_data is not None  # Если данные переданы - не спрашиваем, если нет - спрашиваем
+        # auto_generate = TRUE если пользователь НЕ предоставил данные (генерируем автоматически)
+        auto_generate = req.user_data is None or not req.user_data
         head_analysis = await head_brain_service.analyze_and_plan(goal, profile_info, req.user_data, auto_generate)
         
         # Проверяем статус
