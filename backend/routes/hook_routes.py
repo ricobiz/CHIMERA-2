@@ -362,6 +362,13 @@ async def exec_task(req: TaskRequest):
                 send_screenshot = True
             elif consecutive_waits >= 2:
                 send_screenshot = True
+                log_step("⚠️ Multiple WAITs - sending screenshot to help decision")
+            # Проверяем есть ли INPUT поля без понятных labels (нужен визуал!)
+            elif vision_before:
+                unclear_inputs = [v for v in vision_before if v.get('type') in ['input', 'INPUT', 'textarea'] and (not v.get('label') or v.get('label') == 'INPUT' or len(v.get('label', '')) < 3)]
+                if len(unclear_inputs) > 0:
+                    send_screenshot = True
+                    log_step(f"⚠️ Found {len(unclear_inputs)} INPUT fields without clear labels - sending screenshot for visual analysis")
             elif len(history) > 0:
                 last_step = history[-1]
                 # Если в прошлой итерации спинной мозг попросил визуал
