@@ -11,7 +11,7 @@ import DocumentVerification from './components/DocumentVerification';
 import SelfImprovement from './components/SelfImprovement';
 import AIEntryPoint from './components/AIEntryPoint';
 import TaskProgress from './components/TaskProgress';
-import { generateCode, saveProject, createSession, updateSession, getSession, getOpenRouterBalance, generateDesign, classifyTask } from './services/api';
+import { generateCode, saveProject, createSession, updateSession, getSession, getOpenRouterBalance, generateDesign, generateMockup, classifyTask } from './services/api';
 import { toast } from './hooks/use-toast';
 import { Toaster } from './components/ui/toaster';
 import AnnotatorModal from './components/AnnotatorModal.jsx';
