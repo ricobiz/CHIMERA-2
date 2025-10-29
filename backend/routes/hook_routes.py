@@ -342,9 +342,45 @@ async def exec_task(req: TaskRequest):
         
         while agent_status == "ACTIVE" and current_step_id and step_count < max_steps:
             step_count += 1
-            log_step(f"🔄 [CYCLE {step_count}/{max_steps}]")
+            log_step(f"🔄 [CYCLE {step_count}/{max_steps}] Step: {current_step_id}")
             
-            # 1. ИСПОЛНИТЕЛЬ: Проверяем загружена ли страница
+            # ============================================================
+            # STEP 1: APPLY OVERRIDE BUFFER (операторские указания)
+            # ============================================================
+            if override_buffer:
+                log_step(f"📝 [OVERRIDE] Applying {len(override_buffer)} operator instructions")
+                for override_msg in override_buffer:
+                    log_step(f"  → {override_msg}")
+                    # Политики уже обновлены в /adjust endpoint
+                override_buffer.clear()
+                log_step(f"✅ [OVERRIDE] Applied. Current policy: {policy}")
+            
+            # ============================================================
+            # STEP 2: GET CURRENT STEP FROM PLAN
+            # ============================================================
+            current_step = None
+            for step in plan_steps:
+                if step.get('id') == current_step_id:
+                    current_step = step
+                    break
+            
+            if not current_step:
+                log_step(f"❌ [PLAN] Step {current_step_id} not found in plan!")
+                agent_status = "ERROR"
+                break
+            
+            step_action = current_step.get('action')
+            step_field = current_step.get('field')
+            step_target = current_step.get('target')
+            step_data_key = current_step.get('data_key')
+            step_next = current_step.get('next')
+            step_on_error = current_step.get('on_error', 'retry_with_fix')
+            
+            log_step(f"📋 [PLAN] Executing step: {step_action} (field={step_field}, target={step_target})")
+            
+            # ============================================================
+            # STEP 3: WAIT FOR PAGE READY
+            # ============================================================
             try:
                 page = browser_service.sessions[session_id]['page']
                 loading_status = await browser_service.is_page_loading(page)
@@ -352,201 +388,130 @@ async def exec_task(req: TaskRequest):
                 if loading_status.get('is_loading'):
                     reason = loading_status.get('reason')
                     log_step(f"⏳ [EXECUTOR] Page still loading: {reason}")
-                    # Ждём загрузки
                     await browser_service.wait_for_page_ready(page, timeout_ms=5000)
-                    log_step("✅ [EXECUTOR] Page loading complete")
+                    log_step("✅ [EXECUTOR] Page ready")
             except Exception as e:
                 log_step(f"⚠️ [EXECUTOR] Loading check failed: {str(e)}")
             
-            # 2. ИСПОЛНИТЕЛЬ: Захватить состояние ДО действия (для верификации)
+            # ============================================================
+            # STEP 4: EXECUTE ACTION THROUGH human_* METHODS
+            # ============================================================
+            action_executed = False
+            action_error = None
+            
             try:
                 page = browser_service.sessions[session_id]['page']
                 current_url = page.url
-                await browser_service._inject_grid_overlay(page)
-                dom_data_before = await browser_service._collect_dom_clickables(page)
-                screenshot_before = await browser_service.capture_screenshot(session_id)
-                vision_before = await browser_service._augment_with_vision(screenshot_before, dom_data_before)
                 
-                # Статистика для логов
-                num_elements_before = len(vision_before or [])
-                log_step(f"📸 [EXECUTOR] State BEFORE action: URL={current_url}, Elements={num_elements_before}")
-            except Exception as e:
-                log_step(f"❌ [EXECUTOR] Failed to capture BEFORE state: {str(e)}")
-                vision_before = []
-                screenshot_before = None
-                current_url = "about:blank"
-                dom_data_before = {}
-                num_elements_before = 0
-            
-            # 2. СПИННОЙ МОЗГ: Принять решение на основе плана и текущего состояния
-            brain_context = {
-                "goal": goal,
-                "strategy": head_analysis['strategy'],
-                "data_available": data_bundle,
-                "plan_outline": head_analysis.get('plan_outline', ''),
-                "current_url": current_url,
-                "history": history[-10:]
-            }
-            
-            brain_goal = (
-                f"{goal}\n"
-                f"Strategy: {brain_context['strategy']}\n"
-                f"Current URL: {current_url}\n"
-                f"Available data: {list(data_bundle.keys())}\n"
-                f"Elements visible: {num_elements_before}"
-            )
-            
-            # ОПТИМИЗАЦИЯ: Сначала пробуем БЕЗ скриншота (только текст селекторов)
-            send_screenshot = False
-            if step_count == 1:
-                send_screenshot = True
-            elif consecutive_waits >= 2:
-                send_screenshot = True
-                log_step("⚠️ Multiple WAITs - sending screenshot to help decision")
-            # Проверяем есть ли INPUT поля без понятных labels (нужен визуал!)
-            elif vision_before:
-                unclear_inputs = [v for v in vision_before if v.get('type') in ['input', 'INPUT', 'textarea'] and (not v.get('label') or v.get('label') == 'INPUT' or len(v.get('label', '')) < 3)]
-                if len(unclear_inputs) > 0:
-                    send_screenshot = True
-                    log_step(f"⚠️ Found {len(unclear_inputs)} INPUT fields without clear labels - sending screenshot for visual analysis")
-            elif len(history) > 0:
-                last_step = history[-1]
-                # Если в прошлой итерации спинной мозг попросил визуал
-                if last_step.get('needs_visual'):
-                    send_screenshot = True
-                # Если в прошлой итерации действие выполнилось но страница НЕ изменилась
-                if last_step.get('page_changed') is False:
-                    send_screenshot = True
-                    log_step("⚠️ Previous action had NO EFFECT - sending screenshot for analysis")
-            
-            # 🤖 SMART FORM FILLER - автоматическое определение и заполнение форм
-            # Если видим INPUT поля (>=2), пробуем автоматически заполнить
-            form_detected = None
-            if vision_before and len([v for v in vision_before if v.get('type', '').lower() in ['input', 'textarea']]) >= 2:
-                form_detected = form_filler_service.analyze_form(vision_before, current_url or '')
-                if form_detected and form_detected.get('confidence', 0) > 0.6:
-                    log_step(f"📋 [SMART FORM] Detected {form_detected.get('form_type')} form with {len(form_detected.get('fields', []))} fields")
+                if step_action == 'NAVIGATE':
+                    # Навигация на URL
+                    target_url = step_target or start_url
+                    log_step(f"🌐 [EXECUTOR] human_navigate to {target_url}")
+                    await browser_service.navigate(session_id, target_url)
+                    await asyncio.sleep(random.uniform(2.0, 3.5))  # human reaction time
+                    action_executed = True
                     
-                    # Генерируем действия заполнения
-                    fill_actions = form_filler_service.generate_fill_actions(form_detected, used_data or {})
-                    
-                    if len(fill_actions) > 0:
-                        log_step(f"✅ [SMART FORM] Auto-filling {len(fill_actions)} fields...")
-                        
-                        # Выполняем каждое действие заполнения
-                        for idx, fill_action in enumerate(fill_actions):
-                            action_type = fill_action.get('action')
-                            cell = fill_action.get('cell')
-                            text = fill_action.get('text')
-                            
-                            log_step(f"  {idx+1}/{len(fill_actions)}: {action_type} at {cell}" + (f" = {text[:20]}..." if text else ""))
-                            
-                            if action_type == 'TYPE_AT_CELL' and cell and text:
-                                result = await browser_service.type_at_cell(session_id, cell, text, human_like=True)
-                                if not result.get('success'):
-                                    log_step(f"⚠️ Failed to type at {cell}: {result.get('error')}")
-                                await asyncio.sleep(random.uniform(0.5, 1.5))
-                            elif action_type == 'CLICK_CELL' and cell:
-                                result = await browser_service.click_cell(session_id, cell, human_like=True)
-                                if result.get('success'):
-                                    log_step(f"✅ Clicked submit button at {cell}")
-                                await asyncio.sleep(random.uniform(1.0, 2.0))
-                        
-                        # После заполнения формы - продолжаем цикл
-                        step_count += 1
-                        continue
-            
-            brain_result = await supervisor_service.next_step(
-                goal=brain_goal,
-                history=history,
-                screenshot_base64=screenshot_before if send_screenshot else None,
-                vision=vision_before or [],
-                available_data=used_data,  # Передаём данные в Spinal Cord!
-                model='qwen/qwen2.5-vl'
-            )
-            
-            needs_visual = brain_result.get('needs_user_input') or brain_result.get('confidence', 1.0) < 0.5
-            
-            action = brain_result.get('next_action', 'WAIT')
-            target_cell = brain_result.get('target_cell')
-            text_value = brain_result.get('text')
-            
-            mode = "📸 VISUAL" if send_screenshot else "📝 TEXT-ONLY"
-            log_step(f"{mode} | 🧠 [SPINAL CORD] Decision: {action} at {target_cell or 'N/A'}")
-            
-            # Защита от зацикливания на WAIT
-            if action == 'WAIT':
-                consecutive_waits += 1
-                if consecutive_waits >= 3:
-                    log_step(f"⚠️ [ANTI-LOOP] Too many WAITs ({consecutive_waits}), forcing SCROLL or DONE")
-                    if len(vision_before or []) > 0:
-                        # Есть элементы - пробуем скроллить
-                        action = 'SCROLL'
-                        brain_result['direction'] = 'down'
-                        brain_result['amount'] = 400
-                        consecutive_waits = 0
+                elif step_action == 'TYPE':
+                    # Ввод текста через human_type
+                    # Получаем значение из data_bundle
+                    if step_data_key and step_data_key in used_data:
+                        text_to_type = str(used_data[step_data_key])
                     else:
-                        # Нет элементов вообще - возможно задача завершена
-                        action = 'DONE'
-            else:
-                consecutive_waits = 0
-            
-            log_step(f"🧠 [SPINAL CORD] Decision: {action} at {target_cell or 'N/A'}")
-            
-            # 3. ИСПОЛНИТЕЛЬ: Выполнить действие
-            action_executed = False
-            
-            if action == 'CLICK_CELL':
-                if not target_cell:
-                    log_step("⚠️ [EXECUTOR] No target cell for CLICK_CELL")
-                    continue
-                log_step(f"👆 [EXECUTOR] Clicking {target_cell}")
-                await browser_service.click_cell(session_id, target_cell)
-                action_executed = True
+                        text_to_type = step_target or ""
+                    
+                    if not text_to_type:
+                        log_step(f"⚠️ [EXECUTOR] No text to type for field {step_field}")
+                        action_error = f"Missing data for {step_data_key}"
+                    else:
+                        log_step(f"⌨️  [EXECUTOR] human_type '{text_to_type[:30]}...' for field {step_field}")
+                        
+                        # Найти элемент по field name или использовать vision
+                        await browser_service._inject_grid_overlay(page)
+                        dom_data = await browser_service._collect_dom_clickables(page)
+                        screenshot_b64 = await browser_service.capture_screenshot(session_id)
+                        vision_elements = await browser_service._augment_with_vision(screenshot_b64, dom_data)
+                        
+                        # Ищем поле в vision по field name
+                        target_cell = None
+                        for el in vision_elements:
+                            el_label = (el.get('label') or '').lower()
+                            el_type = (el.get('type') or '').lower()
+                            if step_field.lower() in el_label or el_type in ['input', 'textarea']:
+                                if step_field.lower() in el_label or not target_cell:
+                                    target_cell = el.get('cell')
+                                    break
+                        
+                        if target_cell:
+                            result = await browser_service.type_at_cell(session_id, target_cell, text_to_type, human_like=True)
+                            if result.get('success'):
+                                action_executed = True
+                                log_step(f"✅ [EXECUTOR] Typed successfully at {target_cell}")
+                            else:
+                                action_error = result.get('error', 'Type failed')
+                        else:
+                            log_step(f"⚠️ [EXECUTOR] Could not find field {step_field} in vision")
+                            action_error = f"Field {step_field} not found"
+                    
+                elif step_action == 'CLICK':
+                    # Клик через human_click
+                    log_step(f"👆 [EXECUTOR] human_click on {step_target}")
+                    
+                    # Найти кнопку в vision
+                    await browser_service._inject_grid_overlay(page)
+                    dom_data = await browser_service._collect_dom_clickables(page)
+                    screenshot_b64 = await browser_service.capture_screenshot(session_id)
+                    vision_elements = await browser_service._augment_with_vision(screenshot_b64, dom_data)
+                    
+                    target_cell = None
+                    for el in vision_elements:
+                        el_label = (el.get('label') or '').lower()
+                        el_type = (el.get('type') or '').lower()
+                        if step_target.lower() in el_label or (el_type == 'button' and not target_cell):
+                            target_cell = el.get('cell')
+                            break
+                    
+                    if target_cell:
+                        result = await browser_service.click_cell(session_id, target_cell, human_like=True)
+                        if result.get('success'):
+                            action_executed = True
+                            await asyncio.sleep(random.uniform(1.5, 3.0))  # wait for page reaction
+                            log_step(f"✅ [EXECUTOR] Clicked successfully at {target_cell}")
+                        else:
+                            action_error = result.get('error', 'Click failed')
+                    else:
+                        log_step(f"⚠️ [EXECUTOR] Could not find button {step_target} in vision")
+                        action_error = f"Button {step_target} not found"
                 
-            elif action == 'TYPE_AT_CELL':
-                if not target_cell or not text_value:
-                    log_step("⚠️ [EXECUTOR] Missing target or text for TYPE_AT_CELL")
-                    continue
-                log_step(f"⌨️  [EXECUTOR] Typing '{text_value}' at {target_cell}")
-                await browser_service.type_at_cell(session_id, target_cell, text_value)
-                action_executed = True
-                
-            elif action == 'NAVIGATE':
-                url = brain_result.get('url', 'https://accounts.google.com/signup')
-                log_step(f"🌐 [EXECUTOR] Navigating to {url}")
-                await browser_service.navigate(session_id, url)
-                action_executed = True
-                await asyncio.sleep(3)  # Дать странице загрузиться
-                
-            elif action == 'SCROLL':
-                direction = brain_result.get('direction', 'down')
-                amount = brain_result.get('amount', 400)
-                log_step(f"📜 [EXECUTOR] Scrolling {direction} by {amount}px")
-                dy = amount if direction == 'down' else -amount
-                await browser_service.scroll(session_id, 0, dy)
-                action_executed = True
-                
-            elif action == 'WAIT':
-                log_step("⏳ [EXECUTOR] Waiting...")
-                await asyncio.sleep(2)
-                action_executed = False  # WAIT не требует верификации
-                
-            elif action == 'DONE':
-                log_step("✅ [SPINAL CORD] Task completed")
-                agent_status = "IDLE"
-                break
-                
-            elif action == 'ERROR':
-                error_msg = brain_result.get('ask_user', 'Unknown error')
-                log_step(f"❌ [SPINAL CORD] Error: {error_msg}")
-                agent_status = "ERROR"
-                break
-                
-            else:
-                log_step(f"⚠️ [SPINAL CORD] Unknown action: {action}, treating as WAIT")
-                await asyncio.sleep(1)
-                action_executed = False
+                elif step_action == 'VERIFY_RESULT':
+                    # Верификация не требует действия, только проверка
+                    log_step(f"🔍 [EXECUTOR] Verification step (no action)")
+                    action_executed = True
+                    
+                elif step_action == 'WAIT_USER':
+                    # Остановка и ожидание оператора
+                    log_step(f"⏸️ [EXECUTOR] WAIT_USER - stopping for operator")
+                    agent_status = "WAITING_USER"
+                    pending_user_prompt = step_target or "User input required"
+                    # Сохраняем состояние
+                    try:
+                        storage = await page.context.storage_state()
+                        with open(f"/tmp/waiting_state_{session_id}.json", 'w') as f:
+                            import json
+                            json.dump(storage, f)
+                        log_step(f"✅ [EXECUTOR] State saved for operator")
+                    except Exception as e:
+                        log_step(f"⚠️ [EXECUTOR] Failed to save state: {e}")
+                    break
+                    
+                else:
+                    log_step(f"⚠️ [PLAN] Unknown action: {step_action}")
+                    action_error = f"Unknown action {step_action}"
+                    
+            except Exception as e:
+                log_step(f"❌ [EXECUTOR] Action failed: {str(e)}")
+                action_error = str(e)
+                import traceback
+                traceback.print_exc()
             
             # 4. ВЕРИФИКАЦИЯ: Проверяем изменилась ли страница после действия
             page_changed = False
