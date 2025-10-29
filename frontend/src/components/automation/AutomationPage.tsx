@@ -229,11 +229,6 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
 
   const resetTask = async () => {
     try {
-      // Stop any running execution
-      if (isExecuting) {
-        executionAgent.abort();
-      }
-      
       // Close current session if exists
       if (sessionId) {
         try {
