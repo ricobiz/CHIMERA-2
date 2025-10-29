@@ -128,7 +128,7 @@ async def control(req: ControlRequest):
 
 @router.post('/exec')
 async def exec_task(req: TaskRequest):
-    """Start automation with Analyze → Check requirements → Brain loop."""
+    """Start automation with HEAD BRAIN → Spinal Cord (Brain) loop → Executor."""
     global agent_status, current_session_id, last_observation, current_analysis, current_plan
     
     try:
@@ -141,36 +141,66 @@ async def exec_task(req: TaskRequest):
         
         goal = req.text
         
-        # Phase 1: ANALYZE - что нужно для этой цели?
-        log_step("📋 Analyzing requirements...")
-        current_analysis = await planner_analyze(AnalyzeRequest(goal=goal))
+        # ============================================================
+        # PHASE 1: ГОЛОВНОЙ МОЗГ (Head Brain) - ОДИН РАЗ В НАЧАЛЕ
+        # ============================================================
+        log_step("🧠 [HEAD BRAIN] Analyzing task and creating strategy...")
         
-        availability = current_analysis.get('analysis', {}).get('availability', {})
-        profile_info = availability.get('profile', {})
-        is_warm = profile_info.get('is_warm', False)
-        can_proceed_without_warm = availability.get('can_proceed_without_warm', True)
+        # Получаем информацию о доступном профиле
+        from routes.automation_planner_routes import _find_warm_profile
+        warm_meta = _find_warm_profile()
+        profile_info = None
+        if warm_meta:
+            profile_info = {
+                "profile_id": warm_meta.get('profile_id'),
+                "is_warm": warm_meta.get('warmup', {}).get('is_warm') or warm_meta.get('status') in ('warm', 'active'),
+                "proxy_type": (warm_meta.get('proxy', {}) or {}).get('proxy_type')
+            }
         
-        # Check if we have what we need
-        if not is_warm and not can_proceed_without_warm:
-            log_step("⚠️ Missing requirements: need warm profile or phone")
+        # Вызываем головной мозг для анализа и планирования
+        head_analysis = await head_brain_service.analyze_and_plan(goal, profile_info)
+        
+        # Сохраняем результаты анализа
+        current_analysis = {
+            "task_id": head_analysis['task_id'],
+            "analysis": {
+                "understood_task": head_analysis['understood_task'],
+                "requirements": head_analysis['requirements'],
+                "availability": {
+                    "profile": head_analysis.get('profile_status', {}),
+                    "can_proceed_without_warm": not head_analysis['requirements'].get('needs_phone', False)
+                },
+                "decision": {
+                    "can_proceed": head_analysis['can_proceed'],
+                    "strategy": head_analysis['strategy'],
+                    "success_probability": head_analysis['success_probability'],
+                    "reason": head_analysis['reason']
+                }
+            }
+        }
+        
+        # План для спинного мозга
+        current_plan = {
+            "strategy": head_analysis['strategy'],
+            "plan_outline": head_analysis.get('plan_outline', ''),
+            "data_bundle": head_analysis['data_bundle']
+        }
+        
+        # Get generated data (name, username, password, etc)
+        data_bundle = head_analysis['data_bundle']
+        log_step(f"✅ [HEAD BRAIN] Strategy: {head_analysis['strategy']}")
+        log_step(f"✅ [HEAD BRAIN] Data generated: {list(data_bundle.keys())}")
+        
+        # Проверяем можем ли продолжить
+        if not head_analysis['can_proceed']:
+            log_step(f"⚠️ [HEAD BRAIN] Cannot proceed: {head_analysis['reason']}")
             agent_status = "IDLE"
             return {
                 "status": "NEEDS_REQUIREMENTS",
                 "job_id": job_id,
                 "analysis": current_analysis,
-                "message": "Need warm profile or phone number"
+                "message": head_analysis['reason']
             }
-        
-        # Phase 2: GENERATE initial context plan (для Brain контекста)
-        log_step("📋 Generating context plan...")
-        current_plan = await planner_generate(GenerateRequest(
-            task_id=current_analysis['task_id'],
-            analysis=current_analysis['analysis']
-        ))
-        
-        # Get generated data (name, username, password, etc)
-        data_bundle = current_plan.get('data_bundle', {})
-        log_step(f"✅ Generated data: {list(data_bundle.keys())}")
         
         agent_status = "ACTIVE"
         
