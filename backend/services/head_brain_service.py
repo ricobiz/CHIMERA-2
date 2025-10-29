@@ -186,7 +186,7 @@ class HeadBrainService:
                     "country": "US",
                     "postal_code": None,
                 }
-                logger.info(f"✅ [HEAD BRAIN] Generated all data automatically")
+                logger.info("✅ [HEAD BRAIN] Generated all data automatically")
             
             # Формируем финальный ответ
             analysis = {
