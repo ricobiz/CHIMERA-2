@@ -455,10 +455,11 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
                 </div>
               )}
             </div>
+            </div>
             
-            {/* Session ID Display */}
+            {/* Bottom row: Session ID */}
             {currentSessionId && (
-              <div className="text-[10px] text-gray-500 font-mono bg-gray-800/30 px-2 py-1 rounded border border-gray-700">
+              <div className="text-[10px] text-gray-500 font-mono bg-gray-800/30 px-2 py-0.5 rounded border border-gray-700">
                 ID: {currentSessionId.slice(0, 8)}...
               </div>
             )}
