@@ -256,36 +256,39 @@ class HeadBrainService:
         elif 'facebook' in goal_lower:
             target_url = target_url or 'https://www.facebook.com/reg'
         
-        fn = random.choice(FIRST_NAMES)
-        ln = random.choice(LAST_NAMES)
-        
         # Данные пользователя или генерируем
         data_source = "generated"
         if user_data:
-            fn = user_data.get('first_name', fn)
-            ln = user_data.get('last_name', ln)
+            realistic = _gen_realistic_data()
             data_bundle = {
-                "first_name": user_data.get('first_name', fn),
-                "last_name": user_data.get('last_name', ln),
-                "username": user_data.get('username') or user_data.get('email') or _gen_username(fn, ln),
-                "email": user_data.get('email'),
-                "password": user_data.get('password') or _gen_password(),
-                "birthday": user_data.get('birthday') or _gen_birthday(),
-                "phone_number": user_data.get('phone_number'),
+                "first_name": user_data.get('first_name', realistic['first_name']),
+                "last_name": user_data.get('last_name', realistic['last_name']),
+                "username": user_data.get('username') or user_data.get('email') or realistic['username'],
+                "email": user_data.get('email', realistic['email']),
+                "password": user_data.get('password', realistic['password']),
+                "birthday": user_data.get('birthday', realistic['birthday']),
+                "phone_number": user_data.get('phone_number', realistic['phone_number']),
                 "recovery_email": user_data.get('recovery_email'),
             }
             data_source = "user_provided"
         else:
-            data_bundle = {
-                "first_name": fn,
-                "last_name": ln,
-                "username": _gen_username(fn, ln),
-                "email": f"{_gen_username(fn, ln)}@gmail.com",
-                "password": _gen_password(),
-                "birthday": _gen_birthday(),
-                "phone_number": None,
-                "recovery_email": None,
-            }
+            # Если auto_generate=False и нужны данные для регистрации - останавливаемся
+            if is_registration and not auto_generate:
+                return {
+                    "status": "NEEDS_USER_DATA",
+                    "task_id": f"fallback-{random.randint(1000, 9999)}",
+                    "target_url": target_url,
+                    "understood_task": goal,
+                    "task_type": "registration",
+                    "required_fields": ["first_name", "last_name", "email", "password", "birthday"],
+                    "optional_fields": ["phone_number", "recovery_email"],
+                    "message": "Registration requires personal data. Please provide your data or choose to auto-generate.",
+                    "can_proceed": False,
+                    "reason": "Waiting for user data (fallback mode)"
+                }
+            
+            # Генерируем реалистичные данные
+            data_bundle = _gen_realistic_data()
         
         return {
             "task_id": f"fallback-{random.randint(1000, 9999)}",
