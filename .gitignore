@@ -101,3 +101,4 @@ android-sdk/ -e
 # Environment files
 *.env
 *.env.*
+backend/onnx_models/florence-2-base/onnx/embed_tokens_q4.onnx
