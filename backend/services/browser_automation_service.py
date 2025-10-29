@@ -490,14 +490,68 @@ class BrowserAutomationService:
             
             logger.info(f"Clicking cell {cell} at coordinates ({x}, {y})")
             
-            if human_like:
-                # Человекоподобное движение к точке и клик
-                await HumanBehaviorSimulator.human_move(page, x, y)
-                await human_like_delay(100, 300)
-                await HumanBehaviorSimulator.human_click(page, x, y)
-            else:
-                # Прямой клик
-                await page.mouse.click(x, y)
+            # Try to find element at coordinates and click it via JS
+            try:
+                # First try: find clickable element at coordinates
+                element_at_point = await page.evaluate(f"""
+                    () => {{
+                        const el = document.elementFromPoint({x}, {y});
+                        if (el) {{
+                            // Find closest clickable parent
+                            let clickable = el;
+                            while (clickable && !['A', 'BUTTON', 'INPUT'].includes(clickable.tagName)) {{
+                                clickable = clickable.parentElement;
+                            }}
+                            return clickable ? clickable.outerHTML.substring(0, 100) : 'No clickable element';
+                        }}
+                        return null;
+                    }}
+                """)
+                logger.info(f"Element at ({x}, {y}): {element_at_point}")
+                
+                # Try JS click first (more reliable for some elements)
+                clicked = await page.evaluate(f"""
+                    () => {{
+                        const el = document.elementFromPoint({x}, {y});
+                        if (el) {{
+                            // Find closest clickable
+                            let clickable = el;
+                            while (clickable && !['A', 'BUTTON', 'INPUT', 'SELECT', 'TEXTAREA'].includes(clickable.tagName)) {{
+                                if (clickable.onclick || clickable.hasAttribute('onclick')) {{
+                                    break;
+                                }}
+                                clickable = clickable.parentElement;
+                            }}
+                            if (clickable) {{
+                                clickable.click();
+                                return true;
+                            }}
+                        }}
+                        return false;
+                    }}
+                """)
+                
+                if clicked:
+                    logger.info(f"✅ JS click successful on element at {cell}")
+                else:
+                    logger.info(f"⚠️ No clickable element found, trying mouse click")
+                    # Fallback to mouse click
+                    if human_like:
+                        await HumanBehaviorSimulator.human_move(page, x, y)
+                        await human_like_delay(100, 300)
+                        await HumanBehaviorSimulator.human_click(page, x, y)
+                    else:
+                        await page.mouse.click(x, y)
+            except Exception as click_error:
+                logger.warning(f"JS click failed, using mouse: {click_error}")
+                if human_like:
+                    # Человекоподобное движение к точке и клик
+                    await HumanBehaviorSimulator.human_move(page, x, y)
+                    await human_like_delay(100, 300)
+                    await HumanBehaviorSimulator.human_click(page, x, y)
+                else:
+                    # Прямой клик
+                    await page.mouse.click(x, y)
             
             await human_like_delay(300, 800)
             
