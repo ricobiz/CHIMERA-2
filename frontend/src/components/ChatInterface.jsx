@@ -487,102 +487,10 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
           </div>
         </div>
       </div>
-              <ModelIndicator 
-                type="validator" 
-                modelName={validatorModel?.split('/').pop()}
-                isActive={validatorEnabled}
-              />
-              
-              {/* Consolidated: Functions moved into Settings menu to avoid duplication */}
-              
-              {/* Settings Dropdown Menu */}
-              {showSettingsMenu && (
-                <div className="absolute top-full right-0 mt-2 w-64 bg-gray-900 border border-gray-700 rounded-lg shadow-xl z-50 py-2">
-                  <button
-                    onClick={() => {
-                      onOpenSettings();
-                      setShowSettingsMenu(false);
-                    }}
-                    className="w-full px-4 py-2 text-left text-sm text-gray-300 hover:bg-gray-800 transition-colors flex items-center gap-2"
-                  >
-                    <Settings className="w-4 h-4" />
-                    Settings
-                  </button>
-                  
-                  <button
-                    onClick={() => {
-                      if (onOpenSelfImprovement) {
-                        onOpenSelfImprovement();
-                        setShowSettingsMenu(false);
-                      }
-                    }}
-                    className="w-full px-4 py-2 text-left text-sm text-gray-300 hover:bg-gray-800 transition-colors flex items-center gap-2"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
-                    Self-Improvement
-                  </button>
-                  
-                  <button
-                    onClick={() => {
-                      onNewProject();
-                      setShowSettingsMenu(false);
-                    }}
-                    className="w-full px-4 py-2 text-left text-sm text-gray-300 hover:bg-gray-800 transition-colors flex items-center gap-2"
-                  >
-                    <Plus className="w-4 h-4" />
-                    New Workspace
-                  </button>
-                  
-                  <button
-                    className="w-full px-4 py-2 text-left text-sm text-gray-300 hover:bg-gray-800 transition-colors flex items-center gap-2"
-                  >
-                    <Upload className="w-4 h-4" />
-                    Repository
-                  </button>
-                  
-                  <div className="border-t border-gray-700 my-2"></div>
-                    
-                  <div className="px-4 py-2">
-                    <p className="text-xs text-gray-500 mb-2">Load Session by ID</p>
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        value={sessionIdInput}
-                        onChange={(e) => setSessionIdInput(e.target.value)}
-                        placeholder="Session ID..."
-                        className="flex-1 px-2 py-1 bg-gray-800 border border-gray-700 rounded text-xs text-gray-300 placeholder-gray-600 focus:border-purple-500 focus:outline-none"
-                      />
-                      <Button
-                        onClick={() => {
-                          if (sessionIdInput.trim()) {
-                            console.log('Load session:', sessionIdInput);
-                            // TODO: Load session logic
-                            setShowSettingsMenu(false);
-                          }
-                        }}
-                        size="sm"
-                        className="bg-purple-600 hover:bg-purple-500 px-2 text-xs"
-                      >
-                        Load
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-            </div>
-            
-            {/* Bottom row: Session ID */}
-            {currentSessionId && (
-              <div className="text-[10px] text-gray-500 font-mono bg-gray-800/30 px-2 py-0.5 rounded border border-gray-700">
-                ID: {currentSessionId.slice(0, 8)}...
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+
+      {/* Messages */}
+      <div className="flex-1 overflow-y-auto p-3 md:p-6">
+        <div className="max-w-3xl mx-auto">
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-3 md:p-6">
