@@ -260,7 +260,7 @@ async def exec_task(req: TaskRequest):
         # Исполнитель (Local Vision) видит экран и выполняет
         # ============================================================
         history = []
-        max_steps = 50
+        max_steps = 150  # Increased for complex registration flows
         step_count = 0
         
         log_step(f"🔄 [SPINAL CORD] Starting execution loop (max {max_steps} steps)")
