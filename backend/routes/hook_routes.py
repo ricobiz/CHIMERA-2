@@ -129,7 +129,9 @@ async def control(req: ControlRequest):
 
 @router.post('/exec')
 async def exec_task(req: TaskRequest):
-    """Start automation job with planning (analyze → generate)."""
+    """Start automation with Brain-driven execution loop."""
+    global agent_status, current_session_id, last_observation
+    
     try:
         job_id = str(uuid.uuid4())
         current_task["text"] = req.text
@@ -137,20 +139,118 @@ async def exec_task(req: TaskRequest):
         current_task["timestamp"] = req.timestamp
         execution_logs.clear()
         log_step(f"Job started: {job_id}")
-
-        # Step 1: Analyze goal
-        global current_analysis, current_plan
-        current_analysis = (await planner_analyze(AnalyzeRequest(goal=req.text)))
-        log_step("Goal analyzed")
         
-        # Step 2: Generate plan
-        current_plan = (await planner_generate(GenerateRequest(task_id=current_analysis['task_id'], analysis=current_analysis['analysis'])))
-        current_plan.setdefault('hints', [])
-        log_step("Plan generated")
-
-        return {"status": "PLANNED", "job_id": job_id, "analysis": current_analysis, "plan": current_plan}
+        agent_status = "ACTIVE"
+        goal = req.text
+        history = []
+        
+        # Create browser session
+        from routes.profile_routes import create_profile, CreateProfileRequest
+        prof_resp = await create_profile(CreateProfileRequest(warmup=False))
+        profile_id = prof_resp.get('profile_id')
+        
+        session_id = str(uuid.uuid4())
+        await browser_service.create_session_from_profile(
+            profile_id=profile_id,
+            session_id=session_id
+        )
+        current_session_id = session_id
+        log_step(f"✅ Session created: {session_id}")
+        
+        # Main Brain loop
+        max_steps = 50
+        step_count = 0
+        
+        while agent_status == "ACTIVE" and step_count < max_steps:
+            step_count += 1
+            log_step(f"🧠 Brain cycle {step_count}/{max_steps}")
+            
+            # 1. Get screenshot + vision
+            screenshot_b64 = await browser_service.capture_screenshot(session_id)
+            vision_elements = await browser_service.find_elements_with_vision(session_id, "all interactive elements")
+            
+            # 2. Ask Brain what to do next
+            brain_result = await supervisor_service.next_step(
+                goal=goal,
+                history=history,
+                screenshot_base64=screenshot_b64,
+                vision=vision_elements or [],
+                model='qwen/qwen2.5-vl'
+            )
+            
+            log_step(f"🧠 Brain says: {brain_result.get('action', 'unknown')}")
+            
+            # 3. Execute Brain's decision
+            action = brain_result.get('action')
+            
+            if action == 'CLICK':
+                target = brain_result.get('target')  # cell or coordinates
+                log_step(f"👆 Clicking {target}")
+                await browser_service.click_cell(session_id, target)
+                
+            elif action == 'TYPE':
+                target = brain_result.get('target')
+                value = brain_result.get('value')
+                log_step(f"⌨️  Typing '{value}' at {target}")
+                await browser_service.type_at_cell(session_id, target, value)
+                
+            elif action == 'NAVIGATE':
+                url = brain_result.get('url')
+                log_step(f"🌐 Navigating to {url}")
+                await browser_service.navigate(session_id, url)
+                
+            elif action == 'WAIT':
+                log_step(f"⏳ Waiting...")
+                await asyncio.sleep(2)
+                
+            elif action == 'DONE':
+                log_step(f"✅ Brain says DONE")
+                agent_status = "IDLE"
+                break
+                
+            elif action == 'WAITING_USER':
+                log_step(f"⏸️  Waiting for user input")
+                agent_status = "WAITING_USER"
+                break
+                
+            else:
+                log_step(f"⚠️  Unknown action: {action}")
+            
+            # 4. Add to history
+            history.append({
+                "step": step_count,
+                "action": action,
+                "target": brain_result.get('target'),
+                "result": "executed"
+            })
+            
+            # Store observation
+            last_observation = {
+                "screenshot_base64": screenshot_b64,
+                "step": step_count,
+                "action": action
+            }
+            
+            # Small delay between steps
+            await asyncio.sleep(1.5)
+        
+        if step_count >= max_steps:
+            log_step(f"⚠️  Max steps reached")
+            agent_status = "ERROR"
+        
+        log_step(f"🏁 Execution finished")
+        
+        return {
+            "status": agent_status,
+            "job_id": job_id,
+            "session_id": current_session_id,
+            "steps_executed": step_count
+        }
+        
     except Exception as e:
         logger.error(f"exec error: {e}")
+        agent_status = "ERROR"
+        log_step(f"❌ Error: {str(e)}", status="fail")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post('/adjust')
