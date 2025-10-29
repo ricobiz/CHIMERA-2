@@ -296,6 +296,70 @@ class BrowserAutomationService:
             logger.warning(f"wait_for_page_ready timeout or error: {e}")
             return False
     
+    async def is_page_loading(self, page: Page) -> Dict[str, Any]:
+        """
+        Быстрая проверка идёт ли сейчас загрузка страницы.
+        Возвращает статус и причину.
+        """
+        try:
+            # Проверка 1: document.readyState
+            ready_state = await page.evaluate("() => document.readyState")
+            if ready_state != 'complete':
+                return {
+                    "is_loading": True,
+                    "reason": f"document.readyState = {ready_state}",
+                    "ready_state": ready_state
+                }
+            
+            # Проверка 2: Видимые loading индикаторы
+            loading_selectors = [
+                '[class*="loading"]:visible',
+                '[class*="spinner"]:visible',
+                '[class*="loader"]:visible',
+                '[aria-busy="true"]'
+            ]
+            
+            for selector in loading_selectors:
+                try:
+                    el = await page.query_selector(selector)
+                    if el:
+                        is_visible = await el.is_visible()
+                        if is_visible:
+                            return {
+                                "is_loading": True,
+                                "reason": f"Visible loading indicator: {selector}",
+                                "ready_state": ready_state
+                            }
+                except Exception:
+                    pass
+            
+            # Проверка 3: Стабильность DOM (быстрая)
+            count1 = await page.evaluate("() => document.querySelectorAll('*').length")
+            await asyncio.sleep(0.2)
+            count2 = await page.evaluate("() => document.querySelectorAll('*').length")
+            
+            if abs(count2 - count1) > 10:
+                return {
+                    "is_loading": True,
+                    "reason": f"DOM unstable: {count1} → {count2} elements",
+                    "ready_state": ready_state
+                }
+            
+            # Всё ОК - страница загружена
+            return {
+                "is_loading": False,
+                "reason": "Page fully loaded and stable",
+                "ready_state": ready_state
+            }
+            
+        except Exception as e:
+            logger.error(f"is_page_loading error: {e}")
+            return {
+                "is_loading": False,
+                "reason": f"Error checking: {str(e)}",
+                "error": str(e)
+            }
+    
     async def detect_and_solve_captcha(self, session_id: str) -> Dict[str, Any]:
         """Manually trigger CAPTCHA detection and solving"""
         if session_id not in self.sessions:
