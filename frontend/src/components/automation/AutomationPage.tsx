@@ -676,6 +676,9 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
               <div>profile_id: <span className="text-gray-200">{profileId || '—'}</span></div>
               <div>warm: <span className="text-gray-200">{profileWarm ? 'yes' : 'no'}</span></div>
               <div>clean: <span className="text-gray-200">{profileClean === null ? '—' : profileClean ? '✅' : '❌'}</span></div>
+              <div>user-agent: <span className="text-gray-200 text-[10px]">{profileUA || '—'}</span></div>
+              <div>IP: <span className="text-gray-200">{profileIP || '—'}</span></div>
+              <div>proxy: <span className="text-gray-200">{profileProxy || '—'}</span></div>
             </div>
           </div>
 
