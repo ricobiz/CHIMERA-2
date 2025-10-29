@@ -42,6 +42,9 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
   const [profileId, setProfileId] = useState<string | null>(null);
   const [profileClean, setProfileClean] = useState<boolean | null>(null);
   const [profileWarm, setProfileWarm] = useState<boolean>(false);
+  const [profileUA, setProfileUA] = useState<string>('');
+  const [profileIP, setProfileIP] = useState<string>('');
+  const [profileProxy, setProfileProxy] = useState<string>('');
 
   // UX: avoid jumpy autoscroll while user reads
   const [autoScrollLogs, setAutoScrollLogs] = useState<boolean>(false);
