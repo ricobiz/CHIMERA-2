@@ -961,6 +961,23 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
               >
                 <Mic className="w-4 h-4" />
               </button>
+              
+              {/* Image generation */}
+              <button
+                onClick={() => {
+                  if (onGenerateImage) {
+                    onGenerateImage(prompt);
+                  } else {
+                    // Fallback: добавляем префикс к промпту
+                    setPrompt(`Generate an image: ${prompt}`);
+                  }
+                }}
+                className="text-gray-500 hover:text-purple-400 transition-colors"
+                title="Generate image"
+                disabled={!prompt.trim()}
+              >
+                🖼️
+              </button>
             </div>
             
             {/* Action buttons (right side) */}
