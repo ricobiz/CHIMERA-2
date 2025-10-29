@@ -221,32 +221,47 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
   useEffect(() => { pinMappingRef.current = pinMapping; }, [pinMapping]);
 
   const startTask = async () => {
-    if (!taskText.trim()) return;
+    console.log('[startTask] 🚀 START - taskText:', taskText);
+    if (!taskText.trim()) {
+      console.log('[startTask] ❌ Empty taskText, returning');
+      return;
+    }
+    
+    console.log('[startTask] Setting isSubmitting = true');
     setIsSubmitting(true);
     
     try {
+      console.log('[startTask] 📡 Calling /api/hook/exec...');
       // First call hook/exec to create plan AND check profile
       const resp = await fetch(`${BASE_URL}/api/hook/exec`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: taskText, timestamp: Date.now(), nocache: true })
       });
+      
+      console.log('[startTask] 📥 Response status:', resp.status, resp.ok);
       const data = await resp.json();
+      console.log('[startTask] 📥 Response data:', data);
       
       if (!resp.ok) {
+        console.error('[startTask] ❌ Response not OK:', data.detail);
         alert(data.detail || 'Failed to start');
         return;
       }
       
+      console.log('[startTask] ✅ Setting jobId, clearing logs');
       setJobId(data.job_id);
       setLogs([]);
       setAgentStatus('ACTIVE');
       
       // Check if profile is warm
       const analysis = data.analysis;
+      console.log('[startTask] 🔍 Analysis:', analysis);
       const isWarm = analysis?.analysis?.availability?.profile?.is_warm;
+      console.log('[startTask] 🔥 Profile is warm?', isWarm);
       
       if (!isWarm) {
+        console.log('[startTask] ⚠️ Profile NOT warm, showing banner');
         // Show warm banner and DON'T start execution
         setShowWarmBanner(true);
         alert('❌ Профиль не прогрет! Нажмите "Прогреть аккаунт" перед запуском автоматизации.');
@@ -254,12 +269,14 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
         return;
       }
       
+      console.log('[startTask] ✅ Profile is warm, starting execution');
       // Profile is warm, proceed with execution
       setIsExecuting(true);
       setExecutionSubtitle('🚀 Запуск браузерной автоматизации...');
       
       // Setup ExecutionAgent callback for UI updates
       executionAgent.setStateCallback((updates) => {
+        console.log('[startTask] 🔔 ExecutionAgent update:', updates);
         if (updates.browserState) {
           setBrowserState(updates.browserState);
           if (updates.browserState.screenshot) {
@@ -287,6 +304,7 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
         }
       });
       
+      console.log('[startTask] 🎬 Calling executionAgent.startAutomation...');
       // Now start execution through ExecutionAgent
       await executionAgent.startAutomation(taskText, {
         browserState,
@@ -297,9 +315,14 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
         result: null
       });
       
+      console.log('[startTask] ✅ executionAgent.startAutomation completed');
+      
     } catch (e: any) {
+      console.error('[startTask] ❌ ERROR:', e);
+      console.error('[startTask] ❌ Error stack:', e.stack);
       alert(e.message || 'Failed to start');
     } finally {
+      console.log('[startTask] 🏁 FINALLY - setting isSubmitting/isExecuting = false');
       setIsSubmitting(false);
       setIsExecuting(false);
     }
