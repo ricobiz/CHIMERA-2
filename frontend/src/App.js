@@ -482,7 +482,8 @@ function App() {
           
           // STEP 2: Generate visual mockup (IMAGE)
           console.log('🖼️ Step 2: Generating visual mockup...');
-          const mockupResponse = await generateMockup(designSpec, prompt, visualValidatorModel);
+          // Use image generation model for visual mockup
+          const mockupResponse = await generateMockup(designSpec, prompt, 'google/gemini-2.5-flash-image-preview');
           
           if (mockupResponse.mockup_data) {
             // mockup_data может быть URL или base64
