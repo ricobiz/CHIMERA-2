@@ -1,0 +1,75 @@
+{
+  "profile_id": "25bb8106-8883-416e-909a-4e32da938aab",
+  "created_at": "2025-10-29T01:36:18.154550+00:00",
+  "last_used": "2025-10-29T01:36:18.154561+00:00",
+  "used_count": 0,
+  "status": "fresh",
+  "browser": {
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0 Safari/537.36",
+    "viewport": {
+      "width": 1306,
+      "height": 792
+    },
+    "platform": "Win32",
+    "vendor": "Google Inc.",
+    "app_version": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0 Safari/537.36"
+  },
+  "locale": {
+    "timezone_id": "America/New_York",
+    "locale": "en-US",
+    "languages": [
+      "en-US",
+      "en"
+    ]
+  },
+  "hardware": {
+    "hardware_concurrency": 8,
+    "device_memory": 8,
+    "max_touch_points": 0
+  },
+  "webgl": {
+    "vendor": "Intel Inc.",
+    "renderer": "Intel Iris OpenGL Engine",
+    "canvas_noise_seed": "695436"
+  },
+  "fonts": [
+    "Arial",
+    "Helvetica",
+    "Times New Roman",
+    "Verdana",
+    "Courier New",
+    "Georgia",
+    "Tahoma",
+    "Trebuchet MS"
+  ],
+  "plugins": [
+    {
+      "name": "PDF Viewer",
+      "filename": "internal-pdf-viewer"
+    },
+    {
+      "name": "Chrome PDF Viewer",
+      "filename": "mhjfbmdgcfjbbpaeojofohoefgiehjai"
+    }
+  ],
+  "proxy": {
+    "url": null,
+    "ip": "34.16.56.64",
+    "country": "US",
+    "region": "Iowa",
+    "city": "Council Bluffs",
+    "isp": "AS396982 Google LLC",
+    "proxy_type": null,
+    "risk_score": 0.2
+  },
+  "warmup": {
+    "is_warm": false,
+    "warmed_at": null,
+    "sites_visited": []
+  },
+  "captcha": {
+    "last_failed_at": null,
+    "failed_attempts_count": 0,
+    "cooldown_until": null
+  }
+}
