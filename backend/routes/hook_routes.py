@@ -242,6 +242,22 @@ async def exec_task(req: TaskRequest):
         
         log_step(f"🔄 [SPINAL CORD] Starting execution loop (max {max_steps} steps)")
         
+        # ВАЖНО: Извлекаем URL из задачи или используем дефолт
+        import re
+        url_match = re.search(r'https?://[^\s]+', goal)
+        if url_match:
+            start_url = url_match.group(0)
+        elif 'gmail' in goal.lower() or 'google' in goal.lower():
+            start_url = "https://accounts.google.com/signup"
+        else:
+            start_url = None
+        
+        # Начальная навигация если нужно
+        if start_url:
+            log_step(f"🌐 [INITIAL] Navigating to {start_url}")
+            await browser_service.navigate(session_id, start_url)
+            await asyncio.sleep(3)  # Дать странице загрузиться
+        
         while agent_status == "ACTIVE" and step_count < max_steps:
             step_count += 1
             log_step(f"🔄 [CYCLE {step_count}/{max_steps}]")
