@@ -18,6 +18,72 @@ const PreviewPanel = ({ generatedCode, isGenerating, chatMode = 'chat', messages
     }
   }, [generatedCode]);
 
+  // Load all artifacts from all sessions
+  useEffect(() => {
+    const loadAllArtifacts = async () => {
+      try {
+        const sessions = await getSessions();
+        const artifacts = [];
+        
+        // Collect artifacts from all sessions
+        sessions.forEach(session => {
+          // Add generated code from session
+          if (session.generated_code) {
+            artifacts.push({
+              type: 'code',
+              code: session.generated_code,
+              sessionId: session.id,
+              sessionName: session.name,
+              timestamp: session.created_at || session.last_updated,
+              content: `App from: ${session.name}`
+            });
+          }
+          
+          // Parse messages if available
+          if (session.messages && Array.isArray(session.messages)) {
+            session.messages.forEach((msg, idx) => {
+              // Images from msg.image field
+              if (msg.image && (msg.image.startsWith('data:image') || msg.image.startsWith('http'))) {
+                artifacts.push({
+                  type: 'image',
+                  url: msg.image,
+                  sessionId: session.id,
+                  sessionName: session.name,
+                  timestamp: msg.timestamp || session.last_updated,
+                  content: msg.content || 'Generated image'
+                });
+              }
+              
+              // Images from msg.imageUrl
+              if (msg.imageUrl) {
+                artifacts.push({
+                  type: 'image',
+                  url: msg.imageUrl,
+                  sessionId: session.id,
+                  sessionName: session.name,
+                  timestamp: msg.timestamp || session.last_updated,
+                  content: msg.content || 'Generated image'
+                });
+              }
+            });
+          }
+        });
+        
+        // Sort by timestamp (newest first)
+        artifacts.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        
+        setAllArtifacts(artifacts);
+        console.log('📦 Loaded artifacts from all sessions:', artifacts.length);
+      } catch (error) {
+        console.error('Failed to load artifacts:', error);
+      }
+    };
+    
+    if (chatMode === 'chat') {
+      loadAllArtifacts();
+    }
+  }, [chatMode, messages]); // Reload when messages change
+
   const refreshPreview = () => {
     setPreviewKey(prev => prev + 1);
     setIframeContent(createPreviewHTML());
