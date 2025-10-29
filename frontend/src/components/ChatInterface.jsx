@@ -855,30 +855,44 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
             {/* Bottom left controls */}
             <div className="absolute bottom-2 md:bottom-3 left-3 flex items-center gap-3">
               {/* Mode Toggle Switch - DISABLED during generation */}
-              <div className="flex items-center gap-2">
+              {/* Triple mode toggle: Chat | Code | Automation */}
+              <div className="flex items-center gap-2 bg-gray-800/50 rounded-full p-1">
                 <button
-                  onClick={() => !isGenerating && onChatModeChange(chatMode === 'chat' ? 'agent' : 'chat')}
+                  onClick={() => !isGenerating && onChatModeChange('chat')}
                   disabled={isGenerating}
-                  className={`relative w-12 h-5 rounded-full transition-all duration-300 ${
-                    isGenerating ? 'opacity-50 cursor-not-allowed' : ''
-                  } ${
-                    chatMode === 'agent' 
-                      ? 'bg-gray-700 border border-blue-500/50' 
-                      : 'bg-gray-700 border border-gray-600'
-                  }`}
-                  title={isGenerating ? 'Cannot switch during generation' : chatMode === 'chat' ? 'Switch to Agent mode' : 'Switch to Chat mode'}
+                  className={`px-3 py-1 rounded-full text-[10px] font-medium transition-all ${
+                    chatMode === 'chat'
+                      ? 'bg-purple-600 text-white shadow-lg'
+                      : 'text-gray-500 hover:text-gray-300'
+                  } ${isGenerating ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  title="Chat mode"
                 >
-                  <div
-                    className={`absolute top-0.5 w-4 h-4 rounded-full transition-all duration-300 ${
-                      chatMode === 'agent'
-                        ? 'left-[26px] bg-blue-500 shadow-lg shadow-blue-500/50'
-                        : 'left-0.5 bg-gray-500'
-                    }`}
-                  />
+                  💬 Chat
                 </button>
-                <span className="text-[10px] text-gray-500 font-medium">
-                  {chatMode === 'chat' ? 'Chat' : 'Agent'}
-                </span>
+                <button
+                  onClick={() => !isGenerating && onChatModeChange('agent')}
+                  disabled={isGenerating}
+                  className={`px-3 py-1 rounded-full text-[10px] font-medium transition-all ${
+                    chatMode === 'agent'
+                      ? 'bg-blue-600 text-white shadow-lg'
+                      : 'text-gray-500 hover:text-gray-300'
+                  } ${isGenerating ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  title="Code generation mode"
+                >
+                  🤖 Code
+                </button>
+                <button
+                  onClick={() => !isGenerating && onChatModeChange('automation')}
+                  disabled={isGenerating}
+                  className={`px-3 py-1 rounded-full text-[10px] font-medium transition-all ${
+                    chatMode === 'automation'
+                      ? 'bg-green-600 text-white shadow-lg'
+                      : 'text-gray-500 hover:text-gray-300'
+                  } ${isGenerating ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  title="Browser automation mode"
+                >
+                  🌐 Auto
+                </button>
               </div>
               
               {/* File upload */}
