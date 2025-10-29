@@ -377,15 +377,6 @@ const PreviewPanel = ({ generatedCode, isGenerating, chatMode = 'chat', messages
                   </div>
                 );
               })()}
-                              </p>
-                            </div>
-                          </>
-                        ) : null}
-                      </div>
-                    ))}
-                  </div>
-                );
-              })()}
             </div>
           </div>
         
