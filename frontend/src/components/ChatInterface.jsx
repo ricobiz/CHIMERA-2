@@ -275,129 +275,76 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
 
   return (
     <div className="flex flex-col h-full bg-[#0f0f10] border-2 border-transparent animated-gradient-border relative">
-      {/* Header - fixed height */}
+      {/* Header - redesigned */}
       <div className="flex-shrink-0 border-b border-gray-800 p-3 md:p-4">
         <div className="flex items-center justify-between">
-          {/* Session Info - Clickable */}
-          <div className="relative session-menu-container">
-            <button
-              onClick={() => setShowSessionMenu(!showSessionMenu)}
-              className="flex items-center gap-2 hover:bg-gray-800/50 rounded-lg px-3 py-2 transition-all group border border-transparent hover:border-gray-700"
-            >
-              <ChimeraLogo className="h-5" />
-              {currentSessionId && (
-                <span className="text-xs text-gray-400 group-hover:text-gray-300 font-mono bg-gray-800/50 px-2 py-0.5 rounded border border-gray-700">
-                  ID: {currentSessionId.slice(0, 8)}...
-                </span>
-              )}
-              <List className="w-4 h-4 text-gray-400 group-hover:text-white transition-colors" />
-            </button>
-
-            {/* Session Menu Dropdown */}
-            {showSessionMenu && (
-              <div className="absolute top-full left-0 mt-2 w-96 bg-gray-900 border border-gray-700 rounded-lg shadow-xl z-50 max-h-96 overflow-hidden flex flex-col">
-                {/* Load by ID */}
-                <div className="p-3 border-b border-gray-800">
-                  <p className="text-xs text-gray-400 mb-2">Load Session by ID</p>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={loadingSessionId}
-                      onChange={(e) => setLoadingSessionId(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          handleLoadSessionById();
-                        }
-                      }}
-                      placeholder="Enter full session ID..."
-                      className="flex-1 px-3 py-2 bg-gray-800 border border-gray-700 rounded text-xs text-gray-300 placeholder-gray-600 focus:border-purple-500 focus:outline-none"
-                    />
-                    <Button
-                      onClick={handleLoadSessionById}
-                      size="sm"
-                      className="bg-purple-600 hover:bg-purple-500 px-3 text-xs"
-                    >
-                      Load
-                    </Button>
-                  </div>
-                </div>
-
-                {/* All Sessions List */}
-                <div className="flex-1 overflow-y-auto p-3">
-                  <p className="text-xs text-gray-400 mb-2">All Sessions ({allSessions.length})</p>
-                  {allSessions.length === 0 ? (
-                    <p className="text-gray-600 text-xs text-center py-4">No sessions yet</p>
-                  ) : (
-                    <div className="space-y-2">
-                      {allSessions.map((session) => (
-                        <button
-                          key={session.id}
-                          onClick={() => handleSessionClick(session.id)}
-                          className={`w-full text-left px-3 py-2 rounded text-xs transition-colors ${
-                            currentSessionId === session.id
-                              ? 'bg-purple-600/20 border border-purple-600'
-                              : 'bg-gray-800/50 hover:bg-gray-800 border border-transparent'
-                          }`}
-                        >
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="flex-1 min-w-0">
-                              <p className={`font-medium truncate ${
-                                currentSessionId === session.id ? 'text-purple-400' : 'text-gray-300'
-                              }`}>
-                                {session.name || 'Untitled'}
-                              </p>
-                              <p className="text-gray-500 text-[10px] mt-0.5 font-mono">
-                                ID: {session.id}
-                              </p>
-                              <div className="flex items-center gap-2 mt-1 text-gray-600 text-[10px]">
-                                <span>{session.message_count || 0} msgs</span>
-                                <span>•</span>
-                                <span>${(session.total_cost || 0).toFixed(4)}</span>
-                                <span>•</span>
-                                <span>{session.last_updated || 'N/A'}</span>
-                              </div>
-                            </div>
-                            {currentSessionId === session.id && (
-                              <Check className="w-3 h-3 text-purple-400 flex-shrink-0" />
-                            )}
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* New Session Button */}
-                <div className="p-3 border-t border-gray-800">
-                  <Button
-                    onClick={() => {
-                      onNewProject();
-                      setShowSessionMenu(false);
-                    }}
-                    className="w-full bg-green-600 hover:bg-green-500 text-white text-xs flex items-center justify-center gap-2"
-                  >
-                    <Plus className="w-3 h-3" />
-                    New Session
-                  </Button>
-                </div>
-              </div>
-            )}
+          {/* Left: ChimeraLogo + 3 Mode Buttons */}
+          <div className="flex items-center gap-4">
+            <ChimeraLogo className="h-5" />
+            
+            {/* 3 Mode Buttons */}
+            <div className="flex items-center gap-2">
+              {/* Chat Mode - Blue */}
+              <button
+                onClick={() => {
+                  setIsAutomationMode(false);
+                  if (onChatModeChange) onChatModeChange('chat');
+                }}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                  !isAutomationMode && chatMode === 'chat'
+                    ? 'bg-blue-600/30 border-2 border-blue-500 text-blue-300 shadow-lg shadow-blue-500/20'
+                    : 'bg-gray-800/50 border border-gray-700 text-gray-400 hover:border-blue-600/50 hover:text-blue-400'
+                }`}
+                title="Chat Mode"
+              >
+                Chat
+              </button>
+              
+              {/* Code Mode - Purple */}
+              <button
+                onClick={() => {
+                  setIsAutomationMode(false);
+                  if (onChatModeChange) onChatModeChange('agent');
+                }}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                  !isAutomationMode && chatMode === 'agent'
+                    ? 'bg-purple-600/30 border-2 border-purple-500 text-purple-300 shadow-lg shadow-purple-500/20'
+                    : 'bg-gray-800/50 border border-gray-700 text-gray-400 hover:border-purple-600/50 hover:text-purple-400'
+                }`}
+                title="Code Generation Mode"
+              >
+                Code
+              </button>
+              
+              {/* Automation Mode - Green */}
+              <button
+                onClick={() => {
+                  setIsAutomationMode(true);
+                  if (onOpenAutomation) onOpenAutomation();
+                }}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                  isAutomationMode
+                    ? 'bg-green-600/30 border-2 border-green-500 text-green-300 shadow-lg shadow-green-500/20'
+                    : 'bg-gray-800/50 border border-gray-700 text-gray-400 hover:border-green-600/50 hover:text-green-400'
+                }`}
+                title="Automation Mode"
+              >
+                Automation
+              </button>
+            </div>
           </div>
           
-          <div className="flex items-center gap-4">
-            {/* Model Indicators + Settings Menu */}
-            {/* Current models display */}
-            <div className="hidden md:flex items-center gap-2 text-[10px] text-gray-500 font-mono">
-              <span>Chat: {chatModel?.split('/').pop() || '—'}</span>
-              <span>•</span>
-              <span>Code: {activeModel?.split('/').pop() || '—'}</span>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <ModelIndicator 
-                type="code" 
-                modelName={activeModel?.split('/').pop()}
-                isActive={true}
+          {/* Right: Settings + Session ID */}
+          <div className="flex items-center gap-3">
+            {/* Settings Button */}
+            <div className="relative settings-menu-container">
+              <button
+                onClick={() => setShowSettingsMenu(!showSettingsMenu)}
+                className="p-2 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 border border-gray-700 hover:border-gray-600 transition-all"
+                title="Settings"
+              >
+                <Settings className="w-4 h-4 text-gray-300 hover:text-white transition-colors" />
+              </button>
               />
               <ModelIndicator 
                 type="validator" 
