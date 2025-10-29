@@ -258,6 +258,9 @@ async def exec_task(req: TaskRequest):
             await browser_service.navigate(session_id, start_url)
             await asyncio.sleep(3)  # Дать странице загрузиться
         
+        # Счётчик последовательных WAIT
+        consecutive_waits = 0
+        
         while agent_status == "ACTIVE" and step_count < max_steps:
             step_count += 1
             log_step(f"🔄 [CYCLE {step_count}/{max_steps}]")
