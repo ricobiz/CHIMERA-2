@@ -67,29 +67,62 @@ const PreviewPanel = ({ generatedCode, isGenerating }) => {
     );
     
     // Convert template literals to string concatenation to avoid Babel parsing errors
-    // This converts: className={`base-class ${variable}`} 
-    // Into: className={"base-class " + variable}
-    cleanCode = cleanCode.replace(
-      /className=\{`([^`]*)\$\{([^}]+)\}([^`]*)`\}/g, 
-      (match, before, variable, after) => {
-        const parts = [];
-        if (before) parts.push(`"${before}"`);
-        parts.push(variable);
-        if (after) parts.push(`"${after}"`);
-        return `className={${parts.join(' + ')}}`;
+    // Handles multiple ${} expressions in one template literal
+    const convertTemplateLiteral = (match) => {
+      // Extract content between backticks
+      const content = match.slice(match.indexOf('`') + 1, match.lastIndexOf('`'));
+      
+      // Split by ${...} and convert to concatenation
+      const parts = [];
+      let currentText = '';
+      let depth = 0;
+      let isInExpression = false;
+      let expression = '';
+      
+      for (let i = 0; i < content.length; i++) {
+        const char = content[i];
+        const nextChar = content[i + 1];
+        
+        if (char === '$' && nextChar === '{' && !isInExpression) {
+          if (currentText) {
+            parts.push(`"${currentText}"`);
+            currentText = '';
+          }
+          isInExpression = true;
+          depth = 1;
+          i++; // skip {
+        } else if (isInExpression) {
+          if (char === '{') depth++;
+          if (char === '}') {
+            depth--;
+            if (depth === 0) {
+              parts.push(expression);
+              expression = '';
+              isInExpression = false;
+            } else {
+              expression += char;
+            }
+          } else {
+            expression += char;
+          }
+        } else {
+          currentText += char;
+        }
       }
-    );
+      
+      if (currentText) {
+        parts.push(`"${currentText}"`);
+      }
+      
+      const joined = parts.join(' + ');
+      const attr = match.match(/^(\w+)=/)?.[1] || 'attr';
+      return `${attr}={${joined}}`;
+    };
     
-    // Also handle style and other attributes with template literals
+    // Apply template literal conversion to all attributes
     cleanCode = cleanCode.replace(
-      /(\w+)=\{`([^`]*)\$\{([^}]+)\}([^`]*)`\}/g, 
-      (match, attr, before, variable, after) => {
-        const parts = [];
-        if (before) parts.push(`"${before}"`);
-        parts.push(variable);
-        if (after) parts.push(`"${after}"`);
-        return `${attr}={${parts.join(' + ')}}`;
-      }
+      /(\w+)=\{`[^`]*`\}/g,
+      convertTemplateLiteral
     );
     
     return `
