@@ -73,21 +73,6 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
   const [importModalOpen, setImportModalOpen] = useState<boolean>(false);
   const [adjustMsg, setAdjustMsg] = useState<string>("");
 
-  // ExecutionAgent state
-  const [isExecuting, setIsExecuting] = useState<boolean>(false);
-  const [browserState, setBrowserState] = useState<BrowserState>({
-    currentUrl: '',
-    screenshot: '',
-    highlightBoxes: [],
-    pageTitle: '',
-    timestamp: Date.now()
-  });
-  
-  // Warmup progress state
-  const [isWarming, setIsWarming] = useState<boolean>(false);
-  const [warmupProgress, setWarmupProgress] = useState<string>('');
-  const [executionSubtitle, setExecutionSubtitle] = useState<string>('');
-
 
 
   const viewerRef = useRef<HTMLDivElement | null>(null);
