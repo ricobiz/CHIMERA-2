@@ -488,6 +488,38 @@ const AutomationPage: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
         </div>
 
       <div className="px-4 md:px-6 py-3 md:py-4 border-b border-gray-800 flex-shrink-0">
+        {/* Warm profile banner */}
+        {showWarmBanner && (
+          <div className="mb-3 bg-yellow-900/70 text-yellow-100 border border-yellow-700 rounded p-3">
+            <div className="text-sm mb-2">⚠️ Для этого сайта требуется прогретый профиль</div>
+            <div className="flex gap-2">
+              <button onClick={async()=>{
+                try {
+                  const resp = await fetch(`${BASE_URL}/api/profile/create`, { 
+                    method:'POST', 
+                    headers:{'Content-Type':'application/json'}, 
+                    body: JSON.stringify({ warmup: true })
+                  });
+                  const d = await resp.json();
+                  if (d?.profile_id) { 
+                    setShowWarmBanner(false);
+                    alert('✅ Профиль прогрет! Нажмите Run Task снова.');
+                  } else { 
+                    alert('❌ Не удалось прогреть профиль'); 
+                  }
+                } catch(e:any){ 
+                  alert(e.message||'Ошибка прогрева'); 
+                }
+              }} className="px-3 py-1.5 text-sm bg-green-700 hover:bg-green-600 border border-green-600 rounded text-white">
+                🔥 Прогреть аккаунт (60 сек)
+              </button>
+              <button onClick={()=> setShowWarmBanner(false)} className="px-3 py-1.5 text-sm bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded text-gray-200">
+                Закрыть
+              </button>
+            </div>
+          </div>
+        )}
+        
         <div ref={viewerRef} className="relative w-full h-72 md:h-[520px] border border-gray-800 rounded bg-black/60 overflow-hidden flex items-center justify-center" style={{ touchAction: 'none', overscrollBehavior: 'contain' }}>
           {quickError && (
             <div className="absolute top-2 left-2 right-2 text-[11px] text-red-300 bg-red-900/30 border border-red-800 rounded px-2 py-1 z-30">{quickError}</div>
