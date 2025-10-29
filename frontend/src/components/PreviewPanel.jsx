@@ -214,7 +214,10 @@ const PreviewPanel = ({ generatedCode, isGenerating, chatMode = 'chat' }) => {
 
       {/* Content */}
       <div className="flex-1 overflow-hidden">
-        {activeTab === 'preview' ? (
+        {/* AUTOMATION MODE: Show AutomationPage */}
+        {chatMode === 'automation' ? (
+          <AutomationPage onClose={() => {}} embedded={true} />
+        ) : activeTab === 'preview' ? (
           <div className="w-full h-full bg-[#0f0f10]">
             {isGenerating ? (
               <div className="flex items-center justify-center h-full bg-gray-900">
