@@ -132,7 +132,27 @@ class HeadBrainService:
             if not result or result.get('error'):
                 logger.error(f"❌ [HEAD BRAIN] LLM error: {result}")
                 # Fallback на простую логику
-                return self._fallback_analysis(goal, has_warm_profile)
+                return self._fallback_analysis(goal, has_warm_profile, user_data, auto_generate)
+            
+            # Проверяем требования к данным
+            requirements = result.get('requirements', {})
+            mandatory_data = requirements.get('mandatory_data', [])
+            
+            # КРИТИЧНО: Если нужны данные но их НЕТ и auto_generate=False → СТОП
+            if mandatory_data and not user_data and not auto_generate:
+                logger.warning(f"⚠️ [HEAD BRAIN] Task requires data but none provided. STOPPING for user input.")
+                return {
+                    "status": "NEEDS_USER_DATA",
+                    "task_id": result.get('task_id', 'head-' + str(random.randint(1000, 9999))),
+                    "target_url": result.get('target_url', ''),
+                    "understood_task": result.get('understood_task', goal),
+                    "task_type": result.get('task_type', 'unknown'),
+                    "required_fields": mandatory_data,
+                    "optional_fields": requirements.get('optional_data', []),
+                    "message": f"This task requires: {', '.join(mandatory_data)}. Please provide your data or choose to auto-generate.",
+                    "can_proceed": False,
+                    "reason": "Waiting for user data"
+                }
             
             # Генерируем или используем данные пользователя
             data_source = "generated"
