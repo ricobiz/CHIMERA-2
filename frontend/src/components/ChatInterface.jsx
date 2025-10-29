@@ -348,27 +348,24 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
           </div>
           
           {/* Right: Icons + Session ID */}
-          <div className="flex flex-col items-end gap-1">
-            {/* Top row: 3 Icons */}
+          <div className="flex flex-col items-end gap-2">
+            {/* Top row: 3 Icons БЕЗ квадратов */}
             <div className="flex items-center gap-2">
-              {/* Preview Button - меняет поведение в зависимости от режима */}
+              {/* Preview Eye - просто иконка */}
               <button
                 onClick={() => {
                   if (isAutomationMode) {
-                    // Зелёный режим → открыть Browser Automation
                     if (onOpenAutomation) onOpenAutomation();
                   } else if (chatMode === 'agent') {
-                    // Фиолетовый режим → открыть Preview кода
                     if (onOpenPreview) onOpenPreview();
                   } else {
-                    // Синий режим → открыть артефакты
                     toast({
                       title: "Artifacts",
                       description: "Artifacts preview (TODO: implement)"
                     });
                   }
                 }}
-                className="p-2 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 border border-gray-700 hover:border-gray-600 transition-all"
+                className="hover:opacity-70 transition-opacity"
                 title={
                   isAutomationMode 
                     ? "Open Browser Automation" 
@@ -377,27 +374,26 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
                       : "Preview Artifacts"
                 }
               >
-                <svg className="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                 </svg>
               </button>
               
-              {/* Code Icon */}
-              <ModelIndicator 
-                type="code" 
-                modelName={activeModel?.split('/').pop()}
-                isActive={true}
-              />
+              {/* Code Icon - просто иконка */}
+              <button className="hover:opacity-70 transition-opacity">
+                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                </svg>
+              </button>
               
-              {/* Settings Icon */}
-              <div className="relative settings-menu-container">
-                <button
-                  onClick={() => setShowSettingsMenu(!showSettingsMenu)}
-                  className="p-2 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 border border-gray-700 hover:border-gray-600 transition-all"
-                  title="Settings"
-                >
-                  <Settings className="w-4 h-4 text-gray-300 hover:text-white transition-colors" />
+              {/* Settings Icon - просто иконка */}
+              <button
+                onClick={() => setShowSettingsMenu(!showSettingsMenu)}
+                className="hover:opacity-70 transition-opacity relative"
+                title="Settings"
+              >
+                <Settings className="w-4 h-4 text-gray-400" />
                 </button>
               />
               <ModelIndicator 
