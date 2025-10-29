@@ -1,14 +1,14 @@
 {
-  "profile_id": "25bb8106-8883-416e-909a-4e32da938aab",
-  "created_at": "2025-10-29T01:36:18.154550+00:00",
-  "last_used": "2025-10-29T01:36:18.154561+00:00",
+  "profile_id": "0db59230-73d8-41a9-b672-80f54642a476",
+  "created_at": "2025-10-29T01:37:36.889696+00:00",
+  "last_used": "2025-10-29T01:37:36.889703+00:00",
   "used_count": 0,
-  "status": "warm",
+  "status": "fresh",
   "browser": {
     "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0 Safari/537.36",
     "viewport": {
-      "width": 1306,
-      "height": 792
+      "width": 1399,
+      "height": 775
     },
     "platform": "Win32",
     "vendor": "Google Inc.",
@@ -30,7 +30,7 @@
   "webgl": {
     "vendor": "Intel Inc.",
     "renderer": "Intel Iris OpenGL Engine",
-    "canvas_noise_seed": "695436"
+    "canvas_noise_seed": "662978"
   },
   "fonts": [
     "Arial",
@@ -63,14 +63,9 @@
     "risk_score": 0.2
   },
   "warmup": {
-    "is_warm": true,
-    "warmed_at": "2025-10-29T01:37:14.458503+00:00",
-    "sites_visited": [
-      "google.com",
-      "youtube.com",
-      "reddit.com",
-      "amazon.com"
-    ]
+    "is_warm": false,
+    "warmed_at": null,
+    "sites_visited": []
   },
   "captcha": {
     "last_failed_at": null,
