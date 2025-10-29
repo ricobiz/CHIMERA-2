@@ -482,6 +482,10 @@ function App() {
             newMessages.push(mockupMessage);
             setMessages([...newMessages]);
             
+            // Save pending data for approval callback
+            setPendingPrompt(prompt);
+            setPendingDesign(designSpec);
+            
             // WAIT FOR USER APPROVAL
             setAwaitingDesignApproval(true);
             setIsGenerating(false);
