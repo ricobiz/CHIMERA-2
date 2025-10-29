@@ -294,46 +294,10 @@ const PreviewPanel = ({ generatedCode, isGenerating, chatMode = 'chat', messages
                 Artifacts
               </h2>
               
-              {/* Extract and display all artifacts from messages */}
+              {/* Extract and display all artifacts from all sessions */}
               {(() => {
-                // Собираем все артефакты из messages
-                const artifacts = [];
-                
-                messages.forEach((msg, idx) => {
-                  // Images
-                  if (msg.imageUrl || msg.isImage) {
-                    artifacts.push({
-                      type: 'image',
-                      url: msg.imageUrl || msg.content,
-                      timestamp: idx,
-                      content: msg.content
-                    });
-                  }
-                  
-                  // Generated code/apps
-                  if (msg.generatedCode) {
-                    artifacts.push({
-                      type: 'code',
-                      code: msg.generatedCode,
-                      timestamp: idx,
-                      content: msg.content
-                    });
-                  }
-                  
-                  // Markdown images
-                  const imgMatches = msg.content?.match(/!\[.*?\]\((.*?)\)/g);
-                  if (imgMatches) {
-                    imgMatches.forEach(match => {
-                      const url = match.match(/\((.*?)\)/)[1];
-                      artifacts.push({
-                        type: 'image',
-                        url: url,
-                        timestamp: idx,
-                        content: msg.content
-                      });
-                    });
-                  }
-                });
+                // Use artifacts from all sessions
+                const artifacts = allArtifacts;
                 
                 if (artifacts.length === 0) {
                   return (
@@ -352,7 +316,7 @@ const PreviewPanel = ({ generatedCode, isGenerating, chatMode = 'chat', messages
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {artifacts.map((artifact, idx) => (
                       <div
-                        key={idx}
+                        key={`${artifact.sessionId}-${idx}`}
                         className="bg-gray-800 rounded-lg overflow-hidden shadow-lg hover:shadow-2xl transition-shadow cursor-pointer group"
                         onClick={() => {
                           // Open artifact in full view
@@ -360,7 +324,10 @@ const PreviewPanel = ({ generatedCode, isGenerating, chatMode = 'chat', messages
                             window.open(artifact.url, '_blank');
                           } else if (artifact.type === 'code') {
                             // Show code preview
-                            // TODO: Add modal for code view
+                            toast({
+                              title: "Code Preview",
+                              description: `Viewing code from: ${artifact.sessionName}`,
+                            });
                           }
                         }}
                       >
@@ -381,6 +348,9 @@ const PreviewPanel = ({ generatedCode, isGenerating, chatMode = 'chat', messages
                               <p className="text-sm text-gray-300 line-clamp-2">
                                 {artifact.content?.substring(0, 100) || 'Generated image'}
                               </p>
+                              <p className="text-xs text-gray-500 mt-1">
+                                From: {artifact.sessionName}
+                              </p>
                             </div>
                           </>
                         ) : artifact.type === 'code' ? (
@@ -394,7 +364,19 @@ const PreviewPanel = ({ generatedCode, isGenerating, chatMode = 'chat', messages
                                 <span>App</span>
                               </div>
                               <p className="text-sm text-gray-300 line-clamp-2">
-                                Generated application
+                                {artifact.content || 'Generated application'}
+                              </p>
+                              <p className="text-xs text-gray-500 mt-1">
+                                From: {artifact.sessionName}
+                              </p>
+                            </div>
+                          </>
+                        ) : null}
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
                               </p>
                             </div>
                           </>
