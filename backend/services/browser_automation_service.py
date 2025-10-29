@@ -515,6 +515,58 @@ class BrowserAutomationService:
                 'cell': cell
             }
     
+    async def type_at_cell(self, session_id: str, cell: str, text: str, human_like: bool = True) -> Dict[str, Any]:
+        """Type text at a grid cell - сначала кликает на cell, потом вводит текст"""
+        if session_id not in self.sessions:
+            raise ValueError(f"Session {session_id} not found")
+        
+        page = self.sessions[session_id]['page']
+        
+        try:
+            # Импортируем GridConfig
+            from services.grid_service import GridConfig
+            
+            # Получаем viewport
+            viewport = page.viewport_size
+            viewport_w = viewport['width']
+            viewport_h = viewport['height']
+            
+            # Преобразуем cell в координаты
+            grid = GridConfig(rows=12, cols=8)
+            x, y = grid.cell_to_xy(cell, viewport_w, viewport_h)
+            
+            logger.info(f"Typing at cell {cell} ({x}, {y}): {text}")
+            
+            # Сначала кликаем на ячейку
+            if human_like:
+                await HumanBehaviorSimulator.human_move_and_click(page, x, y)
+                await human_like_delay(200, 500)
+                # Вводим текст человекоподобно через keyboard
+                await HumanBehaviorSimulator.human_type_keyboard(page, text)
+            else:
+                await page.mouse.click(x, y)
+                await human_like_delay(100, 300)
+                await page.keyboard.type(text)
+            
+            await human_like_delay(300, 800)
+            
+            screenshot = await self.capture_screenshot(session_id)
+            
+            return {
+                'success': True,
+                'screenshot': screenshot,
+                'cell': cell,
+                'text': text,
+                'coordinates': {'x': x, 'y': y}
+            }
+        except Exception as e:
+            logger.error(f"Type at cell error: {str(e)}")
+            return {
+                'success': False,
+                'error': str(e),
+                'cell': cell
+            }
+    
     async def wait_for_element(self, session_id: str, selector: str, timeout: int = 10000) -> Dict[str, Any]:
         """Wait for element to appear"""
         if session_id not in self.sessions:
