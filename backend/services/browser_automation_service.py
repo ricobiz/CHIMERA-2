@@ -872,6 +872,8 @@ class BrowserAutomationService:
                 return elements;
             }""")
             
+            logger.info(f"🔍 [DOM] Found {len(clickables_data or [])} clickable elements")
+            
             return {
                 'vw': vw,
                 'vh': vh,
