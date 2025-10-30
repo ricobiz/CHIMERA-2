@@ -557,6 +557,26 @@ agent_communication:
   - agent: "main"
     message: "Fixed critical chat bugs: (1) Body is disturbed error - added response.ok check, (2) History cleaning - only send {role, content}, (3) Session auto-creation, (4) Auto-save always works. Added extensive logging to all functions. Please test: Chat (multiple messages), Message delete/edit/regenerate, Session persistence across reload, Preview display, Code generation in Agent mode, Design workflow. Check console for detailed logs: '📤 Sending...', '✅ Chat API response', '💾 Auto-saved', '🗑️ Deleting', etc."
   - agent: "testing"
+    message: "🚨 **CRITICAL BACKEND VALIDATION ERROR BLOCKING PREVIEW CLEARING TEST**
+
+**ISSUE STATUS:** Preview Panel Clearing Fix cannot be fully verified due to backend API errors
+
+**DETAILED FINDINGS:**
+1. **Frontend Implementation ✅:** Preview clearing logic correctly implemented in App.js lines 344-347 with setGeneratedCode('') when chatMode === 'agent'
+2. **Code Mode Switching ✅:** Successfully switches to Code mode, task classification works (code_generation, confidence: 1)
+3. **UI State ✅:** Preview panel shows correct 'No Artifacts Yet' empty state before generation
+4. **Backend Blocking Issue ❌:** Multiple 500 errors from /api/sessions endpoint with validation error: 'total_cost field should be a valid number [input_value=None]'
+5. **Session Management Broken ❌:** Cannot create/update sessions properly, preventing complete code generation workflow
+
+**ROOT CAUSE:** Backend validation expects total_cost to be a number but receives None/null values
+
+**IMPACT:** 
+- Cannot complete full preview clearing test workflow
+- Code generation requests fail to complete
+- Session persistence not working properly
+
+**RECOMMENDATION:** Fix backend session validation for total_cost field (set default value 0.0 instead of None) before retesting preview clearing functionality. The frontend fix appears correct but needs working backend to verify complete workflow."
+  - agent: "testing"
     message: "🚨 **CRITICAL REACT HOOK ERROR FOUND IN AUTOMATIONPAGE**
 
 **CONFIRMED ISSUE:** Invalid hook call error occurs specifically when navigating to AutomationPage component.
