@@ -1079,5 +1079,37 @@ async def captcha_solve(req: CaptchaSolveRequest):
 
 
 
+# ============= Manual Control Endpoint =============
+
+class RemoteClickRequest(BaseModel):
+    session_id: str
+    x: int
+    y: int
+
+@router.post("/remote-click")
+async def remote_click(req: RemoteClickRequest):
+    """Manual click from UI - sends click to actual browser"""
+    try:
+        if req.session_id not in browser_service.sessions:
+            raise HTTPException(status_code=404, detail=f"Session {req.session_id} not found")
+        
+        page = browser_service.sessions[req.session_id]['page']
+        
+        # Click at coordinates
+        await page.mouse.click(req.x, req.y)
+        
+        logger.info(f"🖱️ Manual click at ({req.x}, {req.y})")
+        
+        return {
+            "success": True,
+            "message": f"Clicked at ({req.x}, {req.y})"
+        }
+        
+    except Exception as e:
+        logger.error(f"Remote click error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+
 
 
