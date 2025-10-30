@@ -778,8 +778,8 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
           ))}
         </div>
 
-        {/* Tab Content */}
-        <div className="flex-1 overflow-y-auto p-2 md:p-4 min-h-0">
+        {/* Tab Content - Fixed height to not steal space from Browser View */}
+        <div className="h-48 overflow-y-auto p-2 md:p-4 flex-shrink-0"
           {activeTab==='screen' && (
             <div className="text-xs text-gray-400">
               <div>Session: <span className="text-gray-200">{sessionId || quickSessionId || '—'}</span></div>
