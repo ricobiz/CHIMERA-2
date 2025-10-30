@@ -778,8 +778,8 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
           ))}
         </div>
 
-        {/* Tab Content - Reasonable height for viewing and interaction */}
-        <div className="h-64 overflow-y-auto p-2 md:p-4 flex-shrink-0">
+        {/* Tab Content - More space for better UX */}
+        <div className="flex-1 overflow-y-auto p-2 md:p-4 min-h-0">
           {activeTab==='detections' && (
             <div className="space-y-2">
               {/* Session info at top */}
