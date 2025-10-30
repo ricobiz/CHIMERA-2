@@ -143,23 +143,28 @@ export default App;
                     return part
         return content
     
-    async def chat_completion(self, messages: List[Dict], model: str = None, temperature: float = 0.7, max_tokens: int = 1000) -> Dict:
+    async def chat_completion(self, messages: List[Dict], model: str = None, temperature: float = 0.7, max_tokens: int = 1000, top_p: float = None) -> Dict:
         """Generic chat completion method for context management"""
         try:
             selected_model = model if model else self.model
             
             logger.info(f"Chat completion request to OpenRouter with model: {selected_model}")
             
+            payload = {
+                "model": selected_model,
+                "messages": messages,
+                "temperature": temperature,
+                "max_tokens": max_tokens
+            }
+            
+            if top_p is not None:
+                payload["top_p"] = top_p
+            
             async with httpx.AsyncClient(timeout=60.0) as client:
                 resp = await client.post(
                     f"{OR_BASE}/chat/completions",
                     headers=self.http_headers,
-                    json={
-                        "model": selected_model,
-                        "messages": messages,
-                        "temperature": temperature,
-                        "max_tokens": max_tokens
-                    }
+                    json=payload
                 )
                 resp.raise_for_status()
                 data = resp.json()
