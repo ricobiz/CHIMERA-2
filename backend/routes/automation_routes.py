@@ -539,3 +539,55 @@ async def smoke_check(req: SmokeCheckRequest):
     except Exception as e:
         logger.error(f"Smoke-check error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# ============= BLOCK 1: Scene Builder Endpoints =============
+
+class SceneSnapshotRequest(BaseModel):
+    session_id: str
+
+@router.post("/scene/snapshot")
+async def scene_snapshot(req: SceneSnapshotRequest):
+    """
+    Build Scene JSON from current page state
+    Returns: Scene JSON with viewport, url, http, antibot, elements[], hints
+    """
+    try:
+        if req.session_id not in browser_service.sessions:
+            raise HTTPException(status_code=404, detail=f"Session {req.session_id} not found")
+        
+        page = browser_service.sessions[req.session_id]['page']
+        
+        # Inject grid overlay
+        await browser_service._inject_grid_overlay(page)
+        
+        # Collect DOM clickables
+        dom_data = await browser_service._collect_dom_clickables(page)
+        
+        # Get screenshot for vision
+        screenshot_b64 = await browser_service.capture_screenshot(req.session_id)
+        
+        # Augment with vision
+        vision = await browser_service._augment_with_vision(screenshot_b64, dom_data)
+        
+        # Build Scene JSON
+        scene = await scene_builder_service.build_scene(
+            page=page,
+            dom_data=dom_data,
+            vision_elements=vision,
+            session_id=req.session_id
+        )
+        
+        logger.info(f"📸 Scene snapshot: {len(scene['elements'])} elements, antibot={scene['antibot']['present']}")
+        
+        return {
+            "success": True,
+            "scene": scene,
+            "screenshot_base64": screenshot_b64,
+            "screenshot_id": hashlib.md5(screenshot_b64.encode('utf-8')).hexdigest()
+        }
+        
+    except Exception as e:
+        logger.error(f"Scene snapshot error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
