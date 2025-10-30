@@ -661,6 +661,7 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
           )}
         </div>
       </div>
+    </div>
 
       {/* Old layout removed */}
     </div>
