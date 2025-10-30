@@ -16,7 +16,7 @@ class PlannerService:
     """
     
     def __init__(self):
-        self.model = "qwen/qwen-2.5-instruct"  # OpenRouter model ID
+        self.model = "qwen/qwen2.5-7b-instruct"  # OpenRouter model ID
         self.temperature = 0.10
         self.top_p = 0.85
     
