@@ -538,7 +538,7 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
             </div>
           </div>
           
-          <div ref={viewerRef} className={`relative w-full ${isFullscreen?'flex-1':'flex-1'} border border-gray-800 rounded bg-black overflow-hidden`} 
+          <div ref={viewerRef} className={`relative w-full ${isFullscreen?'flex-1':'h-[400px]'} border border-gray-800 rounded bg-black overflow-hidden`} 
             style={{ touchAction: 'none' }}
             onMouseDown={(e)=>{
               if (!isDrawingMode) return;
