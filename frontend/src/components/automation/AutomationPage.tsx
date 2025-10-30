@@ -609,8 +609,39 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
 
           {/* Canvas overlay for detections */}
           {overlayRect && (
-            <canvas ref={canvasRef} className="absolute pointer-events-none" style={{ left: overlayRect.left, top: overlayRect.top, width: overlayRect.width, height: overlayRect.height }} />
+            <canvas ref={canvasRef} className="absolute pointer-events-none" style={{ left: overlayRect.left, top: overlayRect.top, width: overlayRect.height, height: overlayRect.height }} />
           )}
+
+          {/* Element numbers overlay */}
+          {showDetections && overlayRect && vision.map((v:any, idx:number) => {
+            const isSelected = selectedElement === v;
+            return (
+              <div key={idx} 
+                className={`absolute pointer-events-none transition-all ${isSelected?'z-50':'z-40'}`}
+                style={{ 
+                  left: `${overlayRect.left + v.bbox.x}px`, 
+                  top: `${overlayRect.top + v.bbox.y}px`,
+                  width: `${v.bbox.w}px`,
+                  height: `${v.bbox.h}px`
+                }}
+              >
+                {/* Bounding box */}
+                <div className={`w-full h-full border-2 rounded ${isSelected?'border-blue-400 bg-blue-400/20':'border-green-400/60 hover:border-green-300'}`} />
+                
+                {/* Element number badge */}
+                <div className={`absolute -top-2 -left-2 px-1.5 py-0.5 rounded text-[10px] font-mono font-bold ${isSelected?'bg-blue-500 text-white':'bg-green-500/90 text-white'}`}>
+                  #{idx + 1}
+                </div>
+                
+                {/* Label on hover */}
+                {v.label && (
+                  <div className="absolute bottom-full left-0 mb-1 px-2 py-1 bg-black/80 text-white text-[10px] rounded whitespace-nowrap max-w-xs truncate opacity-0 hover:opacity-100 transition-opacity">
+                    {v.label}
+                  </div>
+                )}
+              </div>
+            );
+          })}
 
           {tapCell && overlayRect && (
             <div className="absolute" style={{ left: `${overlayRect.left + (tapCell.left/100)*overlayRect.width}px`, top: `${overlayRect.top + (tapCell.top/100)*overlayRect.height}px`, transform: 'translate(-50%, -50%)' }}>
