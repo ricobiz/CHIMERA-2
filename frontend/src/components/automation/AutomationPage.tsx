@@ -593,6 +593,7 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
             </div>
           )}
         </div>
+        </div>
 
         {/* Tabs */}
         <div className="flex border-b border-gray-800 px-4">
