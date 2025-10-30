@@ -483,10 +483,11 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
           {/* Lens controls removed for stability */}
 
           </div>
-          {/* URL row moved to header */}
+          {/* URL and Session ID controls moved to header */}
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <input value={quickUrl} onChange={(e:any)=>setQuickUrl(e.target.value)} className="w-full px-3 py-1.5 text-[12px] bg-black/40 border border-gray-700 rounded text-gray-200 placeholder-gray-500" placeholder="https://..." />
-            <button title="Run" onClick={quickNavigate} className="p-2 rounded bg-blue-800/70 hover:bg-blue-700/70 border border-blue-700 text-blue-200"><PlayIcon className="w-4 h-4"/></button>
+            <input value={quickSessionId || ''} onChange={(e:any)=>setQuickSessionId(e.target.value)} className="w-48 px-3 py-1.5 text-[12px] bg-black/40 border border-gray-700 rounded text-gray-200 placeholder-gray-500" placeholder="session-id (optional)" />
+            <button title="Connect to Session / Navigate" onClick={quickNavigate} className="p-2 rounded bg-blue-800/70 hover:bg-blue-700/70 border border-blue-700 text-blue-200"><PlayIcon className="w-4 h-4"/></button>
             <span className={`text-[10px] px-1.5 py-0.5 rounded ${statusPill(agentStatus)}`}>{agentStatus}</span>
           </div>
           {/* Side icon strips */}
