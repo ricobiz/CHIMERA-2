@@ -1,5 +1,8 @@
 <analysis>
-The previous AI engineer meticulously addressed several critical issues in the Chimera AIOS. Initially, the focus was on a non-functional image generation button and broken code preview. This involved systematically correcting OpenRouter API parameters and model names ( to ,  to ) in backend services to ensure successful image generation. The primary challenge then shifted to frontend rendering, where base64 image data was being displayed as text. This was resolved by modifying  to store image URLs in a dedicated  field, enabling  to render visual images. A  error was fixed by filtering large image data from storage. The Annotate/Approve Design buttons were made functional by refactoring their callbacks to use proper React props in . Finally, the AI implemented the display of artifacts from all user sessions in , resolving a JSX compilation error and an infinite  loop, ensuring a stable artifact display.
+The previous AI engineer meticulously addressed several critical issues in the Chimera AIOS. Initially, the focus was on a non-functional image generation button and broken code preview. This involved systematically correcting OpenRouter API parameters and model names in backend services to ensure successful image generation. The primary challenge then shifted to frontend rendering, where base64 image data was being displayed as text. This was resolved by modifying  to store image URLs in a dedicated  field, enabling  to render visual images. A  error was fixed by filtering large image data from storage. The Annotate/Approve Design buttons were made functional by refactoring their callbacks to use proper React props in . Finally, the AI implemented the display of artifacts from all user sessions in , resolving a JSX compilation error and an infinite  loop, ensuring a stable artifact display.
+
+The current trajectory began with verifying the existing application state, confirming previous fixes, and restarting a stopped [2025-10-30T16:11:47.508Z] info  code-server 4.105.1 811ec6c1d60add2eb92446161ca812828fdbaa7f
+[2025-10-30T16:11:47.508Z] info  Using user-data-dir /root/.local/share/code-server. The AI then addressed the Preview not clearing after code generation by modifying  to clear  state at the start of generation. This surfaced a backend  validation issue in , fixed by adding a Pydantic validator. When a user reported generated code didn't match design, the AI enhanced prompts across , , and  for stricter adherence. Lastly, a recurring issue of image generation returning text was diagnosed and fixed in  by correcting OpenRouter's  parameter and refining fallback logic. The backend was restarted, ready for verification of image generation.
 </analysis>
 
 <product_requirements>
@@ -16,24 +19,30 @@ The Chimera AIOS is a full-stack AI code generation tool, featuring a dark theme
 
 <code_architecture>
 
--   ****: Handles API endpoints for design, image, and code generation.
-    -   **Summary of importance**: Defines , , and  endpoints.
-    -   **Changes**: Updated  to  in . Added debug logging to .
+-   ****: Defines Pydantic models for database entities like .
+    -   **Summary of importance**: Essential for data validation and serialization/deserialization with MongoDB.
+    -   **Changes**: Added  to convert  values for  to , and imported  from .
 -   ****: Contains core logic for generating designs and images via LLMs.
     -   **Summary of importance**: Interfaces with OpenRouter for image and design generation.
-    -   **Changes**: Modified  to use  and updated the model name to . Confirmed  uses a text-only model. Added detailed debug logging.
+    -   **Changes**:
+        -   Enhanced  prompt for more detailed and strict design specifications.
+        -   Updated  for more accurate mockup generation.
+        -   Corrected OpenRouter image generation parameter from  to  in .
+        -   Improved fallback logic to robustly handle potential non-image responses.
+-   ****: Manages interactions with the OpenRouter API for various LLM calls.
+    -   **Summary of importance**: Centralizes communication with OpenRouter, including system prompts for code generation.
+    -   **Changes**: Improved the  to be more strict in adhering to design specifications during code generation.
 -   ****: The main React application component managing global state and API interactions.
-    -   **Summary of importance**: Orchestrates design-first workflow, handles image generation, and manages message state.
-    -   **Changes**: Modified  and  to store image URLs in a dedicated  field. Replaced  with a text-specific model for . Implemented logic to filter large images from  to prevent quota overflow. Refactored Annotate/Approve Design button callbacks to use direct prop passing, resolving stale state issues.
--   ****: Renders the chat UI, including messages and action buttons.
-    -   **Summary of importance**: Displays chat messages, including images, and provides interactive elements.
-    -   **Changes**: Corrected Annotate and Approve Design buttons to use passed props (, ) instead of  global callbacks.
+    -   **Summary of importance**: Orchestrates design-first workflow, handles image and code generation, and manages message state.
+    -   **Changes**:
+        -   Modified  to clear the  state () immediately when code generation starts () to prevent stale previews.
+        -   Enhanced the prompt passed to the backend for code generation ().
 -   ****: Displays artifacts, code preview, and automation status.
     -   **Summary of importance**: Central panel for viewing generated outputs and managing artifacts.
-    -   **Changes**: Modified to fetch and display artifacts from *all user sessions*. Resolved a  due to duplicated JSX code. Fixed an infinite  loop by removing  from its dependency array.
--   ****: Displays a list of chat sessions.
-    -   **Summary of importance**: Provides navigation and management for user sessions.
-    -   **Changes**: Confirmed that session deletion functionality already exists and works as intended.
+    -   **Changes**:
+        -   The  dependency array was verified as  to resolve an infinite loop.
+        -   The  function definition was moved to before its call within the  hook (lines 125-257 moved to before line 15).
+        -   A duplicate  function definition (lines 258-388) was removed.
 </code_architecture>
 
 <pending_tasks>
@@ -47,14 +56,19 @@ The Chimera AIOS is a full-stack AI code generation tool, featuring a dark theme
 -   Implement SSE-stream for the live viewer.
 -   Integrate animated background for visual observation of brain flows.
 -   Complete automation flow for Justfans.uno registration.
--   Preview not clearing after code generation.
 -   Session management: ability to share sessions via link.
 </pending_tasks>
 
 <current_work>
-Immediately before this summary, the AI engineer was addressing a series of critical issues to improve the Chimera AIOS. The focus was on ensuring proper image generation and visual rendering within the chat interface, both for direct image generation and the design-first workflow. Key fixes include correcting OpenRouter API parameters and model names in the backend and modifying  to store image URLs in a dedicated  field, allowing  to render images visually. The  error was resolved by filtering large image data from messages before saving them. The Annotate and Approve Design buttons were made functional in  by refactoring their callbacks to use React props instead of stale  object references. Lastly, the AI implemented the display of artifacts from *all user sessions* in . This involved fixing a JSX compilation error caused by duplicated code and, most recently, resolving an infinite  loop that occurred when fetching artifacts by removing  from its dependency array. The frontend was successfully restarted after this last fix.
+Immediately before this summary, the AI engineer was addressing a series of critical issues to improve the Chimera AIOS. The focus was on ensuring proper image generation and visual rendering within the chat interface, both for direct image generation and the design-first workflow. Key fixes include correcting OpenRouter API parameters and model names in the backend and modifying  to store image URLs in a dedicated  field, allowing  to render images visually. The  error was resolved by filtering large image data from messages before saving them. The Annotate and Approve Design buttons were made functional in  by refactoring their callbacks to use React props instead of stale  object references. Lastly, the AI implemented the display of artifacts from *all user sessions* in . This involved fixing a JSX compilation error caused by duplicated code and, most recently, resolving an infinite  loop that occurred when fetching artifacts by removing  from its dependency array. The [2025-10-30T16:11:48.374Z] info  code-server 4.105.1 811ec6c1d60add2eb92446161ca812828fdbaa7f
+[2025-10-30T16:11:48.375Z] info  Using user-data-dir /root/.local/share/code-server was also found to be stopped and has been restarted successfully.
+
+The latest work involved fixing issues where:
+1.  **Preview was not clearing** after code generation, resolved by clearing  state in .
+2.  **Generated code was not adhering to approved design**, addressed by improving prompts in , , and .
+3.  **Image generation resulted in text descriptions instead of images**, which was diagnosed as incorrect OpenRouter API parameters ( implemented) and improved fallback logic in . A backend  validation issue in  was also resolved as a prerequisite.
 </current_work>
 
 <optional_next_step>
-Verify that artifacts from all sessions are correctly displayed in the  and the  infinite loop is resolved.
+Test the latest fix for image generation to ensure mockups are now correctly displayed as images.
 </optional_next_step>
