@@ -2342,3 +2342,5 @@ agent_communication:
 - ✅ Multiple models working (google/gemini-2.5-flash-image, google/gemini-2.5-flash-image-preview)
 
 **CONCLUSION:** User's image generation button issue completely resolved. The endpoint now successfully generates and returns base64 image data as expected. OpenRouter integration with Gemini 2.5 Flash Image model fully operational."
+  - agent: "main"
+    message: "Fixed preview clearing issue: When starting new code generation in agent mode, old preview now clears immediately and shows loading spinner instead of stale code. Added setGeneratedCode(') when isGenerating is set to true in agent mode. Needs frontend testing to verify the fix works correctly during code generation workflow."
