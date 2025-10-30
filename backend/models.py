@@ -30,9 +30,13 @@ class Session(BaseModel):
     model_used: str = "anthropic/claude-3.5-sonnet"
     validator_model: Optional[str] = None
     validator_enabled: bool = False
-    total_cost: float = 0.0
+    total_cost: Optional[float] = 0.0
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
+    
+    @validator('total_cost', pre=True, always=True)
+    def set_default_total_cost(cls, v):
+        return v if v is not None else 0.0
     
 class SessionListItem(BaseModel):
     id: str
