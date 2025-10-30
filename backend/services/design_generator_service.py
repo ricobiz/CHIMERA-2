@@ -290,7 +290,7 @@ Style: Modern, clean, professional, high-quality, realistic."""
                                     "content": image_prompt
                                 }
                             ],
-                            "modalities": ["image", "text"]
+                            "output_modalities": ["image"]  # ИСПРАВЛЕНО: используем output_modalities вместо modalities
                         },
                         timeout=60.0
                     )
