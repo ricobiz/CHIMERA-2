@@ -477,15 +477,18 @@ frontend:
 
   - task: "Preview Panel - Clear old preview on new code generation"
     implemented: true
-    working: "NA"
+    working: false
     file: "/app/frontend/src/App.js"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Fixed issue where old preview stayed visible when starting new code generation. Added setGeneratedCode('') when chatMode is 'agent' and isGenerating is set to true. This ensures old code is cleared before new code generation starts, providing better UX with loading spinner instead of stale preview."
+      - working: false
+        agent: "testing"
+        comment: "❌ PARTIAL TESTING COMPLETED - Backend API Issues Blocking Full Verification. ✅ FRONTEND LOGIC VERIFIED: Code mode switching works correctly, task classification identifies 'code_generation' with confidence 1, preview panel shows correct 'No Artifacts Yet' empty state. ❌ BACKEND BLOCKING ISSUES: Multiple 500 errors from /api/sessions endpoint due to validation error 'total_cost field should be a valid number [input_value=None]'. This prevents proper session management and code generation completion. 🔍 PREVIEW CLEARING LOGIC: The fix appears correctly implemented in App.js lines 344-347, but cannot be fully tested due to backend errors preventing complete generation workflow. ⚠️ RECOMMENDATION: Fix backend validation error for total_cost field in session management before retesting preview clearing functionality."
 
 metadata:
   created_by: "main_agent"
