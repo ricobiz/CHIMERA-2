@@ -600,14 +600,14 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-gray-800 px-4">
+        <div className="flex border-b border-gray-800 px-2 md:px-4 flex-shrink-0 overflow-x-auto">
           {['screen','detections','logs','chat'].map(tab=>(
-            <button key={tab} onClick={()=>setActiveTab(tab as any)} className={`px-4 py-2 text-sm capitalize ${activeTab===tab?'border-b-2 border-blue-500 text-blue-400':'text-gray-400 hover:text-gray-200'}`}>{tab}</button>
+            <button key={tab} onClick={()=>setActiveTab(tab as any)} className={`px-3 md:px-4 py-2 text-xs md:text-sm capitalize whitespace-nowrap ${activeTab===tab?'border-b-2 border-blue-500 text-blue-400':'text-gray-400 hover:text-gray-200'}`}>{tab}</button>
           ))}
         </div>
 
         {/* Tab Content */}
-        <div className="flex-1 overflow-y-auto p-4">
+        <div className="flex-1 overflow-y-auto p-2 md:p-4 min-h-0">
           {activeTab==='screen' && (
             <div className="text-xs text-gray-400">
               <div>Session: <span className="text-gray-200">{sessionId || quickSessionId || '—'}</span></div>
