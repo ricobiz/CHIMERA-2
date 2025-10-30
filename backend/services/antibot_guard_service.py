@@ -58,12 +58,15 @@ class AntiBotGuard:
             
             # Policy decisions
             if antibot_type == 'captcha':
-                if antibot.get('provider') in ['recaptcha_v2', 'hcaptcha']:
+                provider = antibot.get('provider', '')
+                # Support recaptcha (v2/v3), hcaptcha, turnstile
+                if any(p in provider.lower() for p in ['recaptcha', 'hcaptcha', 'turnstile']):
                     return {
                         "decision": {
                             "action": "wait_solver",
                             "profile": None,
-                            "backoff_ms": 0
+                            "backoff_ms": 0,
+                            "message": f"CAPTCHA detected: {provider}"
                         }
                     }
                 else:
@@ -72,7 +75,7 @@ class AntiBotGuard:
                             "action": "abort",
                             "profile": None,
                             "backoff_ms": 0,
-                            "reason": "Unsupported captcha type"
+                            "reason": f"Unsupported captcha type: {provider}"
                         }
                     }
             
