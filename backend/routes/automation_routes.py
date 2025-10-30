@@ -11,6 +11,7 @@ from services.cognitive_services import awareness_service, env_check_service, re
 from services.verifier_service import verifier_service, recovery_service
 from services.antibot_guard_service import antibot_guard
 from services.selftest_service import selftest_service
+from services.watchdog_fsm_service import watchdog_fsm, FSMState
 
 router = APIRouter(prefix="/api/automation", tags=["automation"])
 logger = logging.getLogger(__name__)
