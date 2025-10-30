@@ -14,7 +14,12 @@ const PreviewPanel = ({ generatedCode, isGenerating, chatMode = 'chat', messages
 
   useEffect(() => {
     if (generatedCode) {
-      setIframeContent(createPreviewHTML());
+      const htmlContent = createPreviewHTML();
+      setIframeContent(htmlContent);
+      console.log('🖼️ Preview updated, code length:', generatedCode.length);
+    } else {
+      setIframeContent('');
+      console.log('🧹 Preview cleared');
     }
   }, [generatedCode]);
 
