@@ -17,28 +17,67 @@ class DesignGeneratorService:
             api_key=self.api_key
         )
         
-        self.design_prompt = """You are an expert UI/UX designer. Based on the user's request, create a detailed visual design description for the application.
+        self.design_prompt = """You are an expert UI/UX designer. Based on the user's request, create a HIGHLY DETAILED visual design specification for the application.
 
 **User Request:** {user_request}
 
 **Your Task:**
 1. Analyze the request and determine the core functionality
-2. Propose a complete visual design including:
-   - Color scheme and theme (light/dark, color palette)
-   - Layout structure (header, main content, footer, sidebar if needed)
-   - Component placement (where buttons, forms, lists go)
-   - Typography (font styles, sizes for headers, body text)
-   - Spacing and padding guidelines
-   - Interactive elements styling (buttons, inputs, hover states)
-   - Visual hierarchy and emphasis
-   - Responsive behavior
+2. Propose a COMPLETE and SPECIFIC visual design including:
+   
+   **Color Scheme:**
+   - Primary color (exact hex code)
+   - Secondary color (exact hex code)  
+   - Background colors (exact hex codes for main bg, secondary bg)
+   - Text colors (exact hex codes for headings, body, muted)
+   - Accent/highlight colors (exact hex codes)
+   - Border/divider colors (exact hex codes)
+   
+   **Layout Structure:**
+   - Exact page structure (header height in px, content padding, footer)
+   - Grid/flex layout specifications
+   - Container widths (max-width values)
+   - Spacing system (4px, 8px, 16px, 24px, 32px guidelines)
+   
+   **Typography:**
+   - Font family recommendations
+   - Heading sizes (h1: Xpx, h2: Xpx, etc.)
+   - Body text size and line-height
+   - Font weights for different elements
+   
+   **Components Styling:**
+   - Button styles (primary, secondary) with exact colors, padding, border-radius
+   - Input field styling (border, focus state, padding, height)
+   - Card/container styling (background, shadow, border-radius, padding)
+   - Lists, tables, or data display components
+   
+   **Interactive States:**
+   - Hover effects (color changes, transforms)
+   - Active/focus states
+   - Disabled states
+   - Loading states
+   
+   **Visual Elements:**
+   - Border radius values (buttons, cards, inputs)
+   - Shadow specifications (box-shadow values)
+   - Icon placement and sizing
+   - Image styling if applicable
 
 **Response Format:**
-Provide a detailed design specification in natural language that a developer can follow. Be specific about colors (use hex codes), spacing (use px/rem), and layout decisions.
+Provide a DETAILED design specification that reads like a design system document. Use EXACT values:
+- Colors: hex codes (#RRGGBB)
+- Spacing: px or rem values
+- Sizes: px or rem values
+- Tailwind classes where applicable
 
-Example: "Create a dark theme app (#0f0f10 background) with a top navigation bar (#1a1a1b, 64px height). Main content area should have 24px padding..."
+Example: 
+"PRIMARY COLOR: #8b5cf6 (purple-500)
+BACKGROUND: #0f0f10 (almost black)
+CARDS: bg-gray-900 (#111827), rounded-lg (8px), p-6 (24px padding), shadow-xl
+BUTTONS: Primary button uses bg-purple-600 hover:bg-purple-700, rounded-md (6px), px-6 py-3 (24px x 12px), text-white font-semibold
+INPUTS: bg-gray-800 border border-gray-700 focus:border-purple-500 rounded-md h-10 (40px) px-4"
 
-Be creative but practical. Ensure the design matches the app's purpose."""
+Be EXTREMELY specific. The developer will implement EXACTLY what you specify."""
 
         self.mockup_prompt = """You are a UI/UX designer creating visual mockups. Generate a clean, modern UI mockup image based on this description:
 
