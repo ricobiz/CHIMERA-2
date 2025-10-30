@@ -820,9 +820,9 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
               {/* Instructions banner */}
               <div className="mb-3 p-3 bg-blue-900/20 border border-blue-700/50 rounded text-xs space-y-1">
                 <div className="text-blue-300 font-semibold">💡 Manual Control:</div>
-                <div className="text-gray-300">• Click element → selects it with number (#N)</div>
-                <div className="text-gray-300">• <kbd className="px-1 bg-gray-700 rounded">Ctrl+Click</kbd> → sends click to browser</div>
-                <div className="text-gray-300">• Type instructions like: "Click element #5" or "Type 'hello' in #3"</div>
+                <div className="text-gray-300">• Click element → auto-click in browser + select (#N)</div>
+                <div className="text-gray-300">• ✏️ Draw Path → drag to record trajectory (for CAPTCHA sliders)</div>
+                <div className="text-gray-300">• Type: "Click #5", "Type 'text' in #3", "Use Path 1"</div>
               </div>
               
               <div className="flex-1 overflow-y-auto space-y-2 mb-4">
