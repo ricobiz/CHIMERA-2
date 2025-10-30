@@ -662,12 +662,11 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
       </div>
 
       {/* Old layout removed */}
+    </div>
+  );
+};
 
-      {/* Main Content */}
-      <div className="flex-1 overflow-y-auto flex flex-col lg:flex-row gap-4 p-4 md:p-6">
-        {/* Left Column */}
-        <div className="lg:w-1/3 space-y-4">
-          {/* Controls (desktop) */}
+export default AutomationPage;
           <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-4 hidden md:block">
             <div className="text-sm text-gray-400 font-medium mb-2">Controls</div>
             <div className="flex gap-2">
