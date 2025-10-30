@@ -475,6 +475,18 @@ frontend:
         agent: "main"
         comment: "✅ Tested manually. UI shows: (1) Traffic light indicator 🟢🟡🔴, (2) Click for detailed report, (3) 3-model analysis display, (4) Official report with download. Working perfectly."
 
+  - task: "Preview Panel - Clear old preview on new code generation"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Fixed issue where old preview stayed visible when starting new code generation. Added setGeneratedCode('') when chatMode is 'agent' and isGenerating is set to true. This ensures old code is cleared before new code generation starts, providing better UX with loading spinner instead of stale preview."
+
 metadata:
   created_by: "main_agent"
   version: "3.0"
