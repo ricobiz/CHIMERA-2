@@ -335,7 +335,25 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
   const quickNavigate = async () => {
     try {
       setQuickError(null);
-      // Use smoke-check for atomic navigate+screenshot+vision
+      
+      // If user provided a session ID manually, connect to it instead of creating new
+      if (quickSessionId && quickSessionId.trim()) {
+        const sid = quickSessionId.trim();
+        const resp = await fetch(`${BASE_URL}/api/automation/screenshot?session_id=${sid}`);
+        const js: any = await resp.json();
+        if (!resp.ok || !js?.screenshot_base64) throw new Error(js?.detail || 'Failed to connect to session');
+        
+        setPendingSrc(js.screenshot_base64);
+        setObservation(js);
+        const v = (js.vision || []) as any[];
+        lastSnapshotRef.current = { shotId: js.screenshot_id || null, vision: v, viewport: js.viewport || null, grid: js.grid || null };
+        lastDrawnShotIdRef.current = js.screenshot_id || null;
+        setVision(v);
+        setSessionId(sid);
+        return;
+      }
+      
+      // Otherwise: Use smoke-check for atomic navigate+screenshot+vision
       const resp = await fetch(`${BASE_URL}/api/automation/smoke-check`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -350,6 +368,7 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
       lastDrawnShotIdRef.current = js.screenshot_id || null;
       setVision(v);
       setQuickSessionId(js.session_id || null);
+      setSessionId(js.session_id || null);
     } catch (e: any) {
       alert(e.message || 'Quick navigate failed');
     }
