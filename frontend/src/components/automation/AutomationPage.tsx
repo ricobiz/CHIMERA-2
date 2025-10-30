@@ -594,20 +594,74 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
           )}
         </div>
 
-        {/* Bottom toolbar - все кнопки в один ряд ПОД viewer'ом */}
-        <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
-          {/* Existing buttons */}
-          <button onClick={quickNavigate} className="px-3 py-1.5 text-xs bg-blue-900/70 hover:bg-blue-800/70 border border-blue-800 rounded text-blue-200">Map</button>
-          <button onClick={()=> setPinMapping(p => !p)} className={`px-3 py-1.5 text-xs border rounded ${pinMapping? 'bg-teal-900/40 border-teal-700 text-teal-300' : 'bg-gray-900/70 border-gray-700 text-gray-200'}`}>{pinMapping? 'Pinned' : 'Pin'}</button>
-          <button onClick={()=>{ lastSnapshotRef.current=null; setVision([]); drawCanvas(); }} className="px-3 py-1.5 text-xs bg-gray-900/70 hover:bg-gray-800/70 border border-gray-700 rounded text-gray-200">Clear</button>
-          <button onClick={()=> setShowDetections(v=>!v)} className="px-3 py-1.5 text-xs bg-gray-900/70 hover:bg-gray-800/70 border border-gray-700 rounded text-gray-200">{showDetections? 'Hide' : 'Show'}</button>
-          <button onClick={()=> setShowGrid(s=>!s)} className="px-3 py-1.5 text-xs bg-gray-900/70 hover:bg-gray-800/70 border border-gray-700 rounded text-gray-200">Grid</button>
-          <button onClick={()=> setShowPlan(v=>!v)} className="px-3 py-1.5 text-xs bg-gray-900/70 hover:bg-gray-800/70 border border-gray-700 rounded text-gray-200">Plan</button>
-          <button onClick={async()=>{ const url = prompt('Введите URL для входа', quickUrl) || quickUrl; setQuickUrl(url); await quickNavigate(); }} className="px-3 py-1.5 text-xs bg-blue-900/70 hover:bg-blue-800/70 border border-blue-800 rounded text-blue-200">Открыть URL</button>
-          <button onClick={async()=>{ if (!sessionId) { alert('Сессия не активна'); return; } try { const resp = await fetch(`${BASE_URL}/api/profile/save_from_session`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ session_id: sessionId }) }); const d = await resp.json(); if (d?.profile_id) alert('Профиль сохранён и прогрет'); else alert('Не удалось сохранить профиль'); } catch(e:any){ alert(e.message||'Ошибка сохранения профиля'); } }} className="px-3 py-1.5 text-xs bg-emerald-900/70 hover:bg-emerald-800/70 border border-emerald-800 rounded text-emerald-200">Сохранить</button>
+        {/* Tabs */}
+        <div className="flex border-b border-gray-800 px-4">
+          {['screen','detections','logs','chat'].map(tab=>(
+            <button key={tab} onClick={()=>setActiveTab(tab as any)} className={`px-4 py-2 text-sm capitalize ${activeTab===tab?'border-b-2 border-blue-500 text-blue-400':'text-gray-400 hover:text-gray-200'}`}>{tab}</button>
+          ))}
         </div>
 
+        {/* Tab Content */}
+        <div className="flex-1 overflow-y-auto p-4">
+          {activeTab==='screen' && (
+            <div className="text-xs text-gray-400">
+              <div>Session: <span className="text-gray-200">{sessionId || quickSessionId || '—'}</span></div>
+              <div>URL: <span className="text-gray-200 text-xs">{observation?.url || '—'}</span></div>
+              <div className="mt-2">Click on screen to select element, chat with AI below</div>
+            </div>
+          )}
+          
+          {activeTab==='detections' && (
+            <div className="space-y-2">
+              {vision.length===0 ? (
+                <div className="text-gray-500 text-sm">No elements detected</div>
+              ):(
+                vision.map((v:any,i)=>(
+                  <div key={i} onClick={()=>{setSelectedElement(v); setChatMessages(prev=>[...prev,{role:'system',text:`Selected: ${v.label||v.type}`}]);}} className={`p-2 border rounded text-xs cursor-pointer ${selectedElement===v?'border-blue-500 bg-blue-900/20':'border-gray-700 hover:border-gray-600'}`}>
+                    <div className="text-gray-300">{v.label || v.type}</div>
+                    <div className="text-gray-500">bbox: [{v.bbox.x},{v.bbox.y},{v.bbox.w},{v.bbox.h}] conf: {(v.confidence*100).toFixed(0)}%</div>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+
+          {activeTab==='logs' && (
+            <div className="space-y-1 font-mono text-xs">
+              {agentLogs.length===0 ? (
+                <div className="text-gray-500">No logs yet</div>
+              ):(
+                agentLogs.map((log,i)=>(
+                  <div key={i} className="text-gray-300">{log}</div>
+                ))
+              )}
+            </div>
+          )}
+
+          {activeTab==='chat' && (
+            <div className="flex flex-col h-full">
+              <div className="flex-1 overflow-y-auto space-y-2 mb-4">
+                {chatMessages.length===0 ? (
+                  <div className="text-gray-500 text-sm">Chat with AI to guide automation. Select elements on screen to reference them.</div>
+                ):(
+                  chatMessages.map((msg,i)=>(
+                    <div key={i} className={`p-2 rounded text-sm ${msg.role==='user'?'bg-blue-900/30 text-blue-100 ml-8':'bg-gray-800 text-gray-200 mr-8'}`}>
+                      <div className="text-xs text-gray-400 mb-1">{msg.role}</div>
+                      <div>{msg.text}</div>
+                    </div>
+                  ))
+                )}
+              </div>
+              <div className="flex gap-2">
+                <input value={chatInput} onChange={(e)=>setChatInput(e.target.value)} onKeyDown={(e)=>{if(e.key==='Enter'&&chatInput.trim()){setChatMessages(prev=>[...prev,{role:'user',text:chatInput}]); setChatInput(''); /* TODO: send to AI */}}} className="flex-1 px-3 py-2 bg-gray-900 border border-gray-700 rounded text-sm text-gray-200 placeholder-gray-500" placeholder="Type instruction for AI..." />
+                <button onClick={()=>{if(chatInput.trim()){setChatMessages(prev=>[...prev,{role:'user',text:chatInput}]); setChatInput('');/* TODO: send to AI */}}} className="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded text-white text-sm">Send</button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* Old layout removed */}
 
       {/* Main Content */}
       <div className="flex-1 overflow-y-auto flex flex-col lg:flex-row gap-4 p-4 md:p-6">
