@@ -644,3 +644,131 @@ async def plan_decide(req: PlanDecideRequest):
         logger.error(f"Plan decide error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+
+# ============= BLOCK 3: Cognitive Loop Endpoints =============
+
+class AwarenessRequest(BaseModel):
+    raw_goal: str
+    site: str
+    constraints: Optional[Dict[str, Any]] = None
+
+class EnvCheckRequest(BaseModel):
+    session_id: str
+
+class ReconRequest(BaseModel):
+    session_id: str
+    scene: Optional[Dict[str, Any]] = None
+
+class InventoryRequest(BaseModel):
+    goal: Dict[str, Any]
+    chosen_plan: Dict[str, Any]
+    available_resources: Optional[Dict[str, Any]] = None
+
+@router.post("/awareness/think")
+async def awareness_think(req: AwarenessRequest):
+    """Awareness: Normalize goal and propose routes"""
+    try:
+        result = await awareness_service.think(
+            raw_goal=req.raw_goal,
+            site=req.site,
+            constraints=req.constraints
+        )
+        
+        if not result.get('success'):
+            raise HTTPException(status_code=500, detail=result.get('error'))
+        
+        return {
+            "success": True,
+            "result": result['result']
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Awareness error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/env/check")
+async def env_check(req: EnvCheckRequest):
+    """Environment Check: Classify current state"""
+    try:
+        if req.session_id not in browser_service.sessions:
+            raise HTTPException(status_code=404, detail=f"Session {req.session_id} not found")
+        
+        page = browser_service.sessions[req.session_id]['page']
+        url = page.url
+        
+        # Get HTTP status (simplified)
+        http_status = 200
+        
+        # Get antibot info from scene
+        dom_data = await browser_service._collect_dom_clickables(page)
+        screenshot_b64 = await browser_service.capture_screenshot(req.session_id)
+        vision = await browser_service._augment_with_vision(screenshot_b64, dom_data)
+        scene = await scene_builder_service.build_scene(page, dom_data, vision, req.session_id)
+        
+        result = await env_check_service.check(
+            session_id=req.session_id,
+            url=url,
+            http_status=http_status,
+            antibot=scene.get('antibot', {})
+        )
+        
+        return {
+            "success": True,
+            "result": result
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Env check error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/recon/scan")
+async def recon_scan(req: ReconRequest):
+    """Recon: Identify entry points"""
+    try:
+        scene = req.scene
+        if not scene:
+            if req.session_id not in browser_service.sessions:
+                raise HTTPException(status_code=404, detail=f"Session {req.session_id} not found")
+            
+            page = browser_service.sessions[req.session_id]['page']
+            dom_data = await browser_service._collect_dom_clickables(page)
+            screenshot_b64 = await browser_service.capture_screenshot(req.session_id)
+            vision = await browser_service._augment_with_vision(screenshot_b64, dom_data)
+            scene = await scene_builder_service.build_scene(page, dom_data, vision, req.session_id)
+        
+        result = await recon_service.scan(scene)
+        
+        return {
+            "success": True,
+            "result": result
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Recon error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/inventory/check")
+async def inventory_check(req: InventoryRequest):
+    """Inventory Gate: Check resource availability"""
+    try:
+        result = await inventory_service.check(
+            goal=req.goal,
+            plan=req.chosen_plan,
+            available_resources=req.available_resources
+        )
+        
+        return {
+            "success": True,
+            "result": result
+        }
+        
+    except Exception as e:
+        logger.error(f"Inventory check error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
