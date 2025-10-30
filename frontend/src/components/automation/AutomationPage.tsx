@@ -76,7 +76,7 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
   const [showWarmBanner, setShowWarmBanner] = useState<boolean>(false);
   const [importModalOpen, setImportModalOpen] = useState<boolean>(false);
   const [adjustMsg, setAdjustMsg] = useState<string>("");
-  const [activeTab, setActiveTab] = React.useState<'screen'|'detections'|'logs'|'chat'>('screen');
+  const [activeTab, setActiveTab] = React.useState<'detections'|'logs'|'chat'>('chat');
   const [isPaused, setIsPaused] = React.useState(false);
   const [chatMessages, setChatMessages] = React.useState<Array<{role:string,text:string}>>([]);
   const [chatInput, setChatInput] = React.useState('');
