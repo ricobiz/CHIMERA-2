@@ -816,27 +816,30 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
           )}
 
           {activeTab==='chat' && (
-            <div className="flex flex-col h-full">
+            <div className="flex flex-col space-y-3">
               {/* Instructions banner */}
-              <div className="mb-3 p-3 bg-blue-900/20 border border-blue-700/50 rounded text-xs space-y-1">
+              <div className="p-3 bg-blue-900/20 border border-blue-700/50 rounded text-xs space-y-1">
                 <div className="text-blue-300 font-semibold">💡 Manual Control:</div>
                 <div className="text-gray-300">• Click element → auto-click in browser + select (#N)</div>
                 <div className="text-gray-300">• ✏️ Draw Path → drag to record trajectory (for CAPTCHA sliders)</div>
                 <div className="text-gray-300">• Type: "Click #5", "Type 'text' in #3", "Use Path 1"</div>
               </div>
               
-              <div className="flex-1 overflow-y-auto space-y-2 mb-4">
+              {/* Chat messages - limited height with scroll */}
+              <div className="max-h-32 overflow-y-auto space-y-2">
                 {chatMessages.length===0 ? (
                   <div className="text-gray-500 text-sm">Start by clicking elements on screen or typing instructions.</div>
                 ):(
                   chatMessages.map((msg,i)=>(
-                    <div key={i} className={`p-2 rounded text-sm ${msg.role==='user'?'bg-blue-900/30 text-blue-100 ml-8':'bg-gray-800 text-gray-200 mr-8'}`}>
+                    <div key={i} className={`p-2 rounded text-sm ${msg.role==='user'?'bg-blue-900/30 text-blue-100':'bg-gray-800 text-gray-200'}`}>
                       <div className="text-xs text-gray-400 mb-1">{msg.role}</div>
                       <div>{msg.text}</div>
                     </div>
                   ))
                 )}
               </div>
+              
+              {/* Chat input - always visible */}
               <div className="flex gap-2">
                 <input value={chatInput} onChange={(e)=>setChatInput(e.target.value)} onKeyDown={(e)=>{if(e.key==='Enter'&&chatInput.trim()){setChatMessages(prev=>[...prev,{role:'user',text:chatInput}]); setChatInput(''); /* TODO: send to AI */}}} className="flex-1 px-3 py-2 bg-gray-900 border border-gray-700 rounded text-sm text-gray-200 placeholder-gray-500" placeholder="Type instruction for AI..." />
                 <button onClick={()=>{if(chatInput.trim()){setChatMessages(prev=>[...prev,{role:'user',text:chatInput}]); setChatInput('');/* TODO: send to AI */}}} className="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded text-white text-sm">Send</button>
