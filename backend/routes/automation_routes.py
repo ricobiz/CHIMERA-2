@@ -954,6 +954,83 @@ async def selftest_last(profile: str):
         raise
     except Exception as e:
         logger.error(f"SelfTest last error: {str(e)}")
+        logger.error(f"SelfTest last error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ============= BLOCK 7: Watchdog FSM Endpoints =============
+
+class WatchdogInitRequest(BaseModel):
+    session_id: str
+    goal: Dict[str, Any]
+
+class WatchdogTransitionRequest(BaseModel):
+    session_id: str
+    next_state: str
+    data: Optional[Dict[str, Any]] = None
+
+@router.post("/watchdog/init")
+async def watchdog_init(req: WatchdogInitRequest):
+    """Initialize watchdog FSM for session"""
+    try:
+        result = watchdog_fsm.init_session(
+            session_id=req.session_id,
+            goal=req.goal
+        )
+        
+        return {
+            "success": True,
+            "result": result
+        }
+        
+    except Exception as e:
+        logger.error(f"Watchdog init error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/watchdog/transition")
+async def watchdog_transition(req: WatchdogTransitionRequest):
+    """Transition FSM to next state"""
+    try:
+        # Convert string to FSMState enum
+        try:
+            next_state = FSMState(req.next_state)
+        except ValueError:
+            raise HTTPException(status_code=400, detail=f"Invalid state: {req.next_state}")
+        
+        result = watchdog_fsm.transition(
+            session_id=req.session_id,
+            next_state=next_state,
+            data=req.data
+        )
+        
+        if not result.get('ok'):
+            raise HTTPException(status_code=400, detail=result.get('error'))
+        
+        return {
+            "success": True,
+            "result": result
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Watchdog transition error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/watchdog/status/{session_id}")
+async def watchdog_status(session_id: str):
+    """Get watchdog status"""
+    try:
+        status = watchdog_fsm.get_status(session_id)
+        
+        return {
+            "success": True,
+            "status": status
+        }
+        
+    except Exception as e:
+        logger.error(f"Watchdog status error: {str(e)}")
+
 
 
 
