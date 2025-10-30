@@ -766,8 +766,8 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
         )}
       </div>
 
-      {/* Bottom Tabs - only if not fullscreen */}
-      {!isFullscreen && (
+      {/* Bottom Tabs - TEMPORARY HIDDEN for Browser View testing */}
+      {false && !isFullscreen && (
         <>
         {/* Tabs */}
         <div className="flex border-b border-gray-800 px-2 md:px-4 flex-shrink-0 overflow-x-auto">
