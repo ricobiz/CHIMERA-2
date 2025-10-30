@@ -340,6 +340,12 @@ function App() {
     setIsGenerating(true);
     setGenerationStatus('generating');
     
+    // Clear old preview when starting new generation (in agent mode)
+    if (chatMode === 'agent') {
+      setGeneratedCode('');
+      console.log('🧹 Cleared old preview for new code generation');
+    }
+    
     // CHAT MODE - just conversation, no code generation
     if (chatMode === 'chat') {
       try {
