@@ -703,9 +703,17 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
 
           {activeTab==='chat' && (
             <div className="flex flex-col h-full">
+              {/* Instructions banner */}
+              <div className="mb-3 p-3 bg-blue-900/20 border border-blue-700/50 rounded text-xs space-y-1">
+                <div className="text-blue-300 font-semibold">💡 Manual Control:</div>
+                <div className="text-gray-300">• Click element → selects it with number (#N)</div>
+                <div className="text-gray-300">• <kbd className="px-1 bg-gray-700 rounded">Ctrl+Click</kbd> → sends click to browser</div>
+                <div className="text-gray-300">• Type instructions like: "Click element #5" or "Type 'hello' in #3"</div>
+              </div>
+              
               <div className="flex-1 overflow-y-auto space-y-2 mb-4">
                 {chatMessages.length===0 ? (
-                  <div className="text-gray-500 text-sm">Chat with AI to guide automation. Select elements on screen to reference them.</div>
+                  <div className="text-gray-500 text-sm">Start by clicking elements on screen or typing instructions.</div>
                 ):(
                   chatMessages.map((msg,i)=>(
                     <div key={i} className={`p-2 rounded text-sm ${msg.role==='user'?'bg-blue-900/30 text-blue-100 ml-8':'bg-gray-800 text-gray-200 mr-8'}`}>
