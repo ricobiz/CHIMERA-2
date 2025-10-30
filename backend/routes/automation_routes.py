@@ -1031,6 +1031,52 @@ async def watchdog_status(session_id: str):
     except Exception as e:
         logger.error(f"Watchdog status error: {str(e)}")
 
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ============= CAPTCHA Solver Endpoint =============
+
+class CaptchaSolveRequest(BaseModel):
+    session_id: str
+
+@router.post("/captcha/solve")
+async def captcha_solve(req: CaptchaSolveRequest):
+    """Use VLM to analyze and solve CAPTCHA"""
+    try:
+        if req.session_id not in browser_service.sessions:
+            raise HTTPException(status_code=404, detail=f"Session {req.session_id} not found")
+        
+        page = browser_service.sessions[req.session_id]['page']
+        
+        # Detect CAPTCHA
+        from services.anti_detect import CaptchaSolver
+        from services.openrouter_service import openrouter_service
+        
+        solver = CaptchaSolver(openrouter_service)
+        captcha_info = await solver.detect_captcha(page)
+        
+        if not captcha_info.get('present'):
+            return {
+                "success": False,
+                "message": "No CAPTCHA detected on page"
+            }
+        
+        # Try to solve
+        result = await solver.solve_image_captcha(page, None)
+        
+        logger.info(f"🤖 CAPTCHA solve result: {result}")
+        
+        return {
+            "success": result.get('solved', False),
+            "captcha_type": captcha_info.get('type'),
+            "solution": result,
+            "message": f"CAPTCHA {'solved' if result.get('solved') else 'failed'}"
+        }
+        
+    except Exception as e:
+        logger.error(f"CAPTCHA solve error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 
 
