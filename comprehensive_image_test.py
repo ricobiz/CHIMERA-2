@@ -15,7 +15,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 # Get backend URL from environment
-BACKEND_URL = "https://smart-mockups.preview.emergentagent.com"
+BACKEND_URL = "https://chimera-aios-3.preview.emergentagent.com"
 
 class ComprehensiveImageTester:
     def __init__(self):

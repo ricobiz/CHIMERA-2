@@ -11,7 +11,7 @@ import uuid
 from datetime import datetime
 
 # Backend URL from frontend/.env
-BACKEND_URL = "https://smart-mockups.preview.emergentagent.com/api"
+BACKEND_URL = "https://chimera-aios-3.preview.emergentagent.com/api"
 
 class LovableBackendTester:
     def __init__(self):
