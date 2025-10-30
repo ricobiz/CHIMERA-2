@@ -298,7 +298,9 @@ class CaptchaSolver:
     async def solve_image_captcha(self, page: Page, captcha_element) -> Dict[str, Any]:
         try:
             screenshot = await page.screenshot(full_page=False)
-            screenshot_base64 = screenshot.decode('utf-8') if isinstance(screenshot, bytes) else screenshot
+            # Proper base64 encoding
+            import base64
+            screenshot_base64 = base64.b64encode(screenshot).decode('utf-8') if isinstance(screenshot, bytes) else screenshot
             prompt = (
                 "You are a CAPTCHA solver. Analyze this CAPTCHA image and provide the solution.\n\n"
                 "Instructions:\n1. Identify the type of CAPTCHA (text, math, image selection, puzzle, etc.)\n2. Solve it accurately\n"
