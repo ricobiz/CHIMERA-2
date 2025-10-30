@@ -162,7 +162,7 @@ Style: Modern, clean, professional, high-quality, realistic."""
             
             logger.info(f"🎨 [IMAGE GEN] Prompt: {image_prompt[:100]}...")
             
-            # ПРАВИЛЬНЫЙ СПОСОБ для Gemini 2.5 Flash Image: chat completions с modalities
+            # ПРАВИЛЬНЫЙ СПОСОБ для Gemini 2.5 Flash Image: chat completions с output_modalities
             try:
                 response = self.client.chat.completions.create(
                     model=selected_model,
@@ -173,7 +173,7 @@ Style: Modern, clean, professional, high-quality, realistic."""
                         }
                     ],
                     extra_body={
-                        "modalities": ["image", "text"]  # Ключевой параметр для генерации изображения
+                        "output_modalities": ["image"]  # Ключевой параметр для генерации изображения
                     }
                 )
                 
