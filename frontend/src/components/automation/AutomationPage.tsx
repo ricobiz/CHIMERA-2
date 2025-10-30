@@ -773,7 +773,7 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
         <>
         {/* Tabs */}
         <div className="flex border-b border-gray-800 px-2 md:px-4 flex-shrink-0 overflow-x-auto">
-          {['screen','detections','logs','chat'].map(tab=>(
+          {['detections','logs','chat'].map(tab=>(
             <button key={tab} onClick={()=>setActiveTab(tab as any)} className={`px-3 md:px-4 py-2 text-xs md:text-sm capitalize whitespace-nowrap ${activeTab===tab?'border-b-2 border-blue-500 text-blue-400':'text-gray-400 hover:text-gray-200'}`}>{tab}</button>
           ))}
         </div>
