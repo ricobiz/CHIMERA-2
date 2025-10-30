@@ -79,18 +79,35 @@ INPUTS: bg-gray-800 border border-gray-700 focus:border-purple-500 rounded-md h-
 
 Be EXTREMELY specific. The developer will implement EXACTLY what you specify."""
 
-        self.mockup_prompt = """You are a UI/UX designer creating visual mockups. Generate a clean, modern UI mockup image based on this description:
+        self.mockup_prompt = """You are a UI/UX designer creating visual mockups. Generate a PRECISE, HIGH-FIDELITY UI mockup image based on this EXACT design specification:
 
 {design_spec}
 
-Create a high-quality mockup that shows:
-- The main interface layout
-- Color scheme applied
-- Typography hierarchy
-- Component placement
-- Professional, polished appearance
+**CRITICAL REQUIREMENTS:**
+1. Follow the design specification EXACTLY - use the exact colors, spacing, and layout specified
+2. Create a realistic mockup that shows the ACTUAL interface design
+3. Include all UI elements described (buttons, inputs, cards, navigation, etc.)
+4. Apply the exact color scheme with correct hex values
+5. Show proper typography hierarchy as specified
+6. Display realistic content/placeholder text in the UI
+7. Make it look like a real, polished application screenshot
 
-Style: Modern, clean, professional UI design suitable for a web application."""
+**Visual Quality:**
+- Professional, pixel-perfect design
+- Clean, modern aesthetic
+- Proper spacing and alignment
+- Correct component styling
+- Realistic shadows and depth
+- High contrast and readability
+
+**What to Show:**
+- Full application interface layout
+- All major UI components in place
+- Proper color scheme applied throughout
+- Typography styles visible
+- Interactive elements (buttons, inputs) clearly styled
+
+Generate a high-quality UI mockup image that a developer can use as a visual reference for implementation."""
 
     async def generate_design(self, user_request: str, model: str = None) -> Dict:
         """Generate design specification using vision-capable model"""
