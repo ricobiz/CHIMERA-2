@@ -592,3 +592,54 @@ async def scene_snapshot(req: SceneSnapshotRequest):
         logger.error(f"Scene snapshot error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+
+# ============= BLOCK 2: Planner (UIG) Endpoints =============
+
+class PlanDecideRequest(BaseModel):
+    session_id: str
+    goal: Dict[str, Any]
+    scene: Optional[Dict[str, Any]] = None
+
+@router.post("/plan/decide")
+async def plan_decide(req: PlanDecideRequest):
+    """
+    Generate multi-path plan (A/B/C) from goal + scene
+    Uses Qwen2.5-Instruct for planning
+    """
+    try:
+        # Get scene if not provided
+        scene = req.scene
+        if not scene:
+            if req.session_id not in browser_service.sessions:
+                raise HTTPException(status_code=404, detail=f"Session {req.session_id} not found")
+            
+            page = browser_service.sessions[req.session_id]['page']
+            await browser_service._inject_grid_overlay(page)
+            dom_data = await browser_service._collect_dom_clickables(page)
+            screenshot_b64 = await browser_service.capture_screenshot(req.session_id)
+            vision = await browser_service._augment_with_vision(screenshot_b64, dom_data)
+            scene = await scene_builder_service.build_scene(page, dom_data, vision, req.session_id)
+        
+        # Generate plan
+        result = await planner_service.decide_plan(
+            goal=req.goal,
+            scene=scene
+        )
+        
+        if not result.get('success'):
+            raise HTTPException(status_code=500, detail=result.get('error', 'Planning failed'))
+        
+        logger.info(f"📋 Plan generated: {len(result['plan'].get('candidates', []))} candidates")
+        
+        return {
+            "success": True,
+            "plan": result['plan'],
+            "usage": result.get('usage', {})
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Plan decide error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
