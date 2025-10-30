@@ -496,23 +496,25 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
 
   return (
     <div className="flex flex-col bg-[#0f0f10] text-gray-100 h-screen overflow-hidden">
-      {/* Compact Header */}
-      <div className="px-4 py-2 border-b border-gray-800 flex-shrink-0 bg-[#0f0f10]">
-        <div className="flex items-center gap-2">
-          {onClose && (
-            <button onClick={onClose} className="px-2 py-1 bg-gray-800 hover:bg-gray-700 text-white rounded text-xs">← Back</button>
-          )}
-          <div className="text-sm text-gray-300">Browser Automation</div>
-          <div className="flex items-center gap-2 flex-1">
-            <input value={quickUrl} onChange={(e:any)=>setQuickUrl(e.target.value)} className="flex-1 px-3 py-1.5 text-xs bg-black/40 border border-gray-700 rounded text-gray-200 placeholder-gray-500" placeholder="https://..." />
-            <input value={quickSessionId || ''} onChange={(e:any)=>setQuickSessionId(e.target.value)} className="w-40 px-3 py-1.5 text-xs bg-black/40 border border-gray-700 rounded text-gray-200 placeholder-gray-500" placeholder="session-id" />
-            <button title="Connect" onClick={quickNavigate} className="p-1.5 rounded bg-blue-800/70 hover:bg-blue-700/70 border border-blue-700 text-blue-200"><PlayIcon className="w-4 h-4"/></button>
+      {/* Compact Header - Fixed */}
+      <div className="px-2 md:px-4 py-2 border-b border-gray-800 flex-shrink-0 bg-[#0f0f10]">
+        <div className="flex flex-col md:flex-row items-start md:items-center gap-2">
+          <div className="flex items-center gap-2 w-full md:w-auto">
+            {onClose && (
+              <button onClick={onClose} className="px-2 py-1 bg-gray-800 hover:bg-gray-700 text-white rounded text-xs whitespace-nowrap">← Back</button>
+            )}
+            <div className="text-sm text-gray-300 whitespace-nowrap">Browser Automation</div>
+          </div>
+          <div className="flex items-center gap-2 flex-1 w-full md:w-auto min-w-0">
+            <input value={quickUrl} onChange={(e:any)=>setQuickUrl(e.target.value)} className="flex-1 min-w-0 px-2 py-1.5 text-xs bg-black/40 border border-gray-700 rounded text-gray-200 placeholder-gray-500" placeholder="https://..." />
+            <input value={quickSessionId || ''} onChange={(e:any)=>setQuickSessionId(e.target.value)} className="w-28 md:w-40 px-2 py-1.5 text-xs bg-black/40 border border-gray-700 rounded text-gray-200 placeholder-gray-500" placeholder="session-id" />
+            <button title="Connect" onClick={quickNavigate} className="p-1.5 rounded bg-blue-800/70 hover:bg-blue-700/70 border border-blue-700 text-blue-200 flex-shrink-0"><PlayIcon className="w-4 h-4"/></button>
           </div>
           {/* Controls */}
-          <div className="flex items-center gap-2">
-            <button onClick={()=>setIsLiveMode(!isLiveMode)} className={`px-2 py-1 text-xs rounded ${isLiveMode?'bg-red-600 text-white':'bg-gray-700 text-gray-300'}`} title="Toggle Live Mode">{isLiveMode?'🔴 LIVE':'⚪ Static'}</button>
-            <button onClick={()=>setIsPaused(!isPaused)} className={`px-2 py-1 text-xs rounded ${isPaused?'bg-yellow-600':'bg-gray-700'} text-white`} title="Pause/Resume">{isPaused?'▶️ Resume':'⏸️ Pause'}</button>
-            <span className={`text-xs px-2 py-1 rounded ${statusPill(agentStatus)}`}>{agentStatus}</span>
+          <div className="flex items-center gap-1 md:gap-2 flex-shrink-0">
+            <button onClick={()=>setIsLiveMode(!isLiveMode)} className={`px-2 py-1 text-xs rounded whitespace-nowrap ${isLiveMode?'bg-red-600 text-white':'bg-gray-700 text-gray-300'}`} title="Toggle Live Mode">{isLiveMode?'🔴':'⚪'}</button>
+            <button onClick={()=>setIsPaused(!isPaused)} className={`px-2 py-1 text-xs rounded whitespace-nowrap ${isPaused?'bg-yellow-600':'bg-gray-700'} text-white`} title="Pause/Resume">{isPaused?'▶️':'⏸️'}</button>
+            <span className={`text-xs px-2 py-1 rounded whitespace-nowrap ${statusPill(agentStatus)}`}>{agentStatus}</span>
           </div>
         </div>
       </div>
