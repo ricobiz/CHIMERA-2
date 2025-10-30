@@ -516,8 +516,8 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
           </div>
           {/* Controls */}
           <div className="flex items-center gap-1 md:gap-2 flex-shrink-0">
-            <button onClick={()=>setIsLiveMode(!isLiveMode)} className={`px-2 py-1 text-xs rounded whitespace-nowrap ${isLiveMode?'bg-red-600 text-white':'bg-gray-700 text-gray-300'}`} title="Toggle Live Mode">{isLiveMode?'🔴':'⚪'}</button>
-            <button onClick={()=>setIsPaused(!isPaused)} className={`px-2 py-1 text-xs rounded whitespace-nowrap ${isPaused?'bg-yellow-600':'bg-gray-700'} text-white`} title="Pause/Resume">{isPaused?'▶️':'⏸️'}</button>
+            <button onClick={()=>setIsLiveMode(!isLiveMode)} className={`px-3 py-1.5 text-xs rounded-md whitespace-nowrap transition-colors ${isLiveMode?'bg-red-600 text-white hover:bg-red-700':'bg-gray-700 text-gray-300 hover:bg-gray-600'}`} title="Toggle Live Mode">{isLiveMode?'Live':'Idle'}</button>
+            <button onClick={()=>setIsPaused(!isPaused)} className={`px-3 py-1.5 text-xs rounded-md whitespace-nowrap transition-colors ${isPaused?'bg-yellow-600 hover:bg-yellow-700':'bg-gray-700 hover:bg-gray-600'} text-white`} title="Pause/Resume">{isPaused?'Resume':'Pause'}</button>
             <span className={`text-xs px-2 py-1 rounded whitespace-nowrap ${statusPill(agentStatus)}`}>{agentStatus}</span>
           </div>
         </div>
