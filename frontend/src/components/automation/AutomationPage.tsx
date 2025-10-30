@@ -701,9 +701,76 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
               <div className="w-4 h-4 rounded-full bg-white/90 shadow-[0_0_10px_rgba(255,255,255,0.6)] border border-gray-200" />
             </div>
           )}
+          
+          {/* Drawing path overlay */}
+          {isDrawingMode && drawingPath.length > 0 && (
+            <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{zIndex: 100}}>
+              <polyline 
+                points={drawingPath.map(p=>`${p.x},${p.y}`).join(' ')} 
+                fill="none" 
+                stroke="#a855f7" 
+                strokeWidth="3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              {drawingPath.map((p,i)=>(
+                <circle key={i} cx={p.x} cy={p.y} r="3" fill="#a855f7" />
+              ))}
+            </svg>
+          )}
         </div>
         </div>
 
+        {/* RIGHT: Plan & Steps - only if not fullscreen */}
+        {!isFullscreen && (
+          <div className="w-full lg:w-[35%] flex flex-col min-h-0 border border-gray-800 rounded bg-gray-900/50 p-3 space-y-3">
+            <div className="text-sm font-semibold text-gray-300 border-b border-gray-700 pb-2">Automation Plan</div>
+            
+            {/* Current Plan */}
+            {planner.strategy ? (
+              <div className="space-y-2">
+                <div className="text-xs text-blue-400">Strategy: {planner.strategy}</div>
+                <div className="text-xs text-gray-400">Steps: {planner.steps?.length || 0}</div>
+                
+                {/* Steps list */}
+                <div className="max-h-64 overflow-y-auto space-y-1.5">
+                  {(planner.steps || []).slice(0, 20).map((s:any, idx:number) => (
+                    <div key={s.id || idx} className="p-2 bg-black/40 rounded text-xs">
+                      <div className="flex items-start gap-2">
+                        <span className="text-gray-500 flex-shrink-0">{idx+1}.</span>
+                        <div className="flex-1">
+                          <div className="text-gray-200">{s.action}</div>
+                          {s.field && <div className="text-gray-400 text-[10px]">Field: {s.field}</div>}
+                          {s.target && <div className="text-gray-400 text-[10px]">Target: {s.target}</div>}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="text-xs text-gray-500">No plan generated yet</div>
+            )}
+            
+            {/* Saved Paths */}
+            {savedPaths.length > 0 && (
+              <div className="border-t border-gray-700 pt-3 space-y-2">
+                <div className="text-xs font-semibold text-purple-400">Saved Paths ({savedPaths.length})</div>
+                {savedPaths.map((path, idx)=>(
+                  <div key={idx} className="p-2 bg-purple-900/20 border border-purple-700/50 rounded text-xs">
+                    <div className="text-purple-300">{path.name}</div>
+                    <div className="text-gray-400 text-[10px]">{path.path.length} points</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Bottom Tabs - only if not fullscreen */}
+      {!isFullscreen && (
+        <>
         {/* Tabs */}
         <div className="flex border-b border-gray-800 px-2 md:px-4 flex-shrink-0 overflow-x-auto">
           {['screen','detections','logs','chat'].map(tab=>(
