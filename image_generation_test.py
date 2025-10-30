@@ -16,7 +16,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 # Get backend URL from environment
-BACKEND_URL = "https://imagefix-debug.preview.emergentagent.com"
+BACKEND_URL = "https://chimera-aios-2.preview.emergentagent.com"
 
 class ImageGenerationTester:
     def __init__(self):
