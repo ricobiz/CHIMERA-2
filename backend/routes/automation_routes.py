@@ -1,12 +1,13 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 import logging
 import hashlib
 from services.browser_automation_service import browser_service
 from services.visual_validator_service import visual_validator_service
 from services.scene_builder_service import scene_builder_service
 from services.planner_service import planner_service
+from services.cognitive_services import awareness_service, env_check_service, recon_service, inventory_service
 
 router = APIRouter(prefix="/api/automation", tags=["automation"])
 logger = logging.getLogger(__name__)
