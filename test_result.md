@@ -1688,6 +1688,56 @@ backend:
     needs_retesting: false
     status_history:
       - working: true
+
+  
+  - task: "POST /api/automation/selftest/run - SelfTest Bot Profiling (BLOCK 6)"
+    implemented: true
+    working: true
+    file: "/app/backend/services/selftest_service.py, /app/backend/routes/automation_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "✅ SelfTest service implemented. Runs internal checks (webdriver, chrome, plugins, languages, hardware, timezone, WebGL, canvas). Checks IP/ASN type. Returns score (0-100), issues with severity/hints, fp fingerprint data, grade (red/yellow/green). Tested - returns score=80, grade=green, 1 issue."
+  
+  - task: "POST /api/automation/watchdog/init - Watchdog FSM Init (BLOCK 7)"
+    implemented: true
+    working: true
+    file: "/app/backend/services/watchdog_fsm_service.py, /app/backend/routes/automation_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "✅ Watchdog FSM implemented with states: Idle→Snapshot→Plan→Execute→Verify→Done/Repair/Abort. Tracks scene_hash_count (max 3 same scenes), error_count (max 2 same errors), hard_timeout (120s). Tested - initializes session with Idle state."
+  
+  - task: "POST /api/automation/watchdog/transition - Watchdog FSM Transition (BLOCK 7)"
+    implemented: true
+    working: true
+    file: "/app/backend/services/watchdog_fsm_service.py, /app/backend/routes/automation_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "✅ Watchdog transition implemented. Validates state transitions (e.g. Idle→Snapshot→Plan). Detects loops (same scene hash, same error). Returns should_abort/needs_recovery flags. Tested - Idle→Snapshot→Plan transitions working correctly."
+  
+  - task: "GET /api/automation/watchdog/status/{session_id} - Watchdog Status (BLOCK 7)"
+    implemented: true
+    working: true
+    file: "/app/backend/services/watchdog_fsm_service.py, /app/backend/routes/automation_routes.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "✅ Watchdog status endpoint implemented. Returns current state, elapsed_ms, steps_count, scene_hash_counts, error_counts, abort_reason. Tested - returns state='Plan', steps=2."
+
         agent: "main"
         comment: "✅ Profiles endpoint implemented. Returns 5 available profiles (default, stealth, slow_proxy, alt_ua, alt_tz) with name and type."
 
