@@ -523,19 +523,47 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
         {/* Browser Screen - Compact */}
         <div className="px-2 md:px-4 py-2 border-b border-gray-800 flex-shrink-0">
           <div ref={viewerRef} className="relative w-full h-48 md:h-64 border border-gray-800 rounded bg-black overflow-hidden" style={{ touchAction: 'none' }}
-            onClick={(e)=>{
-              // Click to select element
+            onClick={async (e)=>{
+              // Click to select element + remote click
               const rect = viewerRef.current?.getBoundingClientRect();
               if (!rect) return;
               const x = e.clientX - rect.left;
               const y = e.clientY - rect.top;
-              const clicked = vision.find((v:any)=>{
+              
+              // Find clicked element
+              let clickedIndex = -1;
+              const clicked = vision.find((v:any, idx:number)=>{
                 const b = v.bbox;
-                return x>=b.x && x<=(b.x+b.w) && y>=b.y && y<=(b.y+b.h);
+                const hit = x>=b.x && x<=(b.x+b.w) && y>=b.y && y<=(b.y+b.h);
+                if (hit) clickedIndex = idx;
+                return hit;
               });
+              
               if (clicked) {
                 setSelectedElement(clicked);
-                setChatMessages(prev=>[...prev, {role:'system',text:`Selected: ${clicked.label || clicked.type}`}]);
+                const elementNum = clickedIndex + 1;
+                setChatMessages(prev=>[...prev, {role:'system',text:`✅ Selected Element #${elementNum}: "${clicked.label || clicked.type}" (bbox: [${clicked.bbox.x},${clicked.bbox.y},${clicked.bbox.w},${clicked.bbox.h}])`}]);
+                
+                // Send remote click to browser if Ctrl is held
+                if (e.ctrlKey && sessionId) {
+                  try {
+                    const resp = await fetch(`${BASE_URL}/api/automation/remote-click`, {
+                      method: 'POST',
+                      headers: {'Content-Type':'application/json'},
+                      body: JSON.stringify({
+                        session_id: sessionId,
+                        x: clicked.bbox.x + clicked.bbox.w/2,
+                        y: clicked.bbox.y + clicked.bbox.h/2
+                      })
+                    });
+                    const data = await resp.json();
+                    if (data.success) {
+                      setChatMessages(prev=>[...prev, {role:'assistant',text:`🖱️ Clicked element #${elementNum} in browser`}]);
+                    }
+                  } catch(err) {
+                    console.error('Remote click failed:', err);
+                  }
+                }
               }
             }}
           >
