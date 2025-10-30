@@ -520,10 +520,10 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
       </div>
 
       {/* Main Layout: Screen + Tabs */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden min-h-0">
         {/* Browser Screen - Compact */}
-        <div className="px-4 py-3 border-b border-gray-800">
-          <div ref={viewerRef} className="relative w-full h-64 border border-gray-800 rounded bg-black overflow-hidden" style={{ touchAction: 'none' }}
+        <div className="px-2 md:px-4 py-2 border-b border-gray-800 flex-shrink-0">
+          <div ref={viewerRef} className="relative w-full h-48 md:h-64 border border-gray-800 rounded bg-black overflow-hidden" style={{ touchAction: 'none' }}
             onClick={(e)=>{
               // Click to select element
               const rect = viewerRef.current?.getBoundingClientRect();
