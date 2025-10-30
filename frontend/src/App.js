@@ -944,7 +944,23 @@ function App() {
       setIsGenerating(true);
       setGenerationStatus('generating');
       
-      const enhancedPrompt = `${prompt}\n\n**Design Specification to Follow:**\n${designSpec}`;
+      // Enhanced prompt with strict design adherence instructions
+      const enhancedPrompt = `${prompt}
+
+**CRITICAL: You MUST strictly follow this design specification:**
+
+${designSpec}
+
+**IMPLEMENTATION REQUIREMENTS:**
+1. Use EXACTLY the colors, fonts, and spacing specified in the design
+2. Match the layout and component structure described
+3. Implement all visual elements from the design specification
+4. Use Tailwind CSS classes that match the design colors and spacing
+5. Do NOT deviate from the approved design
+6. The final result MUST visually match the design mockup shown to the user
+
+Generate a complete React component that implements this exact design.`;
+
       const response = await generateCode(enhancedPrompt, messages, selectedModel);
       
       const aiMessage = { role: 'assistant', content: response.message, cost: response.cost };
