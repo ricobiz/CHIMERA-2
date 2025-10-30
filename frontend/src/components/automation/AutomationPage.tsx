@@ -827,9 +827,9 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
                 )}
               </div>
               
-              {/* Chat input with controls - larger like main chat */}
-              <div className="space-y-2 border-t border-gray-700 pt-3">
-                <div className="flex gap-2 items-center">
+              {/* Chat input with controls - LARGE like main chat */}
+              <div className="space-y-3 border-t border-gray-700 pt-4">
+                <div className="flex gap-3 items-stretch">
                   <input 
                     value={chatInput} 
                     onChange={(e)=>setChatInput(e.target.value)} 
@@ -839,7 +839,7 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
                         setChatInput(''); 
                       }
                     }} 
-                    className="flex-1 px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-sm text-gray-200 placeholder-gray-500" 
+                    className="flex-1 px-4 py-4 bg-gray-900 border border-gray-700 rounded-lg text-base text-gray-200 placeholder-gray-500 focus:outline-none focus:border-blue-500" 
                     placeholder="Type instruction for automation AI..." 
                   />
                   <button 
@@ -849,7 +849,7 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
                         setChatInput('');
                       }
                     }} 
-                    className="px-6 py-3 bg-blue-600 hover:bg-blue-500 rounded-lg text-white text-sm font-medium transition-colors"
+                    className="px-8 py-4 bg-blue-600 hover:bg-blue-500 rounded-lg text-white text-base font-medium transition-colors flex-shrink-0"
                   >
                     Send
                   </button>
