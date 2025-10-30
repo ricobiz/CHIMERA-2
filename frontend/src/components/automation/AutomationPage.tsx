@@ -82,7 +82,6 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
   const [chatInput, setChatInput] = React.useState('');
   const [selectedElement, setSelectedElement] = React.useState<any>(null);
   const [isLiveMode, setIsLiveMode] = React.useState(false);
-  const [agentStatus, setAgentStatus] = React.useState<string>('idle');
   const [agentLogs, setAgentLogs] = React.useState<string[]>([]);
 
 
