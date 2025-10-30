@@ -5,6 +5,7 @@ import logging
 import hashlib
 from services.browser_automation_service import browser_service
 from services.visual_validator_service import visual_validator_service
+from services.scene_builder_service import scene_builder_service
 
 router = APIRouter(prefix="/api/automation", tags=["automation"])
 logger = logging.getLogger(__name__)
