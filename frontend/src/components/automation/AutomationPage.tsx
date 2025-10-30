@@ -569,7 +569,9 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
               setIsDrawing(false);
             }}
             onClick={async (e)=>{
-              // Click to select element + remote click
+              if (isDrawingMode) return; // Skip click in drawing mode
+              
+              // Click to select element + remote click (no Ctrl needed)
               const rect = viewerRef.current?.getBoundingClientRect();
               if (!rect) return;
               const x = e.clientX - rect.left;
@@ -587,10 +589,10 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
               if (clicked) {
                 setSelectedElement(clicked);
                 const elementNum = clickedIndex + 1;
-                setChatMessages(prev=>[...prev, {role:'system',text:`✅ Selected Element #${elementNum}: "${clicked.label || clicked.type}" (bbox: [${clicked.bbox.x},${clicked.bbox.y},${clicked.bbox.w},${clicked.bbox.h}])`}]);
+                setChatMessages(prev=>[...prev, {role:'system',text:`✅ Selected Element #${elementNum}: "${clicked.label || clicked.type}"`}]);
                 
-                // Send remote click to browser if Ctrl is held
-                if (e.ctrlKey && sessionId) {
+                // Auto send remote click (no Ctrl needed)
+                if (sessionId) {
                   try {
                     const resp = await fetch(`${BASE_URL}/api/automation/remote-click`, {
                       method: 'POST',
@@ -603,7 +605,7 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
                     });
                     const data = await resp.json();
                     if (data.success) {
-                      setChatMessages(prev=>[...prev, {role:'assistant',text:`🖱️ Clicked element #${elementNum} in browser`}]);
+                      setChatMessages(prev=>[...prev, {role:'assistant',text:`🖱️ Clicked element #${elementNum}`}]);
                     }
                   } catch(err) {
                     console.error('Remote click failed:', err);
