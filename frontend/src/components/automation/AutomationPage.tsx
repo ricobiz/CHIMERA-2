@@ -780,16 +780,14 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
 
         {/* Tab Content - Reasonable height for viewing and interaction */}
         <div className="h-64 overflow-y-auto p-2 md:p-4 flex-shrink-0">
-          {activeTab==='screen' && (
-            <div className="text-xs text-gray-400">
-              <div>Session: <span className="text-gray-200">{sessionId || quickSessionId || '—'}</span></div>
-              <div>URL: <span className="text-gray-200 text-xs">{observation?.url || '—'}</span></div>
-              <div className="mt-2">Click on screen to select element, chat with AI below</div>
-            </div>
-          )}
-          
           {activeTab==='detections' && (
             <div className="space-y-2">
+              {/* Session info at top */}
+              <div className="text-xs text-gray-400 pb-2 border-b border-gray-700">
+                <div>Session: <span className="text-gray-200">{sessionId || quickSessionId || '—'}</span></div>
+                <div>URL: <span className="text-gray-200">{observation?.url || '—'}</span></div>
+              </div>
+              
               {vision.length===0 ? (
                 <div className="text-gray-500 text-sm">No elements detected</div>
               ):(
