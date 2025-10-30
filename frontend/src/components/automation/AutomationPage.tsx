@@ -83,6 +83,11 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
   const [selectedElement, setSelectedElement] = React.useState<any>(null);
   const [isLiveMode, setIsLiveMode] = React.useState(false);
   const [agentLogs, setAgentLogs] = React.useState<string[]>([]);
+  const [isFullscreen, setIsFullscreen] = React.useState(false);
+  const [isDrawingMode, setIsDrawingMode] = React.useState(false);
+  const [drawingPath, setDrawingPath] = React.useState<Array<{x:number,y:number,time:number}>>([]);
+  const [isDrawing, setIsDrawing] = React.useState(false);
+  const [savedPaths, setSavedPaths] = React.useState<Array<{name:string,path:Array<{x:number,y:number,time:number}>}>>([]);
 
 
 
