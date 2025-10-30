@@ -831,5 +831,72 @@ async def repair_plan(req: RepairPlanRequest):
     except Exception as e:
         logger.error(f"Repair plan error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ============= BLOCK 5: AntiBot Guard Endpoints =============
+
+class AntiBotEvalRequest(BaseModel):
+    scene: Dict[str, Any]
+    history: List[Dict[str, Any]] = []
+
+class ProfileSwitchRequest(BaseModel):
+    session_id: str
+    profile: str
+
+@router.post("/antibot/eval")
+async def antibot_eval(req: AntiBotEvalRequest):
+    """Evaluate antibot policy"""
+    try:
+        result = await antibot_guard.eval_policy(
+            scene=req.scene,
+            history=req.history
+        )
+        
+        return {
+            "success": True,
+            "decision": result['decision']
+        }
+        
+    except Exception as e:
+        logger.error(f"AntiBot eval error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/antibot/profile/switch")
+async def antibot_profile_switch(req: ProfileSwitchRequest):
+    """Switch browser profile"""
+    try:
+        result = await antibot_guard.switch_profile(
+            browser_service=browser_service,
+            session_id=req.session_id,
+            profile_name=req.profile
+        )
+        
+        if not result.get('ok'):
+            raise HTTPException(status_code=500, detail=result.get('error'))
+        
+        return {
+            "ok": True,
+            "profile": result['profile'],
+            "message": result['message']
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Profile switch error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/antibot/profiles")
+async def antibot_profiles():
+    """Get available profiles"""
+    try:
+        profiles = antibot_guard.get_available_profiles()
+        return {
+            "profiles": profiles
+        }
+    except Exception as e:
+        logger.error(f"Get profiles error: {str(e)}")
+
 
 
