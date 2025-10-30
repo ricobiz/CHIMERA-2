@@ -531,11 +531,11 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
           <div className="flex items-center justify-between mb-2 px-2">
             <div className="text-sm text-gray-400">Browser View</div>
             <div className="flex gap-2">
-              <button onClick={()=>setIsDrawingMode(!isDrawingMode)} className={`px-2 py-1 text-xs rounded ${isDrawingMode?'bg-purple-600 text-white':'bg-gray-700 text-gray-300'}`}>
-                ✏️ {isDrawingMode?'Drawing':'Draw Path'}
+              <button onClick={()=>setIsDrawingMode(!isDrawingMode)} className={`px-3 py-1.5 text-xs rounded-md transition-colors ${isDrawingMode?'bg-purple-600 text-white hover:bg-purple-700':'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}>
+                {isDrawingMode?'Drawing':'Draw Path'}
               </button>
-              <button onClick={()=>setIsFullscreen(!isFullscreen)} className="px-2 py-1 text-xs rounded bg-gray-700 text-gray-300 hover:bg-gray-600">
-                {isFullscreen?'↙️ Exit':'⛶ Fullscreen'}
+              <button onClick={()=>setIsFullscreen(!isFullscreen)} className="px-3 py-1.5 text-xs rounded-md bg-gray-700 text-gray-300 hover:bg-gray-600 transition-colors">
+                {isFullscreen?'Exit Fullscreen':'Fullscreen'}
               </button>
             </div>
           </div>
