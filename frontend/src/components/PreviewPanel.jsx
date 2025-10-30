@@ -12,6 +12,139 @@ const PreviewPanel = ({ generatedCode, isGenerating, chatMode = 'chat', messages
   const [iframeContent, setIframeContent] = useState('');
   const [allArtifacts, setAllArtifacts] = useState([]);
 
+  const createPreviewHTML = () => {
+    if (!generatedCode) return '';
+    
+    let cleanCode = generatedCode
+      .replace(/export\s+default\s+\w+;?/g, '')
+      .replace(/export\s+{[^}]*};?/g, '');
+    
+    // Extract and convert <style jsx> blocks
+    let extractedStyles = '';
+    cleanCode = cleanCode.replace(
+      /<style\s+jsx(?:\s+global)?>\{`([^`]*)`\}<\/style>/g,
+      (match, styleContent) => {
+        extractedStyles += styleContent;
+        return ''; // Remove the jsx style block
+      }
+    );
+    
+    // Convert template literals to string concatenation to avoid Babel parsing errors
+    // Handles multiple ${} expressions in one template literal
+    const convertTemplateLiteral = (match) => {
+      // Extract content between backticks
+      const content = match.slice(match.indexOf('`') + 1, match.lastIndexOf('`'));
+      
+      // Split by ${...} and convert to concatenation
+      const parts = [];
+      let currentText = '';
+      let depth = 0;
+      let isInExpression = false;
+      let expression = '';
+      
+      for (let i = 0; i < content.length; i++) {
+        const char = content[i];
+        const nextChar = content[i + 1];
+        
+        if (char === '$' && nextChar === '{' && !isInExpression) {
+          if (currentText) {
+            parts.push(`"${currentText}"`);
+            currentText = '';
+          }
+          isInExpression = true;
+          depth = 1;
+          i++; // skip {
+        } else if (isInExpression) {
+          if (char === '{') depth++;
+          if (char === '}') {
+            depth--;
+            if (depth === 0) {
+              parts.push(expression);
+              expression = '';
+              isInExpression = false;
+            } else {
+              expression += char;
+            }
+          } else {
+            expression += char;
+          }
+        } else {
+          currentText += char;
+        }
+      }
+      
+      if (currentText) {
+        parts.push(`"${currentText}"`);
+      }
+      
+      const joined = parts.join(' + ');
+      const attr = match.match(/^(\w+)=/)?.[1] || 'attr';
+      return `${attr}={${joined}}`;
+    };
+    
+    // Apply template literal conversion to all attributes
+    cleanCode = cleanCode.replace(
+      /(\w+)=\{`[^`]*`\}/g,
+      convertTemplateLiteral
+    );
+    
+    return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Preview</title>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { 
+      margin: 0; 
+      padding: 0; 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif; 
+      background-color: #0f0f10;
+      color: #e5e7eb;
+      min-height: 100vh;
+    }
+    #root {
+      min-height: 100vh;
+      background-color: #0f0f10;
+    }
+    ${extractedStyles ? `/* Extracted JSX Styles */\n${extractedStyles}` : ''}
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect, useMemo, useCallback } = React;
+    
+    ${cleanCode}
+    
+    const componentMatch = \`${cleanCode}\`.match(/(?:function|const)\\s+(\\w+)\\s*(?:=|\\()/)
+    const ComponentName = componentMatch ? componentMatch[1] : 'App';
+    
+    try {
+      const component = eval(ComponentName);
+      const root = ReactDOM.createRoot(document.getElementById('root'));
+      root.render(React.createElement(component));
+    } catch (error) {
+      document.getElementById('root').innerHTML = \`
+        <div style="padding: 20px; color: #ef4444; font-family: monospace; background: #0f0f10; min-height: 100vh;">
+          <h3 style="color: #f87171;">Preview Error</h3>
+          <pre style="background: #1f2937; color: #e5e7eb; padding: 15px; border-radius: 8px; overflow-x: auto; border: 2px solid #374151;">\${error.message}</pre>
+        </div>
+      \`;
+      console.error('Preview error:', error);
+    }
+  </script>
+</body>
+</html>
+    `;
+  };
+
   useEffect(() => {
     if (generatedCode) {
       const htmlContent = createPreviewHTML();
