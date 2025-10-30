@@ -773,3 +773,62 @@ async def inventory_check(req: InventoryRequest):
         logger.error(f"Inventory check error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+
+# ============= BLOCK 4: Verifier + Recovery Endpoints =============
+
+class VerifyResultRequest(BaseModel):
+    prevScene: Dict[str, Any]
+    currScene: Dict[str, Any]
+    lastAction: Dict[str, Any]
+    goal: Dict[str, Any]
+
+class RepairPlanRequest(BaseModel):
+    scene: Dict[str, Any]
+    remediation: str
+    goal: Dict[str, Any]
+
+@router.post("/result/verify")
+async def result_verify(req: VerifyResultRequest):
+    """Verify action results by comparing scenes"""
+    try:
+        result = await verifier_service.verify(
+            prev_scene=req.prevScene,
+            curr_scene=req.currScene,
+            last_action=req.lastAction,
+            goal=req.goal
+        )
+        
+        return {
+            "success": True,
+            "result": result
+        }
+        
+    except Exception as e:
+        logger.error(f"Verify error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/repair/plan")
+async def repair_plan(req: RepairPlanRequest):
+    """Generate recovery steps from remediation"""
+    try:
+        result = await recovery_service.plan_recovery(
+            scene=req.scene,
+            remediation=req.remediation,
+            goal=req.goal
+        )
+        
+        if not result.get('success'):
+            raise HTTPException(status_code=500, detail=result.get('error', 'Recovery planning failed'))
+        
+        return {
+            "success": True,
+            "steps": result['steps']
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Repair plan error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
