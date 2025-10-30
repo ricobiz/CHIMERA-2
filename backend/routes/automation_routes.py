@@ -898,6 +898,62 @@ async def antibot_profiles():
         }
     except Exception as e:
         logger.error(f"Get profiles error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ============= BLOCK 6: SelfTest Endpoints =============
+
+class SelfTestRunRequest(BaseModel):
+    session_id: str
+    profile: Optional[str] = None
+
+class SelfTestLastRequest(BaseModel):
+    profile: str
+
+@router.post("/selftest/run")
+async def selftest_run(req: SelfTestRunRequest):
+    """Run bot-surface profiling test"""
+    try:
+        if req.session_id not in browser_service.sessions:
+            raise HTTPException(status_code=404, detail=f"Session {req.session_id} not found")
+        
+        page = browser_service.sessions[req.session_id]['page']
+        
+        report = await selftest_service.run_test(
+            page=page,
+            profile=req.profile
+        )
+        
+        return {
+            "success": True,
+            "report": report
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"SelfTest run error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/selftest/last/{profile}")
+async def selftest_last(profile: str):
+    """Get last self-test report for profile"""
+    try:
+        report = selftest_service.get_last_report(profile)
+        
+        if not report:
+            raise HTTPException(status_code=404, detail=f"No report found for profile {profile}")
+        
+        return {
+            "success": True,
+            "report": report
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"SelfTest last error: {str(e)}")
+
 
 
 
