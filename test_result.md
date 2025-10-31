@@ -506,6 +506,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ RE-VERIFIED: Automation smoke test confirmed hook log working. Successfully retrieved hook log with observation object containing screenshot_id from smoke-check. Agent status tracking and observation logging fully operational."
+      - working: true
+        agent: "testing"
+        comment: "✅ JUSTFANS AUTOMATION TEST: Hook log endpoint working correctly. API structure confirmed: task.job_id contains job ID, logs array contains automation steps, session_id matches expected value. Current automation session shows IDLE status with Gmail registration task (job_id: a4b7eb89-bd1f-4f0b-9349-917758b50a3c) instead of requested JustFans task (job_id: 72bf4eba-8047-4c0e-ad84-185959db3337). Scene snapshot successfully captures JustFans.uno/register page with 16 elements including 4 textbox inputs. Automation system operational but not running the specific requested task."
 
   - task: "POST /api/hook/control - Agent Control System"
     implemented: true
