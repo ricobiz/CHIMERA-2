@@ -765,7 +765,7 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
                   <div key={s.id || idx} className="text-[11px] leading-snug">
                     <span className="text-gray-400">{idx+1}.</span> <span className="text-gray-100">{s.action}</span>
                     {s.field && (<span className="text-gray-400"> • {s.field}</span>)}
-                    {s.target && (<span className="text-gray-400"> • {s.target}</span>)}
+                    {s.target && (<span className="text-gray-400"> • {typeof s.target === 'object' ? s.target.value : s.target}</span>)}
                     {s.value && typeof s.value === 'string' && s.value !== '[WAITING_USER_INPUT]' && (<span className="text-gray-500"> • {s.value}</span>)}
                   </div>
                 ))}
