@@ -1007,7 +1007,7 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
                     <button className="text-gray-400 hover:text-gray-200 text-sm" title="Voice input (not implemented)">
                       🎤
                     </button>
-                    <button className="text-gray-400 hover:text-gray-200 text-sm" title="Model settings">
+                    <button onClick={()=>setShowSettings(true)} className="text-gray-400 hover:text-gray-200 text-sm" title="Model settings">
                       ⚙️
                     </button>
                   </div>
