@@ -112,7 +112,7 @@ class Verification:
             page_text = perception.get("page_text", "").lower()
             text_indicators = success_indicators.get("text_indicators", [])
             if text_indicators and any(indicator in page_text for indicator in text_indicators):
-                logger.info(f"✅ [VERIFICATION] Goal achieved via text indicator")
+                logger.info("✅ [VERIFICATION] Goal achieved via text indicator")
                 return True
             
             # Check for success messages
@@ -141,7 +141,7 @@ class Verification:
                     return True
                 elif "/register" not in current_url and "/signup" not in current_url:
                     # Moved away from registration page
-                    logger.info(f"✅ [VERIFICATION] Registration goal likely achieved - left registration page")
+                    logger.info("✅ [VERIFICATION] Registration goal likely achieved - left registration page")
                     return True
             
             elif "login" in goal_lower:

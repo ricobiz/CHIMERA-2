@@ -458,7 +458,7 @@ class ToolOrchestrator:
                 return {"error": "Session ID required for 10MinuteMail"}
             
             async with httpx.AsyncClient(timeout=10) as client:
-                resp = await client.get(f"https://10minutemail.com/10MinuteMail/resources/messages/messagesAfter/0")
+                resp = await client.get("https://10minutemail.com/10MinuteMail/resources/messages/messagesAfter/0")
                 
                 if resp.status_code == 200:
                     messages = resp.json()
