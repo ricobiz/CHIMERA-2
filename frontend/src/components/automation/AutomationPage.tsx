@@ -76,29 +76,29 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
   const [showWarmBanner, setShowWarmBanner] = useState<boolean>(false);
   const [importModalOpen, setImportModalOpen] = useState<boolean>(false);
   const [adjustMsg, setAdjustMsg] = useState<string>("");
-  const [activeTab, setActiveTab] = React.useState<'detections'|'logs'|'chat'>('chat');
-  const [isPaused, setIsPaused] = React.useState(false);
-  const [chatMessages, setChatMessages] = React.useState<Array<{role:string,text:string}>>([]);
-  const [chatInput, setChatInput] = React.useState('');
-  const [selectedElement, setSelectedElement] = React.useState<any>(null);
-  const [isLiveMode, setIsLiveMode] = React.useState(false);
-  const [agentLogs, setAgentLogs] = React.useState<string[]>([]);
-  const [isFullscreen, setIsFullscreen] = React.useState(false);
-  const [isDrawingMode, setIsDrawingMode] = React.useState(false);
-  const [drawingPath, setDrawingPath] = React.useState<Array<{x:number,y:number,time:number}>>([]);
-  const [isDrawing, setIsDrawing] = React.useState(false);
-  const [savedPaths, setSavedPaths] = React.useState<Array<{name:string,path:Array<{x:number,y:number,time:number}>}>>([]);
+  const [activeTab, setActiveTab] = useState<'detections'|'logs'|'chat'>('chat');
+  const [isPaused, setIsPaused] = useState(false);
+  const [chatMessages, setChatMessages] = useState<Array<{role:string,text:string}>>([]);
+  const [chatInput, setChatInput] = useState('');
+  const [selectedElement, setSelectedElement] = useState<any>(null);
+  const [isLiveMode, setIsLiveMode] = useState(false);
+  const [agentLogs, setAgentLogs] = useState<string[]>([]);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isDrawingMode, setIsDrawingMode] = useState(false);
+  const [drawingPath, setDrawingPath] = useState<Array<{x:number,y:number,time:number}>>([]);
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [savedPaths, setSavedPaths] = useState<Array<{name:string,path:Array<{x:number,y:number,time:number}>}>>([]);
 
   // Settings & Secrets modals
-  const [showSettings, setShowSettings] = React.useState(false);
-  const [showSecrets, setShowSecrets] = React.useState(false);
-  const [availableModels, setAvailableModels] = React.useState<any[]>([]);
-  const [selectedHeadBrain, setSelectedHeadBrain] = React.useState<string>('openai/gpt-5');
-  const [selectedSpinalCord, setSelectedSpinalCord] = React.useState<string>('qwen/qwen2.5-vl');
-  const [selectedExecutor, setSelectedExecutor] = React.useState<string>('florence-2-local');
-  const [secrets, setSecrets] = React.useState<{email:string,password:string,phone:string}>({email:'',password:'',phone:''});
-  const [useProxy, setUseProxy] = React.useState(false);
-  const [botStatus, setBotStatus] = React.useState<{score:number,grade:string,issues:any[]}>({score:0,grade:'yellow',issues:[]});
+  const [showSettings, setShowSettings] = useState(false);
+  const [showSecrets, setShowSecrets] = useState(false);
+  const [availableModels, setAvailableModels] = useState<any[]>([]);
+  const [selectedHeadBrain, setSelectedHeadBrain] = useState<string>('openai/gpt-5');
+  const [selectedSpinalCord, setSelectedSpinalCord] = useState<string>('qwen/qwen2.5-vl');
+  const [selectedExecutor, setSelectedExecutor] = useState<string>('florence-2-local');
+  const [secrets, setSecrets] = useState<{email:string,password:string,phone:string}>({email:'',password:'',phone:''});
+  const [useProxy, setUseProxy] = useState(false);
+  const [botStatus, setBotStatus] = useState<{score:number,grade:string,issues:any[]}>({score:0,grade:'yellow',issues:[]});
 
 
 
