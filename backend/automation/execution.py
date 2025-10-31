@@ -8,7 +8,7 @@ import asyncio
 import random
 from typing import Dict, Any, Optional
 
-from ..services.browser_automation_service import browser_service
+from services.browser_automation_service import browser_service
 
 logger = logging.getLogger(__name__)
 
