@@ -386,6 +386,9 @@ async def exec_task(req: TaskRequest):
         # Данные для использования в автоматизации
         used_data = data_bundle
         
+        # Tracking which textboxes have been filled (to avoid filling same field twice)
+        filled_textbox_cells = set()
+        
         # Получаем план шагов
         plan_steps = current_plan.get('steps', [])
         if not plan_steps:
