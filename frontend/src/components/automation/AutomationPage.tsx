@@ -233,6 +233,37 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
     return () => clearInterval(pollRef.current);
   }, []);
 
+  // Load models from OpenRouter on mount
+  useEffect(() => {
+    (async () => {
+      try {
+        const resp = await fetch(`${BASE_URL}/api/openrouter/overview`);
+        const data = await resp.json();
+        if (data.models) {
+          setAvailableModels(data.models);
+        }
+      } catch (e) {
+        console.error('Failed to load models:', e);
+      }
+    })();
+
+    // Load settings from localStorage
+    const savedHeadBrain = localStorage.getItem('automation_head_brain');
+    const savedSpinalCord = localStorage.getItem('automation_spinal_cord');
+    const savedExecutor = localStorage.getItem('automation_executor');
+    if (savedHeadBrain) setSelectedHeadBrain(savedHeadBrain);
+    if (savedSpinalCord) setSelectedSpinalCord(savedSpinalCord);
+    if (savedExecutor) setSelectedExecutor(savedExecutor);
+
+    // Load secrets from localStorage
+    const savedSecrets = localStorage.getItem('automation_secrets');
+    if (savedSecrets) {
+      try {
+        setSecrets(JSON.parse(savedSecrets));
+      } catch {}
+    }
+  }, []);
+
   // Keep pin ref in sync
   useEffect(() => { pinMappingRef.current = pinMapping; }, [pinMapping]);
 
