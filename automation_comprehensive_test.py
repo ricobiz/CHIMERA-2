@@ -1006,19 +1006,22 @@ class AutomationTester:
             if response.status_code == 200:
                 data = response.json()
                 
-                if (data.get('ok') == True and 
-                    data.get('state') == "Snapshot"):
+                # Handle nested response structure
+                result = data.get('result', data)
+                
+                if (result.get('ok') == True and 
+                    result.get('state') == "Snapshot"):
                     self.log_test(
                         "Watchdog Transition",
                         True,
-                        f"Watchdog transitioned: ok={data['ok']}, state={data['state']}",
-                        {"ok": data['ok'], "state": data['state']}
+                        f"Watchdog transitioned: ok={result['ok']}, state={result['state']}",
+                        {"ok": result['ok'], "state": result['state']}
                     )
                 else:
                     self.log_test(
                         "Watchdog Transition",
                         False,
-                        f"Invalid watchdog transition response: ok={data.get('ok')}, state={data.get('state')}",
+                        f"Invalid watchdog transition response: ok={result.get('ok')}, state={result.get('state')}",
                         {"expected": {"ok": True, "state": "Snapshot"}, "actual": data}
                     )
             else:
