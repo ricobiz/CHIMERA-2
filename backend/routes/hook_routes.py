@@ -726,7 +726,20 @@ CRITICAL: Only use "waiting_user" for phone/SMS/2FA/captcha. NOT for simple vali
             if step_status == 'ok':
                 # ✅ Шаг успешен - переходим к следующему
                 log_step(f"✅ [PLAN] Step {current_step_id} PASSED, moving to next")
-                current_step_id = step_next
+                
+                # Find next step in plan
+                if step_next:
+                    current_step_id = step_next
+                else:
+                    # Automatically determine next step by order
+                    current_step_index = next((i for i, s in enumerate(plan_steps) if s.get('id') == current_step_id), -1)
+                    if current_step_index >= 0 and current_step_index + 1 < len(plan_steps):
+                        current_step_id = plan_steps[current_step_index + 1].get('id')
+                        log_step(f"📍 [PLAN] Auto-advancing to next step: {current_step_id}")
+                    else:
+                        current_step_id = 'done'
+                        log_step(f"📍 [PLAN] No more steps, marking as done")
+                
                 step_retry_count = 0  # Reset retry counter
                 
                 if not current_step_id or current_step_id == 'done':
