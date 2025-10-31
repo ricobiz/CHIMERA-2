@@ -900,7 +900,7 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
                       }
                     }} 
                     rows={3}
-                    className="w-full pl-20 pr-14 py-3 bg-gray-900 border border-green-500/30 rounded-lg text-base text-gray-200 placeholder-gray-500 focus:outline-none focus:border-green-500 resize-none shadow-[0_0_15px_rgba(34,197,94,0.1)]" 
+                    className="w-full pl-24 pr-14 py-3 bg-gray-900 border border-green-500/30 rounded-lg text-base text-gray-200 placeholder-gray-500 focus:outline-none focus:border-green-500 resize-none shadow-[0_0_15px_rgba(34,197,94,0.1)]" 
                     placeholder="Type instruction for automation AI..." 
                   />
                   
