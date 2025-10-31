@@ -441,7 +441,7 @@ async def exec_task(req: TaskRequest):
                 agent_status = "ERROR"
                 break
             
-            step_action = current_step.get('action')
+            step_action = (current_step.get('action') or '').upper()  # Normalize to uppercase
             step_field = current_step.get('field')
             step_target = current_step.get('target')
             step_data_key = current_step.get('data_key')
