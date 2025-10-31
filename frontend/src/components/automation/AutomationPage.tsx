@@ -964,14 +964,14 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
                     {/* Small icon buttons for Live/Play/Pause/Stop */}
                     <div className="flex items-center gap-1">
                       <button onClick={()=>setIsLiveMode(!isLiveMode)} className={`${isLiveMode?'text-green-400':'text-gray-500'} hover:text-green-300 text-base`} title="Toggle Live Mode">●</button>
-                      <button className="text-gray-400 hover:text-green-400 text-base" title="Play">▶</button>
-                      <button onClick={()=>setIsPaused(!isPaused)} className="text-gray-400 hover:text-yellow-400 text-base" title="Pause">⏸</button>
-                      <button className="text-gray-400 hover:text-red-400 text-base" title="Stop">⏹</button>
+                      <button onClick={playAutomation} className="text-gray-400 hover:text-green-400 text-base" title="Play">▶</button>
+                      <button onClick={pauseAutomation} className="text-gray-400 hover:text-yellow-400 text-base" title="Pause">⏸</button>
+                      <button onClick={stopAutomation} className="text-gray-400 hover:text-red-400 text-base" title="Stop">⏹</button>
                     </div>
                     
                     {/* Current action indicator */}
                     <div className="text-gray-500 text-[10px]">
-                      Action: <span className="text-gray-300">Idle</span>
+                      Action: <span className="text-gray-300">{isPaused ? 'Paused' : agentStatus === 'ACTIVE' ? 'Running' : 'Idle'}</span>
                     </div>
                     
                     {/* Grid toggle */}
@@ -985,16 +985,16 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
                     </button>
                     
                     {/* Secrets button */}
-                    <button className="text-gray-400 hover:text-gray-200 text-[10px]" title="Manage secrets (emails, passwords)">
+                    <button onClick={()=>setShowSecrets(true)} className="text-gray-400 hover:text-gray-200 text-[10px]" title="Manage secrets (emails, passwords)">
                       🔐 Secrets
                     </button>
                   </div>
                   
-                  {/* Status indicators */}
+                  {/* Status indicators - Bot status from selftest */}
                   <div className="flex items-center gap-1">
-                    <div className="w-2 h-2 rounded-full bg-green-500" title="Browser Ready"></div>
-                    <div className="w-2 h-2 rounded-full bg-green-500" title="Proxy Active"></div>
-                    <div className="w-2 h-2 rounded-full bg-yellow-500" title="AntiBot Check"></div>
+                    <div className={`w-2 h-2 rounded-full ${sessionId||quickSessionId?'bg-green-500':'bg-gray-500'}`} title="Browser Ready"></div>
+                    <div className={`w-2 h-2 rounded-full ${useProxy?'bg-green-500':'bg-gray-500'}`} title="Proxy Status"></div>
+                    <div className={`w-2 h-2 rounded-full ${botStatus.grade==='green'?'bg-green-500':botStatus.grade==='yellow'?'bg-yellow-500':'bg-red-500'}`} title={`Bot Status: ${botStatus.score}/100`} onClick={runBotSelfTest}></div>
                   </div>
                 </div>
                 
