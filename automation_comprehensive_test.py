@@ -943,19 +943,22 @@ class AutomationTester:
             if response.status_code == 200:
                 data = response.json()
                 
-                if (data.get('state') == "Idle" and 
-                    data.get('initialized') == True):
+                # Handle nested response structure
+                result = data.get('result', data)
+                
+                if (result.get('state') == "Idle" and 
+                    result.get('initialized') == True):
                     self.log_test(
                         "Watchdog Init",
                         True,
-                        f"Watchdog initialized: state={data['state']}, initialized={data['initialized']}",
-                        {"state": data['state'], "initialized": data['initialized']}
+                        f"Watchdog initialized: state={result['state']}, initialized={result['initialized']}",
+                        {"state": result['state'], "initialized": result['initialized']}
                     )
                 else:
                     self.log_test(
                         "Watchdog Init",
                         False,
-                        f"Invalid watchdog init response: state={data.get('state')}, initialized={data.get('initialized')}",
+                        f"Invalid watchdog init response: state={result.get('state')}, initialized={result.get('initialized')}",
                         {"expected": {"state": "Idle", "initialized": True}, "actual": data}
                     )
             else:
