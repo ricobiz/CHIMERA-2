@@ -604,7 +604,10 @@ class AutonomousBackendTester:
         
         try:
             # Test session creation (core browser service)
-            session_payload = {"use_proxy": False}
+            session_payload = {
+                "session_id": str(uuid.uuid4()),
+                "use_proxy": False
+            }
             response = self.session.post(
                 f"{BACKEND_URL}/automation/session/create",
                 json=session_payload,
