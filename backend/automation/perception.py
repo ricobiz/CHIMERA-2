@@ -6,8 +6,8 @@ Integrates with existing browser_automation_service and scene_builder_service
 import logging
 from typing import Dict, Any, List, Optional
 
-from ..services.browser_automation_service import browser_service
-from ..services.scene_builder_service import scene_builder_service
+from services.browser_automation_service import browser_service
+from services.scene_builder_service import scene_builder_service
 
 logger = logging.getLogger(__name__)
 
