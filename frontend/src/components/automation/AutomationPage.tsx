@@ -523,10 +523,6 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
                 <span>LIVE</span>
               </div>
             )}
-                </span>
-                <span>LIVE</span>
-              </div>
-            )}
           </div>
         </div>
       </div>
