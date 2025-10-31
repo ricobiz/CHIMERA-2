@@ -395,6 +395,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ COMPREHENSIVE AUTOMATION TESTING COMPLETE: All 15 automation endpoints tested successfully (100% pass rate). Scene snapshot working perfectly - captured scene with 32 elements, all required fields present: viewport, url, http, antibot, elements, hints, ts. Scene analysis system fully operational."
+      - working: true
+        agent: "testing"
+        comment: "✅ JUSTFANS AUTOMATION TEST: Scene snapshot working perfectly for JustFans.uno registration page. Successfully captured scene with URL 'https://justfans.uno/register', 16 elements detected including 4 textbox/input elements for form fields. Scene analysis correctly identifies registration form components. Screenshot capture (53KB base64) and element detection fully operational. Browser automation system ready for form interaction."
 
   - task: "POST /api/automation/plan/decide - Plan Generation"
     implemented: true
