@@ -328,6 +328,59 @@ async def exec_task(req: TaskRequest):
                 current_url = "about:blank"
         
         # ============================================================
+        # PHASE 2.5: GENERATE DETAILED PLAN USING PLANNER (NEW!)
+        # ============================================================
+        log_step("🧩 [PLANNER] Building detailed execution plan from current scene...")
+        try:
+            # Build Scene JSON from current page
+            scene_builder = SceneBuilderService()
+            page = browser_service.sessions[session_id]['page']
+            dom_data = await browser_service._collect_dom_clickables(page)
+            screenshot_b64 = await browser_service.capture_screenshot(session_id)
+            vision_elements = await browser_service._augment_with_vision(screenshot_b64, dom_data)
+            
+            scene = await scene_builder.build_scene(
+                page=page,
+                dom_data=dom_data,
+                vision_elements=vision_elements,
+                session_id=session_id
+            )
+            
+            # Call Planner to generate detailed steps
+            goal_for_planner = {
+                "site": current_url,
+                "task": "fill_form" if "register" in goal.lower() or "signup" in goal.lower() else "navigate",
+                "description": goal
+            }
+            
+            plan_result = await planner_service.decide_plan(
+                goal=goal_for_planner,
+                scene=scene,
+                context={"data": data_bundle}
+            )
+            
+            if plan_result.get('success') and plan_result.get('plan'):
+                detailed_plan = plan_result['plan']
+                candidates = detailed_plan.get('candidates', [])
+                chosen_id = detailed_plan.get('chosen', 'A')
+                
+                # Find chosen candidate
+                chosen_candidate = next((c for c in candidates if c['id'] == chosen_id), None)
+                if chosen_candidate and chosen_candidate.get('steps'):
+                    current_plan['steps'] = chosen_candidate['steps']
+                    current_plan['plan_outline'] = chosen_candidate.get('why', '')
+                    log_step(f"✅ [PLANNER] Generated {len(chosen_candidate['steps'])} steps for candidate {chosen_id}")
+                    log_step(f"📋 [PLANNER] Plan: {chosen_candidate.get('why', 'No description')}")
+                else:
+                    log_step("⚠️ [PLANNER] No steps in chosen candidate, using fallback")
+            else:
+                log_step(f"⚠️ [PLANNER] Planning failed: {plan_result.get('error', 'Unknown error')}")
+                
+        except Exception as e:
+            logger.error(f"Planner error: {e}")
+            log_step(f"❌ [PLANNER] Error: {str(e)}")
+        
+        # ============================================================
         # PHASE 3: PLAN-BASED EXECUTION LOOP (NEW ARCHITECTURE)
         # ============================================================
         # Данные для использования в автоматизации
