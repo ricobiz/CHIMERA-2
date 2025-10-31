@@ -1048,6 +1048,168 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
       )}
 
     {/* Old layout removed */}
+    
+    {/* Settings Modal */}
+    {showSettings && (
+      <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+        <div className="bg-gray-900 border border-gray-700 rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+          <div className="p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-gray-100">⚙️ Automation Model Settings</h2>
+              <button onClick={()=>setShowSettings(false)} className="text-gray-400 hover:text-gray-200 text-2xl">×</button>
+            </div>
+            
+            <div className="space-y-6">
+              {/* Head Brain */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-300 mb-2">
+                  🧠 Head Brain (Task Analysis & Strategy)
+                </label>
+                <select 
+                  value={selectedHeadBrain} 
+                  onChange={(e)=>setSelectedHeadBrain(e.target.value)}
+                  className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded text-gray-200 text-sm"
+                >
+                  <option value="openai/gpt-5">OpenAI GPT-5 (Default - Best for planning)</option>
+                  <option value="anthropic/claude-3.5-sonnet">Claude 3.5 Sonnet</option>
+                  <option value="x-ai/grok-4">Grok 4</option>
+                  <option value="google/gemini-2.5-flash">Gemini 2.5 Flash</option>
+                  {availableModels.map(model => (
+                    <option key={model.id} value={model.id}>{model.name}</option>
+                  ))}
+                </select>
+                <p className="text-xs text-gray-500 mt-1">Called once per task. Generates strategy & data.</p>
+              </div>
+              
+              {/* Spinal Cord */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-300 mb-2">
+                  🦴 Spinal Cord (Real-time Decisions)
+                </label>
+                <select 
+                  value={selectedSpinalCord} 
+                  onChange={(e)=>setSelectedSpinalCord(e.target.value)}
+                  className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded text-gray-200 text-sm"
+                >
+                  <option value="qwen/qwen2.5-vl">Qwen 2.5 VL (Default - Fast & Cheap)</option>
+                  <option value="google/gemini-2.0-flash-thinking-exp:free">Gemini 2.0 Flash Thinking (Free)</option>
+                  <option value="qwen/qwen3-coder-flash">Qwen 3 Coder Flash</option>
+                  {availableModels.filter(m=>m.capabilities?.vision).map(model => (
+                    <option key={model.id} value={model.id}>{model.name}</option>
+                  ))}
+                </select>
+                <p className="text-xs text-gray-500 mt-1">Called every step. Needs vision capability.</p>
+              </div>
+              
+              {/* Executor */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-300 mb-2">
+                  👁️ Executor (Element Detection)
+                </label>
+                <select 
+                  value={selectedExecutor} 
+                  onChange={(e)=>setSelectedExecutor(e.target.value)}
+                  className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded text-gray-200 text-sm"
+                >
+                  <option value="florence-2-local">Florence-2 (Local - FREE)</option>
+                  {availableModels.filter(m=>m.capabilities?.vision).map(model => (
+                    <option key={model.id} value={model.id}>{model.name}</option>
+                  ))}
+                </select>
+                <p className="text-xs text-gray-500 mt-1">Detects UI elements. Local is free, API costs tokens.</p>
+              </div>
+              
+              {/* Proxy Toggle */}
+              <div className="flex items-center justify-between p-4 bg-gray-800 rounded">
+                <div>
+                  <div className="text-sm font-semibold text-gray-300">🌐 Use Proxy</div>
+                  <div className="text-xs text-gray-500">Route traffic through proxy for anti-detection</div>
+                </div>
+                <button 
+                  onClick={()=>setUseProxy(!useProxy)}
+                  className={`px-4 py-2 rounded ${useProxy?'bg-green-600 text-white':'bg-gray-600 text-gray-300'}`}
+                >
+                  {useProxy?'ON':'OFF'}
+                </button>
+              </div>
+              
+              {/* Save Button */}
+              <div className="flex justify-end gap-3">
+                <button onClick={()=>setShowSettings(false)} className="px-4 py-2 bg-gray-700 text-gray-300 rounded hover:bg-gray-600">
+                  Cancel
+                </button>
+                <button onClick={saveSettings} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-500">
+                  Save Settings
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
+    
+    {/* Secrets Modal */}
+    {showSecrets && (
+      <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+        <div className="bg-gray-900 border border-gray-700 rounded-lg max-w-md w-full">
+          <div className="p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-gray-100">🔐 Secrets Management</h2>
+              <button onClick={()=>setShowSecrets(false)} className="text-gray-400 hover:text-gray-200 text-2xl">×</button>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-300 mb-2">📧 Email</label>
+                <input 
+                  type="email"
+                  value={secrets.email} 
+                  onChange={(e)=>setSecrets({...secrets, email:e.target.value})}
+                  placeholder="user@example.com"
+                  className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded text-gray-200 text-sm"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-semibold text-gray-300 mb-2">🔑 Password</label>
+                <input 
+                  type="password"
+                  value={secrets.password} 
+                  onChange={(e)=>setSecrets({...secrets, password:e.target.value})}
+                  placeholder="••••••••"
+                  className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded text-gray-200 text-sm"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-semibold text-gray-300 mb-2">📱 Phone (OTP)</label>
+                <input 
+                  type="tel"
+                  value={secrets.phone} 
+                  onChange={(e)=>setSecrets({...secrets, phone:e.target.value})}
+                  placeholder="+1 555 123 4567"
+                  className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded text-gray-200 text-sm"
+                />
+                <p className="text-xs text-gray-500 mt-1">Used for OTP verification in automation</p>
+              </div>
+              
+              <div className="bg-yellow-900/20 border border-yellow-700/50 rounded p-3 text-xs text-yellow-200">
+                ⚠️ Secrets stored locally in browser (localStorage). Not sent to server unless automation needs them.
+              </div>
+              
+              <div className="flex justify-end gap-3 pt-4">
+                <button onClick={()=>setShowSecrets(false)} className="px-4 py-2 bg-gray-700 text-gray-300 rounded hover:bg-gray-600">
+                  Cancel
+                </button>
+                <button onClick={saveSecrets} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-500">
+                  Save Secrets
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
   </div>
   );
 };
