@@ -827,20 +827,22 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
                 )}
               </div>
               
-              {/* Chat input with controls - LARGE like main chat */}
-              <div className="space-y-3 border-t border-gray-700 pt-4">
-                <div className="flex gap-3 items-stretch">
-                  <input 
+              {/* Chat input with controls - LARGE textarea like main chat */}
+              <div className="space-y-3 border-t border-gray-700 pt-4 pb-4">
+                <div className="flex gap-3 items-end">
+                  <textarea 
                     value={chatInput} 
                     onChange={(e)=>setChatInput(e.target.value)} 
                     onKeyDown={(e)=>{
-                      if(e.key==='Enter'&&chatInput.trim()){
+                      if(e.key==='Enter' && !e.shiftKey && chatInput.trim()){
+                        e.preventDefault();
                         setChatMessages(prev=>[...prev,{role:'user',text:chatInput}]); 
                         setChatInput(''); 
                       }
                     }} 
-                    className="flex-1 px-4 py-4 bg-gray-900 border border-gray-700 rounded-lg text-base text-gray-200 placeholder-gray-500 focus:outline-none focus:border-blue-500" 
-                    placeholder="Type instruction for automation AI..." 
+                    rows={3}
+                    className="flex-1 px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-base text-gray-200 placeholder-gray-500 focus:outline-none focus:border-blue-500 resize-none" 
+                    placeholder="Type instruction for automation AI... (Shift+Enter for new line)" 
                   />
                   <button 
                     onClick={()=>{
@@ -849,7 +851,7 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
                         setChatInput('');
                       }
                     }} 
-                    className="px-8 py-4 bg-blue-600 hover:bg-blue-500 rounded-lg text-white text-base font-medium transition-colors flex-shrink-0"
+                    className="px-8 py-6 bg-blue-600 hover:bg-blue-500 rounded-lg text-white text-base font-medium transition-colors flex-shrink-0"
                   >
                     Send
                   </button>
