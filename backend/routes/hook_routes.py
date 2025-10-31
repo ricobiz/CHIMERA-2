@@ -26,6 +26,9 @@ from services.scene_builder_service import SceneBuilderService
 from routes.automation_routes import SmartTypeRequest, SmartClickRequest, smart_type_text, smart_click, FindElementsRequest
 from routes.profile_routes import CreateProfileRequest
 
+# NEW: Import autonomous agent
+from automation import autonomous_agent
+
 logger = logging.getLogger(__name__)
 
 # Initialize Faker for data generation
