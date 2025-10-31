@@ -58,6 +58,7 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
   const [displaySrc, setDisplaySrc] = useState<string | null>(null);
   const [pendingSrc, setPendingSrc] = useState<string | null>(null);
   const [showDetections, setShowDetections] = useState<boolean>(true);
+  const [isAutonomousMode, setIsAutonomousMode] = useState(true); // NEW: Default to autonomous mode
   // Quick test controls
   const [quickUrl, setQuickUrl] = useState<string>('https://google.com');
   const [quickSessionId, setQuickSessionId] = useState<string | null>(null);
