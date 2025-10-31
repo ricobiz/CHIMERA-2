@@ -319,9 +319,9 @@ class HeadBrainService:
                 "mandatory_data": ["first_name", "last_name", "username", "password", "birthday"] if is_registration else [],
                 "optional_data": ["phone_number", "recovery_email"]
             },
-            "strategy": "attempt_without_phone" if has_warm_profile else "require_phone_or_warn",
-            "success_probability": 0.7 if has_warm_profile else 0.3,
-            "plan_outline": "Navigate → Fill registration form → Handle captcha/phone if needed → Submit",
+            "strategy": "attempt_without_phone",  # Always try without phone first
+            "success_probability": 0.7,
+            "plan_outline": "Navigate → Fill registration form → Submit → Stop if phone required",
             "data_bundle": data_bundle,
             "data_source": data_source,
             "can_proceed": True,
