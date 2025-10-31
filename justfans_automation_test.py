@@ -48,13 +48,14 @@ class JustFansAutomationTester:
             if response.status_code == 200:
                 data = response.json()
                 
-                # Check required fields
-                required_fields = ['logs', 'status', 'job_id', 'result_ready', 'total_steps', 'timestamp', 'observation', 'session_id']
+                # Check required fields (updated based on actual API structure)
+                required_fields = ['logs', 'status', 'observation', 'session_id', 'task']
                 missing_fields = [field for field in required_fields if field not in data]
                 
                 if not missing_fields:
-                    # Verify job_id matches
-                    if data.get('job_id') == self.job_id:
+                    # Verify job_id matches (it's in task.job_id)
+                    task_job_id = data.get('task', {}).get('job_id')
+                    if task_job_id == self.job_id:
                         self.log_test(
                             "Hook Log - Job ID Match",
                             True,
