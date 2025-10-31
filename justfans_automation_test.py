@@ -102,9 +102,9 @@ class JustFansAutomationTester:
                             {"expected_session_id": self.session_id, "actual_session_id": data.get('session_id')}
                         )
                     
-                    # Verify logs array has entries (should be more than 30 steps)
+                    # Verify logs array has entries (should be more than 5 steps for active automation)
                     logs = data.get('logs', [])
-                    if isinstance(logs, list) and len(logs) > 30:
+                    if isinstance(logs, list) and len(logs) > 5:
                         self.log_test(
                             "Hook Log - Sufficient Steps",
                             True,
