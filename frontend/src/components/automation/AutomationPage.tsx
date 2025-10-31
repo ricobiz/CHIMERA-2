@@ -875,14 +875,17 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
                   </div>
                 </div>
                 
-                {/* Chat input field with icons inside - flexible for keyboard */}
+                {/* Chat input field with icons inside - compact icons */}
                 <div className="relative">
                   <div className="absolute left-3 top-1/2 -translate-y-1/2 flex gap-2 z-10">
-                    <button className="text-gray-400 hover:text-gray-200" title="Attach file">
+                    <button className="text-gray-400 hover:text-gray-200 text-sm" title="Attach file">
                       📎
                     </button>
-                    <button className="text-gray-400 hover:text-gray-200" title="Voice input">
+                    <button className="text-gray-400 hover:text-gray-200 text-sm" title="Voice input (not implemented)">
                       🎤
+                    </button>
+                    <button className="text-gray-400 hover:text-gray-200 text-sm" title="Model settings">
+                      ⚙️
                     </button>
                   </div>
                   
