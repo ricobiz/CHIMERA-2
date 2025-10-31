@@ -883,19 +883,6 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
                     ➤
                   </button>
                 </div>
-                
-                {/* Control buttons row */}
-                <div className="flex gap-2 items-center">
-                  <button className="px-3 py-1.5 text-xs rounded-md bg-gray-700 text-gray-300 hover:bg-gray-600 transition-colors">
-                    📎 Attach
-                  </button>
-                  <button onClick={()=>setIsPaused(!isPaused)} className={`px-3 py-1.5 text-xs rounded-md transition-colors ${isPaused?'bg-green-600 hover:bg-green-700 text-white':'bg-yellow-600 hover:bg-yellow-700 text-white'}`}>
-                    {isPaused?'▶ Continue':'⏸ Pause'}
-                  </button>
-                  <button className="px-3 py-1.5 text-xs rounded-md bg-red-600 hover:bg-red-700 text-white transition-colors">
-                    ⏹ Stop
-                  </button>
-                </div>
               </div>
             </div>
           )}
