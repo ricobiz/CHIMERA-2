@@ -1130,9 +1130,22 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
                   <div className="text-gray-500 text-sm">Start typing or click elements on screen to interact with automation AI</div>
                 ):(
                   chatMessages.map((msg,i)=>(
-                    <div key={i} className={`p-2 rounded text-sm ${msg.role==='user'?'bg-blue-900/30 text-blue-100':'bg-gray-800 text-gray-200'}`}>
-                      <div className="text-xs text-gray-400 mb-1">{msg.role}</div>
-                      <div>{msg.text}</div>
+                    <div key={i} className={`px-3 py-2 rounded-lg ${
+                      msg.role === 'user' 
+                        ? 'bg-blue-800/30 ml-8 border-l-2 border-blue-500' 
+                        : msg.role === 'system' 
+                          ? 'bg-purple-800/30 mr-8 border-l-2 border-purple-500' 
+                          : 'bg-gray-700 mr-8'
+                    }`}>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xs font-medium text-gray-400">
+                          {msg.role === 'user' ? '👤 YOU' : msg.role === 'system' ? '🧠 AUTONOMOUS AI' : 'ASSISTANT'}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          {new Date().toLocaleTimeString()}
+                        </span>
+                      </div>
+                      <div className="text-sm text-gray-200 whitespace-pre-wrap">{msg.text}</div>
                     </div>
                   ))
                 )}
