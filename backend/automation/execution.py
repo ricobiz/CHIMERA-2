@@ -291,7 +291,7 @@ class Execution:
             logger.info("📝 [EXECUTION] Filling detected form fields")
             
             # Get current page state to find form fields
-            from .perception import perception
+            from automation.perception import perception
             state = await perception.capture_state(session_id)
             
             vision_elements = state.get("vision", [])
