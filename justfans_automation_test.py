@@ -108,15 +108,15 @@ class JustFansAutomationTester:
                         self.log_test(
                             "Hook Log - Sufficient Steps",
                             True,
-                            f"Found {len(logs)} log entries (>30 as expected)",
-                            {"log_count": len(logs), "expected_min": 30}
+                            f"Found {len(logs)} log entries (>5 as expected)",
+                            {"log_count": len(logs), "expected_min": 5}
                         )
                     else:
                         self.log_test(
                             "Hook Log - Insufficient Steps",
                             False,
-                            f"Found {len(logs) if isinstance(logs, list) else 0} log entries, expected >30",
-                            {"log_count": len(logs) if isinstance(logs, list) else 0, "expected_min": 30}
+                            f"Found {len(logs) if isinstance(logs, list) else 0} log entries, expected >5",
+                            {"log_count": len(logs) if isinstance(logs, list) else 0, "expected_min": 5}
                         )
                     
                     # Check observation.screenshot_base64 is not null
