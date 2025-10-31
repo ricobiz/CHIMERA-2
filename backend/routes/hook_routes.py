@@ -151,7 +151,7 @@ async def exec_autonomous_task(req: TaskRequest):
     try:
         # Setup WebSocket callback for real-time updates
         async def websocket_callback(event: Dict[str, Any]):
-            nonlocal agent_status
+            global agent_status
             # In a real implementation, this would send to actual WebSocket clients
             # For now, we'll log events and update internal state
             logger.info(f"🔄 [AUTONOMOUS] Event: {event['type']}")
