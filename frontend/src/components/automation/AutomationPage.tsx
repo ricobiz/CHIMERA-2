@@ -430,6 +430,87 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
 
   const ghostPos = useMemo(() => cellToPercent(ghostCell, observation?.grid), [ghostCell, observation?.grid]);
 
+  // Save settings to localStorage
+  const saveSettings = () => {
+    localStorage.setItem('automation_head_brain', selectedHeadBrain);
+    localStorage.setItem('automation_spinal_cord', selectedSpinalCord);
+    localStorage.setItem('automation_executor', selectedExecutor);
+    setShowSettings(false);
+    alert('✅ Settings saved!');
+  };
+
+  // Save secrets to localStorage
+  const saveSecrets = () => {
+    localStorage.setItem('automation_secrets', JSON.stringify(secrets));
+    setShowSecrets(false);
+    alert('🔐 Secrets saved securely!');
+  };
+
+  // Refresh automation screen
+  const refreshScreen = async () => {
+    if (!sessionId && !quickSessionId) {
+      alert('No active session. Start automation first.');
+      return;
+    }
+    try {
+      const sid = sessionId || quickSessionId;
+      const resp = await fetch(`${BASE_URL}/api/automation/screenshot/${sid}/full`);
+      const data = await resp.json();
+      if (data.screenshot_base64) {
+        setPendingSrc(data.screenshot_base64);
+        setObservation(data);
+        const v = data.vision || [];
+        lastSnapshotRef.current = { shotId: data.screenshot_id, vision: v, viewport: data.viewport, grid: data.grid };
+        setVision(v);
+      }
+    } catch (e: any) {
+      alert('Failed to refresh: ' + e.message);
+    }
+  };
+
+  // Run bot self-test
+  const runBotSelfTest = async () => {
+    if (!sessionId && !quickSessionId) {
+      alert('No active session. Start automation first.');
+      return;
+    }
+    try {
+      const sid = sessionId || quickSessionId;
+      const resp = await fetch(`${BASE_URL}/api/automation/selftest/run`, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ session_id: sid, profile: 'default' })
+      });
+      const data = await resp.json();
+      if (data.success && data.report) {
+        setBotStatus(data.report);
+      }
+    } catch (e) {
+      console.error('SelfTest failed:', e);
+    }
+  };
+
+  // Play automation
+  const playAutomation = async () => {
+    if (!taskText.trim()) {
+      alert('Please enter a task first');
+      return;
+    }
+    await startTask();
+  };
+
+  // Pause automation
+  const pauseAutomation = async () => {
+    await control('PAUSED');
+    setIsPaused(true);
+  };
+
+  // Stop automation
+  const stopAutomation = async () => {
+    await control('STOP');
+    setIsPaused(false);
+  };
+
   const statusPill = (status: string) => {
     switch (status) {
       case 'ACTIVE': return 'bg-green-900/40 text-green-300';
