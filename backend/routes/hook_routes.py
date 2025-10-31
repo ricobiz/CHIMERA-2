@@ -147,9 +147,11 @@ async def control(req: ControlRequest):
 @router.post('/exec-autonomous')
 async def exec_autonomous_task(req: TaskRequest):
     """Start autonomous automation with bulletproof reliability"""
+    global agent_status
     try:
         # Setup WebSocket callback for real-time updates
         async def websocket_callback(event: Dict[str, Any]):
+            nonlocal agent_status
             # In a real implementation, this would send to actual WebSocket clients
             # For now, we'll log events and update internal state
             logger.info(f"🔄 [AUTONOMOUS] Event: {event['type']}")
@@ -167,12 +169,10 @@ async def exec_autonomous_task(req: TaskRequest):
                 log_step(f"Tool executed: {event['data']['tool']}")
             
             elif event['type'] == 'task_completed':
-                global agent_status
                 agent_status = "DONE"
                 log_step("🎉 Autonomous task completed successfully!")
             
             elif event['type'] == 'task_failed':
-                global agent_status
                 agent_status = "ERROR"
                 log_step(f"❌ Autonomous task failed: {event['data'].get('error', 'Unknown error')}")
         
