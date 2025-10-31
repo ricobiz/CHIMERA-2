@@ -59,15 +59,15 @@ class JustFansAutomationTester:
                         self.log_test(
                             "Hook Log - Job ID Match",
                             True,
-                            f"Job ID matches: {data['job_id']}",
-                            {"expected_job_id": self.job_id, "actual_job_id": data['job_id']}
+                            f"Job ID matches: {task_job_id}",
+                            {"expected_job_id": self.job_id, "actual_job_id": task_job_id}
                         )
                     else:
                         self.log_test(
                             "Hook Log - Job ID Mismatch",
                             False,
-                            f"Job ID mismatch. Expected: {self.job_id}, Got: {data.get('job_id')}",
-                            {"expected_job_id": self.job_id, "actual_job_id": data.get('job_id')}
+                            f"Job ID mismatch. Expected: {self.job_id}, Got: {task_job_id}",
+                            {"expected_job_id": self.job_id, "actual_job_id": task_job_id}
                         )
                     
                     # Verify status is ACTIVE
