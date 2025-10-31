@@ -511,15 +511,33 @@ async def exec_task(req: TaskRequest):
                         screenshot_b64 = await browser_service.capture_screenshot(session_id)
                         vision_elements = await browser_service._augment_with_vision(screenshot_b64, dom_data)
                         
-                        # Ищем поле в vision по field name
+                        # Ищем поле в vision по field name с улучшенной логикой
                         target_cell = None
-                        for el in vision_elements:
+                        textbox_elements = [el for el in vision_elements if el.get('type', '').lower() in ['input', 'textarea', 'textbox']]
+                        
+                        # First try: exact match by field name in label or aria-label
+                        for el in textbox_elements:
                             el_label = (el.get('label') or '').lower()
-                            el_type = (el.get('type') or '').lower()
-                            if step_field.lower() in el_label or el_type in ['input', 'textarea']:
-                                if step_field.lower() in el_label or not target_cell:
+                            el_aria = (el.get('aria_label') or '').lower()
+                            if step_field and (step_field.lower() in el_label or step_field.lower() in el_aria):
+                                target_cell = el.get('cell')
+                                log_step(f"📍 [EXECUTOR] Found field {step_field} by label match at {target_cell}")
+                                break
+                        
+                        # Second try: find first EMPTY textbox (label is just "INPUT" or "textbox")
+                        if not target_cell:
+                            for el in textbox_elements:
+                                el_label = (el.get('label') or '').strip()
+                                # Empty if label is generic or very short
+                                if el_label in ['INPUT', 'textbox', '1', ''] or len(el_label) <= 3:
                                     target_cell = el.get('cell')
+                                    log_step(f"📍 [EXECUTOR] Using first empty textbox at {target_cell}")
                                     break
+                        
+                        # Third try: use any textbox as fallback
+                        if not target_cell and textbox_elements:
+                            target_cell = textbox_elements[0].get('cell')
+                            log_step(f"⚠️ [EXECUTOR] Using first available textbox at {target_cell} as fallback")
                         
                         if target_cell:
                             result = await browser_service.type_at_cell(session_id, target_cell, text_to_type, human_like=True)
