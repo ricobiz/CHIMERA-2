@@ -143,6 +143,61 @@ async def control(req: ControlRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.post('/exec-autonomous')
+async def exec_autonomous_task(req: TaskRequest):
+    """Start autonomous automation with bulletproof reliability"""
+    try:
+        # Setup WebSocket callback for real-time updates
+        async def websocket_callback(event: Dict[str, Any]):
+            # In a real implementation, this would send to actual WebSocket clients
+            # For now, we'll log events and update internal state
+            logger.info(f"🔄 [AUTONOMOUS] Event: {event['type']}")
+            
+            # Update internal state for /log endpoint compatibility
+            if event['type'] == 'task_started':
+                current_task["text"] = req.text
+                current_task["job_id"] = event.get('task_id')
+                current_task["timestamp"] = req.timestamp
+            
+            elif event['type'] == 'step_completed':
+                log_step(f"Step {event['data']['step_index']}: {event['data']['step']['action']}")
+            
+            elif event['type'] == 'tool_executed':
+                log_step(f"Tool executed: {event['data']['tool']}")
+            
+            elif event['type'] == 'task_completed':
+                global agent_status
+                agent_status = "DONE"
+                log_step("🎉 Autonomous task completed successfully!")
+            
+            elif event['type'] == 'task_failed':
+                global agent_status
+                agent_status = "ERROR"
+                log_step(f"❌ Autonomous task failed: {event['data'].get('error', 'Unknown error')}")
+        
+        # Set up agent with callback
+        autonomous_agent.ws_callback = websocket_callback
+        
+        # Create context from request
+        context = {
+            "timeout": 900,  # 15 minutes
+            "max_retries": 3,
+            "use_proxy": True
+        }
+        
+        # Execute autonomous task
+        result = await autonomous_agent.run(
+            goal=req.text,
+            context=context,
+            user_data=req.user_data
+        )
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Autonomous exec error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.post('/exec')
 async def exec_task(req: TaskRequest):
     """Start automation with HEAD BRAIN → Spinal Cord (Brain) loop → Executor."""
