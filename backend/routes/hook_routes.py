@@ -1025,6 +1025,23 @@ async def adjust(req: AdjustRequest):
         logger.error(f"adjust error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.get('/autonomous-status')
+async def get_autonomous_status():
+    """Get autonomous agent status and metrics"""
+    return {
+        "agent_state": autonomous_agent.state.value if autonomous_agent.state else "idle",
+        "task_id": autonomous_agent.task_id,
+        "current_goal": autonomous_agent.current_goal,
+        "session_id": autonomous_agent.session_id,
+        "resources": autonomous_agent.resources,
+        "metrics": autonomous_agent.metrics,
+        "execution_history": autonomous_agent.execution_history[-10:],  # Last 10 steps
+        "current_step": autonomous_agent.current_step_index,
+        "total_steps": len(autonomous_agent.current_plan.get("steps", [])) if autonomous_agent.current_plan else 0,
+        "stuck_count": autonomous_agent.stuck_count,
+        "runtime_seconds": (time.time() - autonomous_agent.start_time) if autonomous_agent.start_time else 0
+    }
+
 @router.get('/log')
 async def get_log():
     return {
