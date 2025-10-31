@@ -205,7 +205,7 @@ class AutonomousAgent:
             
             if not profile_id:
                 # Create new profile
-                from ..routes.profile_routes import create_profile, CreateProfileRequest
+                from routes.profile_routes import create_profile, CreateProfileRequest
                 prof_resp = await create_profile(CreateProfileRequest(warmup=needs_warm, region="US"))
                 profile_id = prof_resp.get('profile_id')
             
