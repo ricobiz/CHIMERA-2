@@ -299,6 +299,152 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
     }
   };
 
+  // NEW: Handle chat messages with autonomous automation
+  const handleChatSend = async (message: string) => {
+    if (!message.trim()) return;
+    
+    // Add user message to chat
+    setChatMessages(prev => [...prev, {role: 'user', text: message}]);
+    
+    // Add system response that task is starting
+    setChatMessages(prev => [...prev, {
+      role: 'system', 
+      text: `🚀 Starting autonomous task: "${message}"`
+    }]);
+    
+    setAgentStatus('ACTIVE');
+    
+    try {
+      // Use new autonomous automation system
+      const resp = await fetch(`${BASE_URL}/api/autonomous/run`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          goal: message,
+          context: {
+            timeout_minutes: 15,
+            max_retries: 3,
+            use_proxy: true,
+            solve_captcha: true
+          }
+        })
+      });
+      
+      const data = await resp.json();
+      
+      if (resp.ok) {
+        if (data.status === 'SUCCESS') {
+          setChatMessages(prev => [...prev, {
+            role: 'system', 
+            text: `✅ Task completed successfully! Task ID: ${data.task_id}`
+          }]);
+          setAgentStatus('DONE');
+        } else if (data.status === 'NEEDS_USER_DATA') {
+          setChatMessages(prev => [...prev, {
+            role: 'system', 
+            text: `⚠️ Need more information: ${data.message}`
+          }]);
+          setAgentStatus('IDLE');
+        } else if (data.status === 'FAILED') {
+          setChatMessages(prev => [...prev, {
+            role: 'system', 
+            text: `❌ Task failed: ${data.message}`
+          }]);
+          setAgentStatus('ERROR');
+        } else {
+          setChatMessages(prev => [...prev, {
+            role: 'system', 
+            text: `🔄 Task running... Status: ${data.status}`
+          }]);
+        }
+        
+        // Store task ID for monitoring
+        if (data.task_id) {
+          setJobId(data.task_id);
+          // Start monitoring task progress
+          monitorAutonomousTask(data.task_id);
+        }
+      } else {
+        setChatMessages(prev => [...prev, {
+          role: 'system', 
+          text: `❌ Failed to start task: ${data.detail || 'Unknown error'}`
+        }]);
+        setAgentStatus('ERROR');
+      }
+    } catch (e: any) {
+      setChatMessages(prev => [...prev, {
+        role: 'system', 
+        text: `❌ Connection error: ${e.message}`
+      }]);
+      setAgentStatus('ERROR');
+    }
+  };
+
+  // Monitor autonomous task progress
+  const monitorAutonomousTask = async (taskId: string) => {
+    const checkProgress = async () => {
+      try {
+        const resp = await fetch(`${BASE_URL}/api/autonomous/status/${taskId}`);
+        if (resp.ok) {
+          const status = await resp.json();
+          
+          // Update UI with progress
+          const progress = status.progress?.completion_percentage || 0;
+          setAgentStatus(status.state?.toUpperCase() || 'ACTIVE');
+          
+          // Add progress updates to chat
+          if (progress > 0) {
+            setChatMessages(prev => {
+              const lastMsg = prev[prev.length - 1];
+              if (lastMsg?.role === 'system' && lastMsg.text.includes('Progress:')) {
+                // Update last progress message
+                const updated = [...prev];
+                updated[updated.length - 1] = {
+                  role: 'system',
+                  text: `🔄 Progress: ${Math.round(progress)}% (Step ${status.progress?.current_step}/${status.progress?.total_steps})`
+                };
+                return updated;
+              } else {
+                // Add new progress message
+                return [...prev, {
+                  role: 'system',
+                  text: `🔄 Progress: ${Math.round(progress)}% (Step ${status.progress?.current_step}/${status.progress?.total_steps})`
+                }];
+              }
+            });
+          }
+          
+          // Check if task completed
+          if (['completed', 'failed', 'stopped'].includes(status.state?.toLowerCase())) {
+            if (status.state?.toLowerCase() === 'completed') {
+              setChatMessages(prev => [...prev, {
+                role: 'system',
+                text: `🎉 Task completed successfully! Resources created: ${Object.keys(status.resources || {}).join(', ')}`
+              }]);
+              setAgentStatus('DONE');
+            } else {
+              setChatMessages(prev => [...prev, {
+                role: 'system',
+                text: `❌ Task ${status.state}: Check logs for details`
+              }]);
+              setAgentStatus('ERROR');
+            }
+            return; // Stop monitoring
+          }
+          
+          // Continue monitoring if still running
+          setTimeout(checkProgress, 3000); // Check every 3 seconds
+        }
+      } catch (e) {
+        console.warn('Progress monitoring failed:', e);
+        // Don't spam user with monitoring errors
+      }
+    };
+    
+    // Start monitoring
+    setTimeout(checkProgress, 1000); // First check after 1 second
+  };
+
   const resetTask = async () => {
     try {
       // Close current session if exists
