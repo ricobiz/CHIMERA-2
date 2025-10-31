@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """
-JustFans.uno Browser Automation Flow Test
-Tests the complete browser automation flow for justfans.uno registration
+JustFans.uno Registration Automation Test
+Tests complete automation flow for justfans.uno registration using automation APIs directly (bypassing head_brain)
 """
 
 import requests
 import json
 import time
+import uuid
 from datetime import datetime
 
 # Backend URL from frontend/.env
@@ -16,12 +17,7 @@ class JustFansAutomationTester:
     def __init__(self):
         self.session = requests.Session()
         self.test_results = []
-        
-        # Test parameters from review request
-        self.job_id = "72bf4eba-8047-4c0e-ad84-185959db3337"
-        self.session_id = "2b8ab45b-2b71-48b9-9761-5967a287e590"
-        self.target_url = "https://justfans.uno/register"
-        self.task = "Navigate to https://justfans.uno/register and complete the registration form"
+        self.session_id = "test-registration-final"
         
     def log_test(self, test_name, success, message, details=None):
         """Log test results"""
