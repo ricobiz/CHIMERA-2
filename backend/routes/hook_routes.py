@@ -582,6 +582,13 @@ async def exec_task(req: TaskRequest):
                     except Exception as e:
                         log_step(f"⚠️ [EXECUTOR] Failed to save state: {e}")
                     break
+                
+                elif step_action == 'WAIT':
+                    # Wait for specified milliseconds
+                    wait_ms = int(step_target) if step_target else 1000
+                    log_step(f"⏱️  [EXECUTOR] Waiting {wait_ms}ms")
+                    await asyncio.sleep(wait_ms / 1000.0)
+                    action_executed = True
                     
                 else:
                     log_step(f"⚠️ [PLAN] Unknown action: {step_action}")
