@@ -399,7 +399,7 @@ class JustFansAutomationTester:
                     progress_entry = {
                         "check_number": i + 1,
                         "timestamp": datetime.now().isoformat(),
-                        "total_steps": data.get('total_steps', 0),
+                        "total_steps": len(data.get('logs', [])),  # Use logs count as step count
                         "logs_count": len(data.get('logs', [])),
                         "screenshot_id": data.get('observation', {}).get('screenshot_id'),
                         "status": data.get('status')
