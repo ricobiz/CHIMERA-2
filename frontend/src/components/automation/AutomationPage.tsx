@@ -89,6 +89,17 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
   const [isDrawing, setIsDrawing] = React.useState(false);
   const [savedPaths, setSavedPaths] = React.useState<Array<{name:string,path:Array<{x:number,y:number,time:number}>}>>([]);
 
+  // Settings & Secrets modals
+  const [showSettings, setShowSettings] = React.useState(false);
+  const [showSecrets, setShowSecrets] = React.useState(false);
+  const [availableModels, setAvailableModels] = React.useState<any[]>([]);
+  const [selectedHeadBrain, setSelectedHeadBrain] = React.useState<string>('openai/gpt-5');
+  const [selectedSpinalCord, setSelectedSpinalCord] = React.useState<string>('qwen/qwen2.5-vl');
+  const [selectedExecutor, setSelectedExecutor] = React.useState<string>('florence-2-local');
+  const [secrets, setSecrets] = React.useState<{email:string,password:string,phone:string}>({email:'',password:'',phone:''});
+  const [useProxy, setUseProxy] = React.useState(false);
+  const [botStatus, setBotStatus] = React.useState<{score:number,grade:string,issues:any[]}>({score:0,grade:'yellow',issues:[]});
+
 
 
   const viewerRef = useRef<HTMLDivElement | null>(null);
