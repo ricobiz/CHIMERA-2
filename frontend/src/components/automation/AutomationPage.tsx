@@ -393,7 +393,7 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
       // If user provided a session ID manually, connect to it instead of creating new
       if (quickSessionId && quickSessionId.trim()) {
         const sid = quickSessionId.trim();
-        const resp = await fetch(`${BASE_URL}/api/automation/screenshot?session_id=${sid}`);
+        const resp = await fetch(`${BASE_URL}/api/automation/screenshot/${sid}`);
         const js: any = await resp.json();
         if (!resp.ok || !js?.screenshot_base64) throw new Error(js?.detail || 'Failed to connect to session');
         
