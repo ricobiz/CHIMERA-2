@@ -271,27 +271,34 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
   const startTask = async () => {
     if (!taskText.trim()) return;
     setIsSubmitting(true);
+    
     try {
-      const resp = await fetch(`${BASE_URL}/api/hook/exec`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: taskText, timestamp: Date.now(), nocache: true })
-      });
-      const data = await resp.json();
-      if (resp.ok) {
-        setJobId(data.job_id);
-        setLogs([]);
-        
-        if (data.status === 'NEEDS_REQUIREMENTS') {
-          // Missing requirements - show warmup banner
-          setShowWarmBanner(true);
-          setAgentStatus('IDLE');
-          alert('⚠️ ' + (data.message || 'Missing requirements'));
-        } else {
-          setAgentStatus('ACTIVE');
-        }
+      if (isAutonomousMode) {
+        // Use new autonomous automation system
+        await handleChatSend(taskText);
       } else {
-        alert(data.detail || 'Failed to start');
+        // Use traditional hook/exec system
+        const resp = await fetch(`${BASE_URL}/api/hook/exec`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: taskText, timestamp: Date.now(), nocache: true })
+        });
+        const data = await resp.json();
+        if (resp.ok) {
+          setJobId(data.job_id);
+          setLogs([]);
+          
+          if (data.status === 'NEEDS_REQUIREMENTS') {
+            // Missing requirements - show warmup banner
+            setShowWarmBanner(true);
+            setAgentStatus('IDLE');
+            alert('⚠️ ' + (data.message || 'Missing requirements'));
+          } else {
+            setAgentStatus('ACTIVE');
+          }
+        } else {
+          alert(data.detail || 'Failed to start');
+        }
       }
     } catch (e: any) {
       alert(e.message || 'Failed to start');
