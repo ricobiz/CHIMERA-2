@@ -868,7 +868,7 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
                         <div className="flex-1">
                           <div className="text-gray-200">{s.action}</div>
                           {s.field && <div className="text-gray-400 text-[10px]">Field: {s.field}</div>}
-                          {s.target && <div className="text-gray-400 text-[10px]">Target: {s.target}</div>}
+                          {s.target && <div className="text-gray-400 text-[10px]">Target: {typeof s.target === 'object' ? s.target.value : s.target}</div>}
                         </div>
                       </div>
                     </div>
