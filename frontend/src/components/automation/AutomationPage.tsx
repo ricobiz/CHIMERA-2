@@ -1108,6 +1108,22 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
 
           {activeTab==='chat' && (
             <div className="flex flex-col h-full">
+              {/* Chat header with mode indicator */}
+              <div className="flex items-center justify-between p-3 border-b border-gray-800">
+                <div className="text-sm font-medium text-gray-300">
+                  Automation Chat
+                  <span className={`ml-2 text-xs px-2 py-1 rounded-md ${
+                    isAutonomousMode 
+                      ? 'bg-purple-600 text-white' 
+                      : 'bg-gray-600 text-gray-200'
+                  }`}>
+                    {isAutonomousMode ? '🧠 AUTONOMOUS' : '⚙️ MANUAL'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs px-2 py-1 bg-green-600 text-white rounded-md">LIVE</span>
+                </div>
+              </div>
               {/* Chat messages - scrollable area */}
               <div className="flex-1 overflow-y-auto space-y-2 mb-3">
                 {chatMessages.length===0 ? (
