@@ -520,32 +520,45 @@ async def exec_task(req: TaskRequest):
                         
                         # First try: exact match by field name in label or aria-label
                         for el in textbox_elements:
+                            el_cell = el.get('cell')
+                            if el_cell in filled_textbox_cells:
+                                continue  # Skip already filled fields
+                            
                             el_label = (el.get('label') or '').lower()
                             el_aria = (el.get('aria_label') or '').lower()
                             if step_field and (step_field.lower() in el_label or step_field.lower() in el_aria):
-                                target_cell = el.get('cell')
+                                target_cell = el_cell
                                 log_step(f"📍 [EXECUTOR] Found field {step_field} by label match at {target_cell}")
                                 break
                         
-                        # Second try: find first EMPTY textbox (label is just "INPUT" or "textbox")
+                        # Second try: find first EMPTY/unfilled textbox
                         if not target_cell:
                             for el in textbox_elements:
+                                el_cell = el.get('cell')
+                                if el_cell in filled_textbox_cells:
+                                    continue  # Skip already filled
+                                
                                 el_label = (el.get('label') or '').strip()
                                 # Empty if label is generic or very short
                                 if el_label in ['INPUT', 'textbox', '1', ''] or len(el_label) <= 3:
-                                    target_cell = el.get('cell')
-                                    log_step(f"📍 [EXECUTOR] Using first empty textbox at {target_cell}")
+                                    target_cell = el_cell
+                                    log_step(f"📍 [EXECUTOR] Using first unfilled textbox at {target_cell}")
                                     break
                         
-                        # Third try: use any textbox as fallback
-                        if not target_cell and textbox_elements:
-                            target_cell = textbox_elements[0].get('cell')
-                            log_step(f"⚠️ [EXECUTOR] Using first available textbox at {target_cell} as fallback")
+                        # Third try: use any unfilled textbox as fallback
+                        if not target_cell:
+                            for el in textbox_elements:
+                                el_cell = el.get('cell')
+                                if el_cell not in filled_textbox_cells:
+                                    target_cell = el_cell
+                                    log_step(f"⚠️ [EXECUTOR] Using first available unfilled textbox at {target_cell} as fallback")
+                                    break
                         
                         if target_cell:
                             result = await browser_service.type_at_cell(session_id, target_cell, text_to_type, human_like=True)
                             if result.get('success'):
                                 action_executed = True
+                                filled_textbox_cells.add(target_cell)  # Mark as filled
                                 log_step(f"✅ [EXECUTOR] Typed successfully at {target_cell}")
                             else:
                                 action_error = result.get('error', 'Type failed')
