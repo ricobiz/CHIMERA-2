@@ -11,7 +11,7 @@ import os
 from datetime import datetime
 
 # Backend URL from frontend/.env
-BACKEND_URL = "https://chimera-aios-3.preview.emergentagent.com/api"
+BACKEND_URL = "https://agent-control-10.preview.emergentagent.com/api"
 
 def log_test(test_name, success, message, details=None):
     """Log test results"""
