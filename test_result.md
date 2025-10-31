@@ -510,16 +510,13 @@ metadata:
 
 test_plan:
   - agent: "main"
-    message: "Re-run profile lifecycle tests after ipinfo via proxy fix: create profile → verify meta.proxy fields populated; warmup set; storage_state.json exists; use profile increments counters; status reflects meta."
+    message: "COMPREHENSIVE AUTOMATION TESTING - Phase 1: Backend endpoints testing via curl: (1) Grid configuration /api/automation/grid/set with 64x48, (2) Session creation /api/automation/session/create with use_proxy:true, (3) Smoke-check /api/automation/smoke-check to https://google.com, (4) Screenshot retrieval /api/automation/screenshot/{session_id}/full, (5) Scene snapshot /api/automation/scene/snapshot, (6) Plan generation /api/automation/plan/decide, (7) Click-cell /api/automation/click-cell, (8) Type-at-cell /api/automation/type-at-cell, (9) Hold-drag /api/automation/hold-drag, (10) CAPTCHA solve /api/automation/captcha/solve, (11) SelfTest run /api/automation/selftest/run, (12) AntiBot eval /api/automation/antibot/eval. Verify all endpoints return proper JSON with expected fields."
 
   - agent: "main"
-    message: "Run backend tests for profile lifecycle: POST /api/profile/create (region=US) → expect meta.status=warm, warmup.is_warm=true, storage_state.json exists; POST /api/profile/use → expect session_id, meta.used_count++, last_used updated; verify meta.locale/timezone/languages consistent with proxy; verify proxy fields ip/country/region/city/isp present."
+    message: "COMPREHENSIVE AUTOMATION TESTING - Phase 2: Frontend UI testing via playwright: (1) Verify Settings modal (⚙️) opens and shows 348 models, (2) Test model selection for Head Brain/Spinal Cord/Executor, (3) Verify proxy toggle ON/OFF, (4) Test Secrets modal (🔐) opens and saves email/password/phone to localStorage, (5) Verify refresh button (↻) updates screenshot, (6) Test Play/Pause/Stop buttons trigger correct backend endpoints, (7) Verify bot status indicator shows correct grade (green/yellow/red) after selftest, (8) Test OTP phone input field, (9) Verify drawing mode and path saving, (10) Check all status indicators (browser ready, proxy active, bot status) reflect correct states."
 
   - agent: "main"
-    message: "Re-run AutomationPage UI sanity after lens removal and pinch-zoom block: verify Map/Go update screenshot_id and render; detection boxes visible; grid toggle stable; Pin/Clear work; no console errors; no React invalid hook call; touch-action:none prevents page zoom inside viewer."
-
-  - agent: "main"
-    message: "Please run frontend AutomationPage sanity: verify viewer renders screenshot without jitter; thin blue detection boxes visible; grid toggle works; Map/Go buttons use smoke-check and update screenshot_id; pinch-zoom within viewer does not scroll or reload overlay; logs update; no console errors."
+    message: "COMPREHENSIVE AUTOMATION TESTING - Phase 3: Real scenario end-to-end test on justfans.uno registration: (1) Navigate to justfans.uno, (2) Detect signup form via scene snapshot, (3) Generate multi-path plan via planner, (4) Execute registration flow with Head Brain strategy + Spinal Cord decisions, (5) Handle CAPTCHA if present via /api/automation/captcha/solve, (6) Fill email/password from secrets, (7) Handle OTP if required, (8) Verify antibot detection and policy, (9) Monitor watchdog FSM state transitions, (10) Confirm successful registration or identify failure points."
   - agent: "testing"
     message: "🚨 **AUTOMATIONPAGE UI SANITY CHECK FAILED - CRITICAL REACT HOOK ERROR CONFIRMED**
 
