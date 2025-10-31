@@ -359,6 +359,129 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ RE-VERIFIED: Automation smoke test confirmed click-cell working. Successfully clicked cell M12 using session_id from smoke-check. Returns new screenshot_base64 and dom_event with correct cell information. Grid-based clicking system fully operational."
+      - working: true
+        agent: "testing"
+        comment: "✅ COMPREHENSIVE AUTOMATION TESTING COMPLETE: All 15 automation endpoints tested successfully (100% pass rate). Click-cell endpoint working perfectly - successfully clicked cell M12 with humanized movement, returns new screenshot and proper dom_event structure. Grid-based interaction system fully operational."
+
+  - task: "GET /api/automation/screenshot/{session_id}/full - Screenshot Full Retrieval"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/automation_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ COMPREHENSIVE AUTOMATION TESTING COMPLETE: All 15 automation endpoints tested successfully (100% pass rate). Screenshot full retrieval working perfectly - retrieved full screenshot (53484 chars base64) with all required fields: screenshot_base64, screenshot_id, grid, vision, viewport. Screenshot capture system fully operational."
+
+  - task: "POST /api/automation/scene/snapshot - Scene Snapshot"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/automation_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ COMPREHENSIVE AUTOMATION TESTING COMPLETE: All 15 automation endpoints tested successfully (100% pass rate). Scene snapshot working perfectly - captured scene with 32 elements, all required fields present: viewport, url, http, antibot, elements, hints, ts. Scene analysis system fully operational."
+
+  - task: "POST /api/automation/plan/decide - Plan Generation"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/automation_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ COMPREHENSIVE AUTOMATION TESTING COMPLETE: All 15 automation endpoints tested successfully (100% pass rate). Plan generation working perfectly - generated plan with 3 candidates for google.com search task, all required fields present: candidates, chosen, assumptions, risks. AI planning system fully operational."
+
+  - task: "POST /api/automation/type-at-cell - Type at Cell"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/automation_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ COMPREHENSIVE AUTOMATION TESTING COMPLETE: All 15 automation endpoints tested successfully (100% pass rate). Type-at-cell working perfectly - successfully typed 'test input' at cell C7, returns new screenshot and proper dom_event with cell and text fields. Text input system fully operational."
+
+  - task: "POST /api/automation/hold-drag - Hold Drag (for CAPTCHA)"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/automation_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ COMPREHENSIVE AUTOMATION TESTING COMPLETE: All 15 automation endpoints tested successfully (100% pass rate). Hold-drag working perfectly - successfully dragged from A1 to D4 with speed 1.0, returns new screenshot and proper dom_event with from/to coordinates. CAPTCHA drag system fully operational."
+
+  - task: "POST /api/automation/selftest/run - SelfTest Run"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/automation_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ COMPREHENSIVE AUTOMATION TESTING COMPLETE: All 15 automation endpoints tested successfully (100% pass rate). SelfTest working perfectly - completed with score=80, grade=green, all required fields present: score (0-100), grade (green/yellow/red), issues, ip, fp. Bot detection testing system fully operational."
+
+  - task: "POST /api/automation/antibot/eval - AntiBot Eval"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/automation_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ COMPREHENSIVE AUTOMATION TESTING COMPLETE: All 15 automation endpoints tested successfully (100% pass rate). AntiBot evaluation working perfectly - completed with action=continue, all required fields present: action (continue/backoff/abort/wait_solver), profile, backoff_ms. Anti-detection system fully operational."
+
+  - task: "POST /api/automation/watchdog/init - Watchdog Init"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/automation_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ COMPREHENSIVE AUTOMATION TESTING COMPLETE: All 15 automation endpoints tested successfully (100% pass rate). Watchdog init working perfectly - initialized with state=Idle, initialized=true for test.com registration goal. Watchdog FSM system fully operational."
+
+  - task: "POST /api/automation/watchdog/transition - Watchdog Transition"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/automation_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ COMPREHENSIVE AUTOMATION TESTING COMPLETE: All 15 automation endpoints tested successfully (100% pass rate). Watchdog transition working perfectly - transitioned from Idle to Snapshot state, ok=true, state=Snapshot. State machine transitions fully operational."
+
+  - task: "GET /api/automation/watchdog/status/{session_id} - Watchdog Status"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/automation_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ COMPREHENSIVE AUTOMATION TESTING COMPLETE: All 15 automation endpoints tested successfully (100% pass rate). Watchdog status working perfectly - retrieved status with state=Snapshot, steps=1, all required fields present: state, elapsed_ms, steps_count, scene_hash_counts, error_counts. Status monitoring system fully operational."
 
   - task: "GET /api/hook/log - Hook Log Retrieval"
     implemented: true
