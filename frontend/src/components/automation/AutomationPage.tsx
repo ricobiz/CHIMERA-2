@@ -631,7 +631,7 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
             <input value={quickUrl} onChange={(e:any)=>setQuickUrl(e.target.value)} className="flex-1 min-w-0 px-2 py-1 text-xs bg-black/40 border border-gray-700 rounded text-gray-200 placeholder-gray-500" placeholder="https://..." />
             <input value={quickSessionId || ''} onChange={(e:any)=>setQuickSessionId(e.target.value)} className="w-24 px-2 py-1 text-xs bg-black/40 border border-gray-700 rounded text-gray-200 placeholder-gray-500" placeholder="session-id" />
             <button title="Navigate to URL" onClick={quickNavigate} className="p-1 rounded bg-blue-800/70 hover:bg-blue-700/70 border border-blue-700 text-blue-200 flex-shrink-0"><PlayIcon className="w-3 h-3"/></button>
-            <button title="Refresh screen" onClick={()=>{/* TODO: refresh only automation screen */}} className="p-1 rounded bg-gray-700 hover:bg-gray-600 text-gray-300 flex-shrink-0 text-xs">↻</button>
+            <button title="Refresh screen" onClick={refreshScreen} className="p-1 rounded bg-gray-700 hover:bg-gray-600 text-gray-300 flex-shrink-0 text-xs">↻</button>
           </div>
           {/* Controls - minimal status only */}
           <div className="flex items-center gap-2 flex-shrink-0">
