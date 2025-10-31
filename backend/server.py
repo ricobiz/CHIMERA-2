@@ -87,6 +87,7 @@ from routes.hook_routes import router as hook_router
 from routes.proxy_routes import router as proxy_router
 from routes.personalization_routes import router as personalization_router
 from routes.test_routes import router as test_router
+from routes.autonomous_routes import router as autonomous_router
 app.include_router(lovable_router)
 app.include_router(models_router)
 app.include_router(session_router)
@@ -101,6 +102,7 @@ app.include_router(self_improve_router)
 app.include_router(hook_router)
 app.include_router(proxy_router)
 app.include_router(personalization_router)
+app.include_router(autonomous_router)
 
 app.include_router(profile_router)
 
