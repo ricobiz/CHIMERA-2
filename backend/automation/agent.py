@@ -12,15 +12,15 @@ from datetime import datetime, timezone
 from typing import Dict, Any, List, Optional, Callable
 from enum import Enum
 
-from .meta_planner import MetaPlanner
-from .tactical_brain import TacticalBrain 
-from .tools import ToolOrchestrator
-from .perception import Perception
-from .execution import Execution
-from .verification import Verification
-from ..services.browser_automation_service import browser_service
-from ..services.head_brain_service import head_brain_service
-from ..services.planner_service import planner_service
+from automation.meta_planner import MetaPlanner
+from automation.tactical_brain import TacticalBrain 
+from automation.tools.orchestrator import ToolOrchestrator
+from automation.perception import Perception
+from automation.execution import Execution
+from automation.verification import Verification
+from services.browser_automation_service import browser_service
+from services.head_brain_service import head_brain_service
+from services.planner_service import planner_service
 
 logger = logging.getLogger(__name__)
 
