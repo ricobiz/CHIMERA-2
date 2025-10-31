@@ -684,15 +684,10 @@ test_plan:
 **RECOMMENDATION:** Fix React hook errors in AutomationPage.tsx before UI testing can proceed. Focus on useEffect, useState, useCallback, useMemo, useRef usage patterns."
 
   current_focus:
-    - "Browser Automation viewer stability (pinch-zoom blocked in viewer)"
-    - "Automation smoke-check, click-cell, screenshot endpoints"
-
-    - "POST /api/chat endpoint - Chat Mode"
-    - "Chat Interface - Message Display"
-    - "Message Management - Delete/Edit/Regenerate"
-    - "Session Persistence - localStorage Auto-save"
-    - "Preview Panel - Code Display"
-    - "POST /api/generate-code endpoint - Agent Mode Code Generation"
+    - "GET /api/autonomous/health - Autonomous Health Check"
+    - "GET /api/autonomous/tools - Available Automation Tools"
+    - "POST /api/autonomous/run - Autonomous Task Execution"
+    - "Autonomous Integration with Existing Browser Automation"
   stuck_tasks:
     - "Chat Interface - Message Display (stuck_count: 2)"
     - "POST /api/chat endpoint (stuck_count: 2)"
