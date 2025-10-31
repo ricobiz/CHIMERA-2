@@ -1062,20 +1062,23 @@ class AutomationTester:
             if response.status_code == 200:
                 data = response.json()
                 
+                # Handle nested response structure
+                status_data = data.get('status', data)
+                
                 required_fields = ['state', 'elapsed_ms', 'steps_count', 'scene_hash_counts', 'error_counts']
-                missing_fields = [field for field in required_fields if field not in data]
+                missing_fields = [field for field in required_fields if field not in status_data]
                 
                 if not missing_fields:
                     self.log_test(
                         "Watchdog Status",
                         True,
-                        f"Watchdog status retrieved: state={data['state']}, steps={data['steps_count']}",
+                        f"Watchdog status retrieved: state={status_data['state']}, steps={status_data['steps_count']}",
                         {
-                            "state": data['state'],
-                            "elapsed_ms": data['elapsed_ms'],
-                            "steps_count": data['steps_count'],
-                            "scene_hash_counts": data['scene_hash_counts'],
-                            "error_counts": data['error_counts']
+                            "state": status_data['state'],
+                            "elapsed_ms": status_data['elapsed_ms'],
+                            "steps_count": status_data['steps_count'],
+                            "scene_hash_counts": status_data['scene_hash_counts'],
+                            "error_counts": status_data['error_counts']
                         }
                     )
                 else:
@@ -1083,7 +1086,7 @@ class AutomationTester:
                         "Watchdog Status",
                         False,
                         f"Response missing required fields: {missing_fields}",
-                        {"missing_fields": missing_fields, "response_keys": list(data.keys())}
+                        {"missing_fields": missing_fields, "response_keys": list(data.keys()), "status_keys": list(status_data.keys())}
                     )
             else:
                 self.log_test(
