@@ -829,9 +829,32 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
                 )}
               </div>
               
-              {/* Chat input with controls - LARGE textarea like main chat */}
-              <div className="space-y-3 border-t border-gray-700 pt-4 pb-4">
-                <div className="flex gap-3 items-end">
+              {/* Chat input - like main chat with icons inside */}
+              <div className="space-y-3 pt-4 pb-4">
+                {/* Control buttons above chat */}
+                <div className="flex gap-2 justify-center">
+                  <button className="px-4 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white text-sm font-medium transition-colors">
+                    ▶ Play
+                  </button>
+                  <button onClick={()=>setIsPaused(!isPaused)} className={`px-4 py-2 rounded-lg ${isPaused?'bg-green-600 hover:bg-green-700':'bg-yellow-600 hover:bg-yellow-700'} text-white text-sm font-medium transition-colors`}>
+                    {isPaused?'▶ Resume':'⏸ Pause'}
+                  </button>
+                  <button className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-medium transition-colors">
+                    ⏹ Stop
+                  </button>
+                </div>
+                
+                {/* Chat input field with icons inside */}
+                <div className="relative">
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 flex gap-2">
+                    <button className="text-gray-400 hover:text-gray-200" title="Attach file">
+                      📎
+                    </button>
+                    <button className="text-gray-400 hover:text-gray-200" title="Voice input">
+                      🎤
+                    </button>
+                  </div>
+                  
                   <textarea 
                     value={chatInput} 
                     onChange={(e)=>setChatInput(e.target.value)} 
@@ -843,9 +866,10 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
                       }
                     }} 
                     rows={3}
-                    className="flex-1 px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-base text-gray-200 placeholder-gray-500 focus:outline-none focus:border-blue-500 resize-none" 
-                    placeholder="Type instruction for automation AI... (Shift+Enter for new line)" 
+                    className="w-full pl-20 pr-14 py-3 bg-gray-900 border border-gray-700 rounded-lg text-base text-gray-200 placeholder-gray-500 focus:outline-none focus:border-green-500 resize-none" 
+                    placeholder="Type instruction for automation AI..." 
                   />
+                  
                   <button 
                     onClick={()=>{
                       if(chatInput.trim()){
@@ -853,9 +877,10 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
                         setChatInput('');
                       }
                     }} 
-                    className="px-8 py-6 bg-blue-600 hover:bg-blue-500 rounded-lg text-white text-base font-medium transition-colors flex-shrink-0"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-blue-500 hover:text-blue-400 text-2xl"
+                    title="Send"
                   >
-                    Send
+                    ➤
                   </button>
                 </div>
                 
