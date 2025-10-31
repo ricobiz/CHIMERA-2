@@ -782,6 +782,18 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
           </div>
           {/* Controls - minimal status only */}
           <div className="flex items-center gap-2 flex-shrink-0">
+            {/* Autonomous Mode Toggle */}
+            <button
+              onClick={() => setIsAutonomousMode(!isAutonomousMode)}
+              className={`text-xs px-2 py-1 rounded-md transition-colors ${
+                isAutonomousMode 
+                  ? 'bg-purple-600 text-white hover:bg-purple-700' 
+                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              }`}
+              title={isAutonomousMode ? 'Autonomous Mode (AI handles everything)' : 'Manual Mode (Traditional automation)'}
+            >
+              {isAutonomousMode ? '🧠 AUTO' : '⚙️ MANUAL'}
+            </button>
             <span className={`text-xs px-2 py-1 rounded-md whitespace-nowrap ${statusPill(agentStatus)}`}>{agentStatus}</span>
             {/* Live indicator with pulsing animation */}
             {isLiveMode && (
