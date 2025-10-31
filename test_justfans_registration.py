@@ -13,7 +13,7 @@ import string
 from datetime import datetime
 
 # Backend URL from frontend/.env
-BACKEND_URL = "https://chimera-auto.preview.emergentagent.com/api"
+BACKEND_URL = "https://sense-act.preview.emergentagent.com/api"
 
 class JustFansRegistrationTester:
     def __init__(self):

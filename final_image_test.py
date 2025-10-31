@@ -13,7 +13,7 @@ from datetime import datetime
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-BACKEND_URL = "https://chimera-auto.preview.emergentagent.com"
+BACKEND_URL = "https://sense-act.preview.emergentagent.com"
 
 class FinalImageTester:
     def __init__(self):
