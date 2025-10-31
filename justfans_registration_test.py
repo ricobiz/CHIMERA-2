@@ -208,14 +208,10 @@ class JustFansRegistrationTester:
                 # Find textbox/input elements
                 textbox_elements = []
                 for element in elements:
-                    element_type = element.get("type", "").lower()
-                    tag_name = element.get("tag_name", "").lower()
-                    input_type = element.get("input_type", "").lower()
+                    role = element.get("role", "").lower()
                     
-                    # Look for input fields, textboxes, or form elements
-                    if (element_type in ["textbox", "input", "text"] or 
-                        tag_name == "input" or 
-                        input_type in ["text", "email", "password"]):
+                    # Look for textbox elements
+                    if role == "textbox":
                         textbox_elements.append(element)
                 
                 if len(textbox_elements) >= 4:
