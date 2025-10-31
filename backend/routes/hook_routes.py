@@ -20,6 +20,8 @@ from services.anti_detect import HumanBehaviorSimulator
 from services.page_state_service import page_state_service
 from services.head_brain_service import head_brain_service
 from services.form_filler_service import form_filler_service
+from services.planner_service import planner_service
+from services.scene_builder_service import SceneBuilderService
 # Import automation endpoints for execution
 from routes.automation_routes import SmartTypeRequest, SmartClickRequest, smart_type_text, smart_click, FindElementsRequest
 from routes.profile_routes import CreateProfileRequest
