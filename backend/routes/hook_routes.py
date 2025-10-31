@@ -443,7 +443,15 @@ async def exec_task(req: TaskRequest):
             
             step_action = (current_step.get('action') or '').upper()  # Normalize to uppercase
             step_field = current_step.get('field')
-            step_target = current_step.get('target')
+            step_target_raw = current_step.get('target')
+            # Handle target: can be string or dict with {by, value}
+            if isinstance(step_target_raw, dict):
+                step_target = step_target_raw.get('value', '')
+                step_target_by = step_target_raw.get('by', 'label')
+            else:
+                step_target = step_target_raw
+                step_target_by = 'label'
+            
             step_data_key = current_step.get('data_key')
             step_next = current_step.get('next')
             step_on_error = current_step.get('on_error', 'retry_with_fix')
