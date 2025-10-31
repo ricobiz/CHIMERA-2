@@ -514,11 +514,19 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
             <input value={quickSessionId || ''} onChange={(e:any)=>setQuickSessionId(e.target.value)} className="w-28 md:w-40 px-2 py-1.5 text-xs bg-black/40 border border-gray-700 rounded text-gray-200 placeholder-gray-500" placeholder="session-id" />
             <button title="Connect" onClick={quickNavigate} className="p-1.5 rounded bg-blue-800/70 hover:bg-blue-700/70 border border-blue-700 text-blue-200 flex-shrink-0"><PlayIcon className="w-4 h-4"/></button>
           </div>
-          {/* Controls - status and action buttons */}
+          {/* Controls - minimal status only */}
           <div className="flex items-center gap-2 flex-shrink-0">
-            <button onClick={()=>setIsLiveMode(!isLiveMode)} className={`px-3 py-1.5 text-xs rounded-md whitespace-nowrap transition-colors ${isLiveMode?'bg-red-600 text-white hover:bg-red-700':'bg-gray-700 text-gray-300 hover:bg-gray-600'}`} title="Toggle Live Mode">{isLiveMode?'Live':'Idle'}</button>
-            <button onClick={()=>setIsPaused(!isPaused)} className={`px-3 py-1.5 text-xs rounded-md whitespace-nowrap transition-colors ${isPaused?'bg-yellow-600 hover:bg-yellow-700':'bg-gray-700 hover:bg-gray-600'} text-white`} title="Pause/Resume">{isPaused?'Resume':'Pause'}</button>
             <span className={`text-xs px-3 py-1.5 rounded-md whitespace-nowrap ${statusPill(agentStatus)}`}>{agentStatus}</span>
+            {/* Live indicator with pulsing animation */}
+            {isLiveMode && (
+              <div className="flex items-center gap-1 text-xs text-green-400">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                </span>
+                <span>LIVE</span>
+              </div>
+            )}
           </div>
         </div>
       </div>
