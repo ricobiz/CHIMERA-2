@@ -93,6 +93,12 @@ class PlannerService:
 
 Build 1-3 candidate plans (A/B/C) with preconditions, concrete steps, success signals, and stop conditions.
 
+SUPPORTED ACTIONS:
+- "type": Type text into an input field. Must include target element and data field
+- "click": Click on a button, link, or element
+- "wait": Wait for specified milliseconds
+- "navigate": Navigate to a URL
+
 RULES:
 1. Plans MUST reference ONLY elements present in Scene (role/label/id)
 2. Add bbox fallback when available
@@ -100,6 +106,7 @@ RULES:
 4. NEVER click captcha; stop on anti-bot
 5. Keep each candidate ≤6 steps
 6. Return ONLY valid JSON, no markdown
+7. Use ONLY supported actions: type, click, wait, navigate
 
 Output format:
 {
@@ -114,6 +121,13 @@ Output format:
       "pre": {"elements": ["button:Sign up|Create account"]},
       "steps": [
         {
+          "action": "type",
+          "target": {"by": "role", "value": "textbox"},
+          "field": "username",
+          "data_key": "username",
+          "explain": "enter username"
+        },
+        {
           "action": "click",
           "target": {"by": "label", "value": "Sign up"},
           "fallback": {"by": "bbox", "value": [100, 200, 300, 240]},
@@ -125,7 +139,12 @@ Output format:
     }
   ],
   "chosen": "A"
-}"""
+}
+
+IMPORTANT: For "type" actions, you MUST specify:
+- "field": semantic field name (username, email, password, etc)
+- "data_key": key from data bundle to use (username, email, password, etc)
+"""
     
     def _build_planner_prompt(
         self,
