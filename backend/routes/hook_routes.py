@@ -395,6 +395,19 @@ async def exec_task(req: TaskRequest):
         
         log_step(f"📋 [PLAN] Total steps in plan: {len(plan_steps)}")
         
+        # Initialize current_step_id from first step in plan
+        if plan_steps and len(plan_steps) > 0:
+            # Planner uses different format: steps are objects with "action", "target", etc
+            # Need to assign IDs if not present
+            for idx, step in enumerate(plan_steps):
+                if 'id' not in step:
+                    step['id'] = f"step_{idx+1}"
+            current_step_id = plan_steps[0].get('id', 'step_1')
+            log_step(f"📍 [PLAN] Starting from step: {current_step_id}")
+        else:
+            current_step_id = None
+            log_step("⚠️ [PLAN] No current_step_id set, execution will not start")
+        
         # Счётчик попыток retry для текущего шага
         step_retry_count = 0
         max_retries_per_step = 3
