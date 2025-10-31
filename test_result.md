@@ -305,11 +305,11 @@ backend:
 
   - task: "Frontend - Automation UI Controls (Refresh, Settings, Secrets, Play/Pause/Stop)"
     implemented: true
-    working: "NA"
+    working: false
     file: "/app/frontend/src/components/automation/AutomationPage.tsx"
-    stuck_count: 0
+    stuck_count: 1
     priority: "critical"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
@@ -317,6 +317,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ BACKEND AUTOMATION - 100% SUCCESS! All 15 automation endpoints tested and working perfectly: (1) Grid Configuration 64x48 ✅, (2) Session Creation with Proxy ✅, (3) Smoke Check Google (53KB screenshot) ✅, (4) Screenshot Full Retrieval ✅, (5) Scene Snapshot (32 elements) ✅, (6) Plan Generation (3 candidates) ✅, (7) Click Cell M12 ✅, (8) Type at Cell C7 ✅, (9) Hold Drag A1→D4 ✅, (10) CAPTCHA Solve ✅, (11) SelfTest (score=80, grade=green) ✅, (12) AntiBot Eval ✅, (13) Watchdog Init ✅, (14) Watchdog Transition ✅, (15) Watchdog Status ✅. All endpoints return proper JSON with expected fields. Browser automation system fully operational and ready for production. Proceeding to frontend UI testing."
+      - working: false
+        agent: "testing"
+        comment: "❌ CRITICAL ISSUE: AutomationPage UI not accessible due to React hook errors. BACKEND VERIFICATION: ✅ Smoke-check endpoint working (returns screenshot_base64, session_id: smoke-273670138589696-1761873069125), ✅ Models API working (351 models available), ✅ Main app functionality working (Settings page accessible). FRONTEND ISSUE: AutomationPage component fails to load when triggered by browser automation task classification. Task classification appears to work (backend logs show automation activity) but frontend navigation to AutomationPage fails. This prevents testing of: URL input field, refresh button (↻), settings modal (⚙️), secrets modal (🔐), play/pause/stop buttons, status indicators. Root cause: React hook errors in AutomationPage component preventing proper rendering."
 
   - task: "POST /api/automation/grid/set - Grid Configuration"
     implemented: true
