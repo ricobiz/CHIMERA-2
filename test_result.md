@@ -300,6 +300,18 @@ backend:
         agent: "main"
         comment: "Auto-detects and solves CAPTCHAs using Gemini 2.5 Flash Image vision model. Supports reCAPTCHA, hCaptcha. Needs testing."
 
+  - task: "Frontend - Automation UI Controls (Refresh, Settings, Secrets, Play/Pause/Stop)"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/automation/AutomationPage.tsx"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented full automation UI functionality: (1) Refresh button (↻) updates screenshot via /api/automation/screenshot/{session_id}/full, (2) Settings modal (⚙️) for selecting Head Brain, Spinal Cord, Executor models from 348 OpenRouter models + proxy toggle, (3) Secrets modal (🔐) for storing email/password/phone locally, (4) Play/Pause/Stop buttons connected to backend control endpoints, (5) Bot status indicator with selftest integration (green/yellow/red dots), (6) OTP phone input in secrets. All settings saved to localStorage. Ready for full backend + frontend testing on real scenario (justfans.uno registration)."
+
   - task: "POST /api/automation/grid/set - Grid Configuration"
     implemented: true
     working: true
