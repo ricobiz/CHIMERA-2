@@ -4,7 +4,7 @@ Integrates with existing head_brain_service and planner_service
 """
 
 import logging
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 
 from services.head_brain_service import head_brain_service
 from services.planner_service import planner_service
