@@ -354,7 +354,7 @@ class ToolOrchestrator:
         """Setup proxy connection"""
         try:
             # Integrate with existing proxy service
-            from ...services.proxy_service import proxy_service
+            from services.proxy_service import proxy_service
             
             if proxy_service.is_enabled():
                 proxy = proxy_service.get_next_proxy()
