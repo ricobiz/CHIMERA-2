@@ -7,7 +7,7 @@ import logging
 import re
 from typing import Dict, Any, List, Optional
 
-from ..services.openrouter_service import openrouter_service
+from services.openrouter_service import openrouter_service
 
 logger = logging.getLogger(__name__)
 
