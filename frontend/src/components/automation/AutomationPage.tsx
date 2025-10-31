@@ -1030,7 +1030,7 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
                   <button 
                     onClick={()=>{
                       if(chatInput.trim()){
-                        setChatMessages(prev=>[...prev,{role:'user',text:chatInput}]); 
+                        handleChatSend(chatInput);
                         setChatInput('');
                       }
                     }} 
