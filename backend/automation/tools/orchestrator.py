@@ -381,7 +381,7 @@ class ToolOrchestrator:
                 return {"error": "Session ID required for CAPTCHA solving"}
             
             # Use existing CAPTCHA solver
-            from ...services.browser_automation_service import browser_service
+            from services.browser_automation_service import browser_service
             
             result = await browser_service.detect_and_solve_captcha(session_id)
             
