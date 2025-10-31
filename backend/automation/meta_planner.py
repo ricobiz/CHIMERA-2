@@ -6,8 +6,8 @@ Integrates with existing head_brain_service and planner_service
 import logging
 from typing import Dict, Any, Optional
 
-from ..services.head_brain_service import head_brain_service
-from ..services.planner_service import planner_service
+from services.head_brain_service import head_brain_service
+from services.planner_service import planner_service
 
 logger = logging.getLogger(__name__)
 
