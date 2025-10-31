@@ -829,24 +829,45 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
                 )}
               </div>
               
-              {/* Chat input - like main chat with icons inside */}
-              <div className="space-y-3 pt-4 pb-4">
-                {/* Control buttons above chat */}
-                <div className="flex gap-2 justify-center">
-                  <button className="px-4 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white text-sm font-medium transition-colors">
-                    ▶ Play
-                  </button>
-                  <button onClick={()=>setIsPaused(!isPaused)} className={`px-4 py-2 rounded-lg ${isPaused?'bg-green-600 hover:bg-green-700':'bg-yellow-600 hover:bg-yellow-700'} text-white text-sm font-medium transition-colors`}>
-                    {isPaused?'▶ Resume':'⏸ Pause'}
-                  </button>
-                  <button className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-medium transition-colors">
-                    ⏹ Stop
-                  </button>
+              {/* Chat input - compact with small controls above */}
+              <div className="space-y-2 pb-4">
+                {/* Compact control row: actions, grid, mapping, indicators */}
+                <div className="flex items-center justify-between text-xs px-2">
+                  <div className="flex items-center gap-3">
+                    {/* Small icon buttons for Play/Pause/Stop */}
+                    <div className="flex items-center gap-1">
+                      <button className="text-gray-400 hover:text-green-400 text-lg" title="Play">▶</button>
+                      <button onClick={()=>setIsPaused(!isPaused)} className="text-gray-400 hover:text-yellow-400 text-lg" title="Pause">⏸</button>
+                      <button className="text-gray-400 hover:text-red-400 text-lg" title="Stop">⏹</button>
+                    </div>
+                    
+                    {/* Current action indicator */}
+                    <div className="text-gray-500 text-[10px]">
+                      Action: <span className="text-gray-300">Idle</span>
+                    </div>
+                    
+                    {/* Grid toggle */}
+                    <button onClick={()=>setShowGrid(!showGrid)} className="text-gray-400 hover:text-gray-200 text-[10px]">
+                      {showGrid?'Hide':'Show'} Grid
+                    </button>
+                    
+                    {/* Mapping */}
+                    <button onClick={()=>setPinMapping(!pinMapping)} className="text-gray-400 hover:text-gray-200 text-[10px]">
+                      {pinMapping?'Unpin':'Pin'} Elements
+                    </button>
+                  </div>
+                  
+                  {/* Status indicators */}
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 rounded-full bg-green-500" title="Browser Ready"></div>
+                    <div className="w-2 h-2 rounded-full bg-green-500" title="Proxy Active"></div>
+                    <div className="w-2 h-2 rounded-full bg-yellow-500" title="AntiBot Check"></div>
+                  </div>
                 </div>
                 
                 {/* Chat input field with icons inside */}
                 <div className="relative">
-                  <div className="absolute left-3 top-1/2 -translate-y-1/2 flex gap-2">
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 flex gap-2 z-10">
                     <button className="text-gray-400 hover:text-gray-200" title="Attach file">
                       📎
                     </button>
@@ -866,7 +887,7 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
                       }
                     }} 
                     rows={3}
-                    className="w-full pl-20 pr-14 py-3 bg-gray-900 border border-gray-700 rounded-lg text-base text-gray-200 placeholder-gray-500 focus:outline-none focus:border-green-500 resize-none" 
+                    className="w-full pl-20 pr-14 py-3 bg-gray-900 border border-green-500/30 rounded-lg text-base text-gray-200 placeholder-gray-500 focus:outline-none focus:border-green-500 resize-none shadow-[0_0_15px_rgba(34,197,94,0.1)]" 
                     placeholder="Type instruction for automation AI..." 
                   />
                   
@@ -877,7 +898,7 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
                         setChatInput('');
                       }
                     }} 
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-blue-500 hover:text-blue-400 text-2xl"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-green-500 hover:text-green-400 text-2xl"
                     title="Send"
                   >
                     ➤
