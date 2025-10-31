@@ -1018,7 +1018,7 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
                     onKeyDown={(e)=>{
                       if(e.key==='Enter' && !e.shiftKey && chatInput.trim()){
                         e.preventDefault();
-                        setChatMessages(prev=>[...prev,{role:'user',text:chatInput}]); 
+                        handleChatSend(chatInput);
                         setChatInput(''); 
                       }
                     }} 
