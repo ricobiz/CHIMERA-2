@@ -839,14 +839,15 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
               
               {/* Chat input - compact with small controls above */}
               <div className="space-y-2 pb-4">
-                {/* Compact control row: actions, grid, mapping, indicators */}
+                {/* Compact control row: actions, grid, mapping, indicators, secrets */}
                 <div className="flex items-center justify-between text-xs px-2">
                   <div className="flex items-center gap-3">
-                    {/* Small icon buttons for Play/Pause/Stop */}
+                    {/* Small icon buttons for Live/Play/Pause/Stop */}
                     <div className="flex items-center gap-1">
-                      <button className="text-gray-400 hover:text-green-400 text-lg" title="Play">▶</button>
-                      <button onClick={()=>setIsPaused(!isPaused)} className="text-gray-400 hover:text-yellow-400 text-lg" title="Pause">⏸</button>
-                      <button className="text-gray-400 hover:text-red-400 text-lg" title="Stop">⏹</button>
+                      <button onClick={()=>setIsLiveMode(!isLiveMode)} className={`${isLiveMode?'text-green-400':'text-gray-500'} hover:text-green-300 text-base`} title="Toggle Live Mode">●</button>
+                      <button className="text-gray-400 hover:text-green-400 text-base" title="Play">▶</button>
+                      <button onClick={()=>setIsPaused(!isPaused)} className="text-gray-400 hover:text-yellow-400 text-base" title="Pause">⏸</button>
+                      <button className="text-gray-400 hover:text-red-400 text-base" title="Stop">⏹</button>
                     </div>
                     
                     {/* Current action indicator */}
@@ -863,6 +864,11 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
                     <button onClick={()=>setPinMapping(!pinMapping)} className="text-gray-400 hover:text-gray-200 text-[10px]">
                       {pinMapping?'Unpin':'Pin'} Elements
                     </button>
+                    
+                    {/* Secrets button */}
+                    <button className="text-gray-400 hover:text-gray-200 text-[10px]" title="Manage secrets (emails, passwords)">
+                      🔐 Secrets
+                    </button>
                   </div>
                   
                   {/* Status indicators */}
@@ -873,7 +879,7 @@ const AutomationPage: React.FC<{ onClose?: () => void; embedded?: boolean }> = (
                   </div>
                 </div>
                 
-                {/* Chat input field with icons inside */}
+                {/* Chat input field with icons inside - flexible for keyboard */}
                 <div className="relative">
                   <div className="absolute left-3 top-1/2 -translate-y-1/2 flex gap-2 z-10">
                     <button className="text-gray-400 hover:text-gray-200" title="Attach file">
