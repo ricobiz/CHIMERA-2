@@ -10,6 +10,7 @@ import AutomationPage from './components/automation/AutomationPage.tsx';
 import DocumentVerification from './components/DocumentVerification';
 import SelfImprovement from './components/SelfImprovement';
 import AIEntryPoint from './components/AIEntryPoint';
+import BlockchainAnalyzer from './components/blockchain/BlockchainAnalyzer.jsx';
 import TaskProgress from './components/TaskProgress';
 import { generateCode, saveProject, createSession, updateSession, getSession, getOpenRouterBalance, generateDesign, generateMockup, classifyTask } from './services/api';
 import { toast } from './hooks/use-toast';
@@ -35,6 +36,7 @@ function App() {
   const [showDocVerification, setShowDocVerification] = useState(false);
   const [showSelfImprovement, setShowSelfImprovement] = useState(false);
   const [showAIEntry, setShowAIEntry] = useState(false);
+  const [showBlockchainAnalyzer, setShowBlockchainAnalyzer] = useState(false);
   const [apiBalance, setApiBalance] = useState(null); // OpenRouter balance
   
   const [visualValidatorEnabled, setVisualValidatorEnabled] = useState(
@@ -49,6 +51,10 @@ function App() {
   );
   const [researchPlannerModel, setResearchPlannerModel] = useState(
     localStorage.getItem('researchPlannerModel') || 'openai/gpt-5'  // GPT-5 for planning
+  );
+  
+  const [blockchainModel, setBlockchainModel] = useState(
+    localStorage.getItem('blockchainModel') || 'openai/gpt-5'  // GPT-5 for blockchain analysis
   );
 
   const [currentSessionId, setCurrentSessionId] = useState(
@@ -877,6 +883,10 @@ function App() {
       // AUTOMATION MODE → открываем AutomationPage
       console.log('[CHIMERA] Opening AutomationPage...');
       setShowAutomation(true);
+    } else if (chatMode === 'blockchain') {
+      // BLOCKCHAIN MODE → открываем BlockchainAnalyzer
+      console.log('[CHIMERA] Opening BlockchainAnalyzer...');
+      setShowBlockchainAnalyzer(true);
     } else if (chatMode === 'agent') {
       // CODE MODE → открываем PreviewPanel с кодом
       console.log('[CHIMERA] Opening Code Preview...');
@@ -1039,6 +1049,10 @@ Generate a complete React component that implements this exact design.`;
     return <AutomationPage onClose={() => setShowAutomation(false)} />;
   }
 
+  if (showBlockchainAnalyzer) {
+    return <BlockchainAnalyzer onClose={() => setShowBlockchainAnalyzer(false)} />;
+  }
+
   if (showAIEntry) {
     return <AIEntryPoint onClose={() => setShowAIEntry(false)} />;
   }
@@ -1069,6 +1083,8 @@ Generate a complete React component that implements this exact design.`;
           onResearchPlannerToggle={setResearchPlannerEnabled}
           researchPlannerModel={researchPlannerModel}
           onResearchPlannerModelChange={setResearchPlannerModel}
+          blockchainModel={blockchainModel}
+          onBlockchainModelChange={setBlockchainModel}
         />
         <Toaster />
       </div>

@@ -279,7 +279,9 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
         ? 'animated-gradient-border-green' 
         : chatMode === 'agent' 
           ? 'animated-gradient-border-purple'
-          : 'animated-gradient-border'
+          : chatMode === 'blockchain'
+            ? 'animated-gradient-border-orange'
+            : 'animated-gradient-border'
     }`}>
       {/* Header - redesigned */}
       <div className="flex-shrink-0 border-b border-gray-800 p-3 md:p-4">
@@ -334,6 +336,23 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
             >
               <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-gray-900 text-gray-300 text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-gray-700 z-10">
                 Automation
+              </span>
+            </button>
+            
+            {/* Blockchain OSINT Analyzer - Orange Square */}
+            <button
+              onClick={() => {
+                if (onChatModeChange) onChatModeChange('blockchain');
+              }}
+              className={`w-4 h-4 rounded transition-all relative group ${
+                chatMode === 'blockchain'
+                  ? 'bg-gradient-to-br from-orange-400 to-orange-600 shadow-lg shadow-orange-500/50 ring-2 ring-orange-400/40'
+                  : 'bg-orange-900/40 hover:bg-orange-800/60 border border-orange-700/60 hover:scale-105'
+              }`}
+              title="Blockchain OSINT Analyzer"
+            >
+              <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-gray-900 text-gray-300 text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-gray-700 z-10">
+                Blockchain
               </span>
             </button>
           </div>
@@ -895,7 +914,7 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
                     handleSubmit();
                   }
                 }}
-                placeholder={chatMode === 'chat' ? 'Chat about your app idea...' : chatMode === 'agent' ? 'Describe your app...' : 'What should I automate?'}
+                placeholder={chatMode === 'chat' ? 'Chat about your app idea...' : chatMode === 'agent' ? 'Describe your app...' : chatMode === 'automation' ? 'What should I automate?' : 'Enter blockchain address or transaction hash...'}
                 className={`min-h-[80px] md:min-h-[100px] bg-transparent text-sm md:text-base text-gray-300 resize-none pr-32 pl-3 pb-10 placeholder-gray-600 border-none focus:ring-0 w-full`}
               />
             
@@ -1132,6 +1151,21 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
           animation: gradientShift 3s ease infinite;
         }
         
+        .animated-gradient-border-orange {
+          position: relative;
+          border: 2px solid transparent;
+          background: linear-gradient(#0f0f10, #0f0f10) padding-box,
+                      linear-gradient(90deg, 
+                        rgba(249, 115, 22, 0.5),
+                        rgba(251, 146, 60, 0.5),
+                        rgba(253, 186, 116, 0.5),
+                        rgba(251, 146, 60, 0.5),
+                        rgba(249, 115, 22, 0.5)
+                      ) border-box;
+          background-size: 200% 100%;
+          animation: gradientShift 3s ease infinite;
+        }
+        
         @keyframes gradientShift {
           0%, 100% { background-position: 0% 50%; }
           50% { background-position: 100% 50%; }
@@ -1149,7 +1183,8 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
         @media (max-width: 768px) {
           .animated-gradient-border,
           .animated-gradient-border-purple,
-          .animated-gradient-border-green {
+          .animated-gradient-border-green,
+          .animated-gradient-border-orange {
             height: 100vh;
             height: 100dvh; /* Dynamic viewport height for mobile browsers */
             max-height: 100vh;
