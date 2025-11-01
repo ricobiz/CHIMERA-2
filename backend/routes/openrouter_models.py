@@ -108,22 +108,71 @@ async def get_openrouter_balance():
         api_key = os.environ.get('OPENROUTER_API_KEY')
         if not api_key:
             raise HTTPException(status_code=500, detail="OpenRouter API key not configured")
+        
         async with httpx.AsyncClient() as client:
-            resp = await client.get(
+            # Try to get prepaid credits first (for prepaid accounts)
+            try:
+                credits_resp = await client.get(
+                    "https://openrouter.ai/api/v1/credits",
+                    headers={"Authorization": f"Bearer {api_key}"},
+                    timeout=15.0
+                )
+                if credits_resp.status_code == 200:
+                    credits_data = credits_resp.json()
+                    data = credits_data.get('data', {})
+                    total_credits = data.get('total_credits', 0)
+                    total_usage = data.get('total_usage', 0)
+                    
+                    # Calculate remaining balance
+                    remaining = total_credits - total_usage
+                    
+                    # Return with additional info
+                    return {
+                        "remaining": round(remaining, 2),
+                        "currency": "USD",
+                        "balance": round(remaining, 2),
+                        "used": round(total_usage, 2),
+                        "total_credits": round(total_credits, 2)
+                    }
+            except Exception as e:
+                logger.warning(f"Credits endpoint failed, trying auth/key: {str(e)}")
+            
+            # Fallback to auth/key endpoint (for limit-based accounts)
+            auth_resp = await client.get(
                 "https://openrouter.ai/api/v1/auth/key",
-                headers={
-                    "Authorization": f"Bearer {api_key}"
-                },
+                headers={"Authorization": f"Bearer {api_key}"},
                 timeout=15.0
             )
-            if resp.status_code != 200:
-                logger.error(f"OpenRouter balance error: {resp.status_code} - {resp.text}")
-                raise HTTPException(status_code=resp.status_code, detail="Failed to fetch balance")
-            data = resp.json()
+            
+            if auth_resp.status_code != 200:
+                logger.error(f"OpenRouter balance error: {auth_resp.status_code} - {auth_resp.text}")
+                raise HTTPException(status_code=auth_resp.status_code, detail="Failed to fetch balance")
+            
+            data = auth_resp.json()
             api_data = data.get('data', {})
-            remaining = api_data.get('limit_remaining')
-            currency = api_data.get('limit_unit', 'USD')
-            return {"remaining": remaining, "currency": currency}
+            
+            # Check if limit-based account
+            limit = api_data.get('limit')
+            limit_remaining = api_data.get('limit_remaining')
+            usage = api_data.get('usage', 0)
+            
+            if limit is not None and limit_remaining is not None:
+                # Limit-based account
+                remaining = limit_remaining
+            elif limit is None:
+                # Unlimited/prepaid account without explicit balance
+                # Return usage info instead
+                remaining = None
+            else:
+                remaining = -1
+            
+            return {
+                "remaining": remaining,
+                "currency": "USD",
+                "balance": remaining,
+                "used": round(usage, 2) if usage else 0
+            }
+            
     except Exception as e:
         logger.error(f"Error fetching OpenRouter balance: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -216,10 +265,42 @@ async def get_openrouter_overview():
                 })
 
             formatted_models.sort(key=lambda x: (x['pricing']['prompt'], x['pricing']['completion']))
-            remaining = None
-            if balance_data:
-                remaining = balance_data.get('data', {}).get('limit_remaining')
-            return {"models": formatted_models, "balance": remaining}
+            
+            # Try to get balance from credits endpoint
+            balance_info = None
+            try:
+                credits_resp = await client.get(
+                    "https://openrouter.ai/api/v1/credits",
+                    headers={"Authorization": f"Bearer {api_key}"},
+                    timeout=15.0
+                )
+                if credits_resp.status_code == 200:
+                    credits_data = credits_resp.json()
+                    data = credits_data.get('data', {})
+                    total_credits = data.get('total_credits', 0)
+                    total_usage = data.get('total_usage', 0)
+                    remaining = total_credits - total_usage
+                    balance_info = {
+                        "remaining": round(remaining, 2),
+                        "currency": "USD",
+                        "balance": round(remaining, 2),
+                        "used": round(total_usage, 2),
+                        "total_credits": round(total_credits, 2)
+                    }
+            except Exception as e:
+                logger.warning(f"Credits endpoint failed in overview: {str(e)}")
+                # Fallback to balance_data from auth/key
+                if balance_data:
+                    api_data = balance_data.get('data', {})
+                    remaining = api_data.get('limit_remaining')
+                    balance_info = {
+                        "remaining": remaining,
+                        "currency": "USD",
+                        "balance": remaining,
+                        "used": round(api_data.get('usage', 0), 2)
+                    }
+            
+            return {"models": formatted_models, "balance": balance_info}
 
     except Exception as e:
         logger.error(f"Error building OpenRouter overview: {str(e)}")
