@@ -227,7 +227,7 @@ class LocalVisionService:
             # - Need to find elements not in DOM (canvas, SVG, dynamically rendered)
             # - Verification mode (check if button actually visible)
             
-            USE_FLORENCE_ENHANCEMENT = False  # Feature flag (disabled for stability)
+            USE_FLORENCE_ENHANCEMENT = True  # Feature flag (enabled for visual element detection)
             
             if USE_FLORENCE_ENHANCEMENT and screenshot_base64:
                 logger.info("🔍 [VISION] Running Florence-2 visual enhancement...")

@@ -967,6 +967,21 @@ const ChatInterface = ({ onSendPrompt, messages = [], onSave, totalCost, apiBala
                   </svg>
                   Auto
                 </button>
+                <button
+                  onClick={() => !isGenerating && onChatModeChange('blockchain')}
+                  disabled={isGenerating}
+                  className={`px-3 py-1.5 rounded-full text-[10px] font-medium transition-all flex items-center gap-1.5 ${
+                    chatMode === 'blockchain'
+                      ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg'
+                      : 'text-gray-400 hover:text-gray-200'
+                  } ${isGenerating ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  title="Blockchain OSINT Analyzer"
+                >
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  OSINT
+                </button>
               </div>
               
               {/* File upload */}
