@@ -7,6 +7,7 @@ import ChatInterface from './components/ChatInterface';
 import PreviewPanel from './components/PreviewPanel';
 import Settings from './components/Settings';
 import AutomationPage from './components/automation/AutomationPage.tsx';
+import BlockchainAnalyzer from './components/blockchain/BlockchainAnalyzer.jsx';
 import DocumentVerification from './components/DocumentVerification';
 import SelfImprovement from './components/SelfImprovement';
 import AIEntryPoint from './components/AIEntryPoint';
@@ -32,6 +33,7 @@ function App() {
   const [showPreview, setShowPreview] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showAutomation, setShowAutomation] = useState(false);
+  const [showBlockchain, setShowBlockchain] = useState(false);
   const [showDocVerification, setShowDocVerification] = useState(false);
   const [showSelfImprovement, setShowSelfImprovement] = useState(false);
   const [showAIEntry, setShowAIEntry] = useState(false);
@@ -877,6 +879,10 @@ function App() {
       // AUTOMATION MODE → открываем AutomationPage
       console.log('[CHIMERA] Opening AutomationPage...');
       setShowAutomation(true);
+    } else if (chatMode === 'blockchain') {
+      // BLOCKCHAIN MODE → открываем BlockchainAnalyzer
+      console.log('[CHIMERA] Opening BlockchainAnalyzer...');
+      setShowBlockchain(true);
     } else if (chatMode === 'agent') {
       // CODE MODE → открываем PreviewPanel с кодом
       console.log('[CHIMERA] Opening Code Preview...');
@@ -1039,6 +1045,10 @@ Generate a complete React component that implements this exact design.`;
     return <AutomationPage onClose={() => setShowAutomation(false)} />;
   }
 
+  if (showBlockchain) {
+    return <BlockchainAnalyzer onClose={() => setShowBlockchain(false)} />;
+  }
+
   if (showAIEntry) {
     return <AIEntryPoint onClose={() => setShowAIEntry(false)} />;
   }
@@ -1150,7 +1160,7 @@ Generate a complete React component that implements this exact design.`;
         </div>
 
         {/* Floating Preview Toggle Button (only on mobile, only when chat is visible) */}
-        {!showPreview && !showSettings && !showAutomation && !showDocVerification && !showSelfImprovement && !showAIEntry && (
+        {!showPreview && !showSettings && !showAutomation && !showBlockchain && !showDocVerification && !showSelfImprovement && !showAIEntry && (
           <button
             onClick={() => setShowPreview(true)}
             className="md:hidden fixed right-0 top-1/2 -translate-y-1/2 z-50 bg-transparent border-l-2 border-t-2 border-b-2 border-gray-700 hover:border-gray-500 hover:bg-gray-900/50 text-gray-400 hover:text-gray-300 px-2 py-4 rounded-l-lg backdrop-blur-sm transform transition-all duration-300"
@@ -1166,7 +1176,7 @@ Generate a complete React component that implements this exact design.`;
         )}
 
         {/* Close Preview Button (only on mobile, only when preview is visible) */}
-        {showPreview && !showSettings && !showAutomation && !showDocVerification && !showSelfImprovement && !showAIEntry && (
+        {showPreview && !showSettings && !showAutomation && !showBlockchain && !showDocVerification && !showSelfImprovement && !showAIEntry && (
           <button
             onClick={() => setShowPreview(false)}
             className="md:hidden fixed right-0 top-1/2 -translate-y-1/2 z-50 bg-transparent border-l-2 border-t-2 border-b-2 border-gray-700 hover:border-gray-500 hover:bg-gray-900/50 text-gray-400 hover:text-gray-300 px-2 py-4 rounded-l-lg backdrop-blur-sm transform transition-all duration-300"
